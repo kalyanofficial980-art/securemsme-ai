@@ -25,6 +25,12 @@ export type EmailSecurityInfo = {
   dmarcPolicy?: string;
 };
 
+export type PublicFileCheck = {
+  path: string;
+  status?: number;
+  exposed: boolean;
+};
+
 export type ScanReport = {
   url: string;
   normalizedUrl: string;
@@ -41,6 +47,15 @@ export type ScanReport = {
       location?: string | null;
     };
     emailSecurity?: EmailSecurityInfo;
+    hygiene?: {
+      robotsTxt: boolean;
+      sitemapXml: boolean;
+      securityTxt: boolean;
+      sensitiveFiles: PublicFileCheck[];
+      mixedContentCount: number;
+      cookieCount: number;
+      insecureCookieCount: number;
+    };
   };
 };
 
@@ -52,6 +67,16 @@ const IMPORTANT_SECURITY_HEADERS = [
 ];
 
 const PRIVATE_HOSTS = new Set(["localhost", "127.0.0.1", "::1", "0.0.0.0"]);
+
+const SENSITIVE_PUBLIC_PATHS = [
+  "/.env",
+  "/.git/config",
+  "/config.php",
+  "/backup.zip",
+  "/database.sql",
+  "/db.sql",
+  "/wp-config.php.bak",
+];
 
 function normalizeUrl(input: string) {
   const trimmed = input.trim();
@@ -145,7 +170,7 @@ async function fetchWithTimeout(url: string, options?: RequestInit) {
       signal: controller.signal,
       redirect: options?.redirect ?? "follow",
       headers: {
-        "user-agent": "SecureMSME-AI-Safety-Checker/0.3",
+        "user-agent": "SecureMSME-AI-Safety-Checker/0.4",
         ...(options?.headers || {}),
       },
     });
@@ -165,6 +190,21 @@ async function pageExists(baseUrl: URL, path: string) {
     return response.status >= 200 && response.status < 400;
   } catch {
     return false;
+  }
+}
+
+async function getStatusForPath(baseUrl: URL, path: string) {
+  const testUrl = new URL(path, baseUrl.origin);
+
+  try {
+    const response = await fetchWithTimeout(testUrl.toString(), {
+      method: "GET",
+      redirect: "manual",
+    });
+
+    return response.status;
+  } catch {
+    return undefined;
   }
 }
 
@@ -295,6 +335,48 @@ async function checkEmailSecurity(
   };
 }
 
+function getCookieSecurity(headers: Record<string, string>) {
+  const setCookieHeader = headers["set-cookie"];
+
+  if (!setCookieHeader) {
+    return {
+      cookieCount: 0,
+      insecureCookieCount: 0,
+    };
+  }
+
+  const cookies = setCookieHeader.split(/,(?=[^;,]+=)/g);
+  const insecureCookies = cookies.filter((cookie) => {
+    const lower = cookie.toLowerCase();
+    return !lower.includes("secure") || !lower.includes("httponly");
+  });
+
+  return {
+    cookieCount: cookies.length,
+    insecureCookieCount: insecureCookies.length,
+  };
+}
+
+async function getHomepageHtml(url: URL) {
+  try {
+    const response = await fetchWithTimeout(url.toString(), { method: "GET" });
+    const contentType = response.headers.get("content-type") || "";
+
+    if (!contentType.includes("text/html")) {
+      return "";
+    }
+
+    return await response.text();
+  } catch {
+    return "";
+  }
+}
+
+function countMixedContent(html: string) {
+  const matches = html.match(/(?:src|href)=["']http:\/\//gi);
+  return matches?.length ?? 0;
+}
+
 export async function scanWebsite(inputUrl: string): Promise<ScanReport> {
   const url = normalizeUrl(inputUrl);
 
@@ -405,7 +487,6 @@ export async function scanWebsite(inputUrl: string): Promise<ScanReport> {
 
   const serverHeader = headers["server"];
   const poweredByHeader = headers["x-powered-by"];
-
   const exposureCount = [serverHeader, poweredByHeader].filter(Boolean).length;
 
   findings.push({
@@ -480,6 +561,120 @@ export async function scanWebsite(inputUrl: string): Promise<ScanReport> {
             ? 5
             : 0,
     maxPoints: 15,
+  });
+
+  const robotsTxt = await pageExists(url, "/robots.txt");
+  findings.push({
+    name: "robots.txt",
+    status: robotsTxt ? "pass" : "warning",
+    message: robotsTxt
+      ? "robots.txt file was found."
+      : "robots.txt was not found. Add it to guide search engines and crawlers.",
+    points: robotsTxt ? 5 : 2,
+    maxPoints: 5,
+  });
+
+  const sitemapXml = await pageExists(url, "/sitemap.xml");
+  findings.push({
+    name: "sitemap.xml",
+    status: sitemapXml ? "pass" : "warning",
+    message: sitemapXml
+      ? "sitemap.xml file was found."
+      : "sitemap.xml was not found. Add it to improve website discoverability.",
+    points: sitemapXml ? 5 : 2,
+    maxPoints: 5,
+  });
+
+  const securityTxt =
+    (await pageExists(url, "/.well-known/security.txt")) ||
+    (await pageExists(url, "/security.txt"));
+
+  findings.push({
+    name: "security.txt",
+    status: securityTxt ? "pass" : "warning",
+    message: securityTxt
+      ? "security.txt was found. This helps security researchers report issues responsibly."
+      : "security.txt was not found. Add it to provide a responsible security contact.",
+    points: securityTxt ? 10 : 3,
+    maxPoints: 10,
+  });
+
+  const sensitiveFiles: PublicFileCheck[] = [];
+
+  for (const path of SENSITIVE_PUBLIC_PATHS) {
+    const status = await getStatusForPath(url, path);
+    sensitiveFiles.push({
+      path,
+      status,
+      exposed: status !== undefined && status >= 200 && status < 300,
+    });
+  }
+
+  const exposedSensitiveFiles = sensitiveFiles.filter((item) => item.exposed);
+
+  findings.push({
+    name: "Sensitive public files",
+    status:
+      exposedSensitiveFiles.length === 0
+        ? "pass"
+        : exposedSensitiveFiles.length <= 2
+          ? "warning"
+          : "fail",
+    message:
+      exposedSensitiveFiles.length === 0
+        ? "No common sensitive public files were found."
+        : `${exposedSensitiveFiles.length} sensitive-looking file path(s) appear publicly reachable.`,
+    points:
+      exposedSensitiveFiles.length === 0
+        ? 15
+        : exposedSensitiveFiles.length <= 2
+          ? 5
+          : 0,
+    maxPoints: 15,
+  });
+
+  const homepageHtml = await getHomepageHtml(url);
+  const mixedContentCount = countMixedContent(homepageHtml);
+
+  findings.push({
+    name: "Mixed content",
+    status:
+      mixedContentCount === 0
+        ? "pass"
+        : mixedContentCount <= 2
+          ? "warning"
+          : "fail",
+    message:
+      mixedContentCount === 0
+        ? "No obvious HTTP resources were found on the homepage."
+        : `${mixedContentCount} possible HTTP resource reference(s) found on the homepage.`,
+    points: mixedContentCount === 0 ? 10 : mixedContentCount <= 2 ? 5 : 0,
+    maxPoints: 10,
+  });
+
+  const cookieSecurity = getCookieSecurity(headers);
+
+  findings.push({
+    name: "Cookie security",
+    status:
+      cookieSecurity.cookieCount === 0
+        ? "pass"
+        : cookieSecurity.insecureCookieCount === 0
+          ? "pass"
+          : "warning",
+    message:
+      cookieSecurity.cookieCount === 0
+        ? "No Set-Cookie header observed on the homepage response."
+        : cookieSecurity.insecureCookieCount === 0
+          ? "Observed cookies include basic Secure and HttpOnly protection."
+          : `${cookieSecurity.insecureCookieCount}/${cookieSecurity.cookieCount} observed cookie(s) may be missing Secure or HttpOnly.`,
+    points:
+      cookieSecurity.cookieCount === 0
+        ? 10
+        : cookieSecurity.insecureCookieCount === 0
+          ? 10
+          : 4,
+    maxPoints: 10,
   });
 
   const privacyFound =
@@ -569,6 +764,15 @@ export async function scanWebsite(inputUrl: string): Promise<ScanReport> {
         location: httpsRedirect.location,
       },
       emailSecurity,
+      hygiene: {
+        robotsTxt,
+        sitemapXml,
+        securityTxt,
+        sensitiveFiles,
+        mixedContentCount,
+        cookieCount: cookieSecurity.cookieCount,
+        insecureCookieCount: cookieSecurity.insecureCookieCount,
+      },
     },
   };
 }

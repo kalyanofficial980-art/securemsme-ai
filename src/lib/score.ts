@@ -17,12 +17,28 @@ function getCategory(finding: ScanFinding) {
   }
 
   if (
+    finding.name.includes("Sensitive") ||
+    finding.name.includes("Mixed content") ||
+    finding.name.includes("Cookie") ||
+    finding.name.includes("admin")
+  ) {
+    return "Exposure risk";
+  }
+
+  if (
+    finding.name.includes("robots") ||
+    finding.name.includes("sitemap") ||
+    finding.name.includes("security.txt")
+  ) {
+    return "Website hygiene";
+  }
+
+  if (
     finding.name.includes("HTTPS") ||
     finding.name.includes("SSL") ||
     finding.name.includes("HSTS") ||
     finding.name.includes("Security headers") ||
-    finding.name.includes("Server technology") ||
-    finding.name.includes("admin")
+    finding.name.includes("Server technology")
   ) {
     return "Website security";
   }
@@ -52,16 +68,16 @@ export function calculateScore(report: ScanReport) {
 
   let riskLevel: "Low" | "Medium" | "High" = "High";
   let summary =
-    "This website has important security, email, or trust gaps that should be fixed soon.";
+    "This website has security, email, exposure, or trust gaps that should be fixed soon.";
 
   if (percentage >= 80) {
     riskLevel = "Low";
     summary =
-      "This website passed most public website and email security checks. Keep monitoring it regularly.";
+      "This website passed most public security, email, exposure, and trust checks. Keep monitoring it regularly.";
   } else if (percentage >= 50) {
     riskLevel = "Medium";
     summary =
-      "This website has some website, email, or trust gaps. Fixing the top issues can improve customer trust.";
+      "This website has some security, email, exposure, or trust gaps. Fixing the top issues can improve customer trust.";
   }
 
   const categoryMap = new Map<string, { score: number; maxScore: number }>();
@@ -103,7 +119,7 @@ export function calculateScore(report: ScanReport) {
   const topFixes = report.findings
     .filter((finding) => finding.status !== "pass")
     .sort((a, b) => b.maxPoints - b.points - (a.maxPoints - a.points))
-    .slice(0, 8)
+    .slice(0, 10)
     .map((finding) => ({
       name: finding.name,
       message: finding.message,
