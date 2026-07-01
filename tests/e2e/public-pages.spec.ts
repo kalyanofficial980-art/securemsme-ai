@@ -9,6 +9,9 @@ const publicPages = [
   { path: "/tools", text: "Clear security reports" },
   { path: "/safe-templates", text: "Extra checks" },
   { path: "/passive-worker", text: "Public website observations" },
+  { path: "/known-risks", text: "CVE-aware guidance" },
+  { path: "/authorized-pentest", text: "Deeper security checks" },
+  { path: "/real-security-checks", text: "Real evidence" },
   { path: "/audit-framework", text: "Inbuilt advanced security audit" },
   {
     path: "/vulnerability-intelligence",

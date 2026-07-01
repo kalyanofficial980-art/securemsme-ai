@@ -1,55 +1,36 @@
 # SecureMSME AI Security Audit Notes
 
-## Mega Part 28 customer-facing UX cleanup
+## Mega Part 31 real HTTP/TLS/service discovery modules
 
 Added:
 
-- Customer report hub
-- Customer-friendly navigation labels
-- Customer-facing public page rewrites
-- Internal/admin engine separation
-- Admin-only technical engine details page
-- Customer language helper
-- Customer wording tests
-- Updated QA wording checklist
+- Real HTTP security header module
+- Real TLS certificate/protocol module
+- Real DNS/email security module
+- Controlled service discovery module
+- Private/internal target safety guard
+- Real modules report page
+- Real modules server action
+- Public real security checks page
+- Admin real modules page
+- Unit tests for target blocking
+- E2E public page coverage
 
-## Customer-facing direction
+## Real evidence collected
 
-Customers should see:
+- HTTP status
+- Selected security headers
+- Redirect location
+- TLS protocol
+- TLS cipher
+- Certificate subject/issuer/expiry
+- A/AAAA records
+- MX records
+- SPF record
+- DMARC record
+- Controlled TCP connect result for limited ports
 
-- Website Security Report
-- Security Score
-- Priority Fixes
-- Developer Instructions
-- Evidence Confidence
-- Fix Plan & Progress
-- Before / After Proof
-- Advanced Website Checks
-- Website Review Evidence
-
-Customers should not see:
-
-- Tool runner
-- Nuclei
-- ZAP
-- Worker
-- Job logs
-- Architecture-ready
-- Normalized evidence
-- Unsafe exploit template
-
-## Internal/admin direction
-
-Admin can still inspect:
-
-- Engine logs
-- Tool jobs
-- Passive review details
-- Check engine details
-- Normalized evidence
-- Technical route outputs
-
-## Security boundary remains unchanged
+## Safety boundary
 
 Still not allowed:
 
@@ -57,20 +38,35 @@ Still not allowed:
 - Brute force
 - Login bypass
 - Password guessing
+- Form submission
 - Unauthorized private testing
-- Aggressive scanning
 - Destructive testing
 - Private data access
+- Denial-of-service testing
+- Payment abuse testing
 - Claiming full pentest
-- Claiming no vulnerabilities exist
-- Claiming a fix is proven before retest/evidence change
+- Claiming all vulnerabilities found
 
-## Next international-standard layer
+## SSRF / internal safety
 
-Mega Part 29 should add:
+Real modules block:
 
-- CVE intelligence and technology risk database
-- Technology-to-CVE mapping with confidence controls
-- Customer-safe CVE explanations
-- Developer upgrade recommendations
-- No version means no CVE certainty
+- localhost
+- 127.0.0.1
+- 0.0.0.0
+- ::1
+- .local
+- .internal
+- private IPv4 ranges
+- link-local ranges
+- private IPv6 ranges
+
+## Next layer
+
+Mega Part 32 should add:
+
+- Real safe template execution worker
+- Template runner over verified target responses
+- Template severity/confidence
+- Module result integration
+- No exploit templates

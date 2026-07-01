@@ -6,18 +6,44 @@ type AdvancedReportNavigationProps = {
   variant?: "full" | "compact";
 };
 
+const extraLinks = [
+  {
+    label: "Authorized Security Review",
+    description:
+      "Verified-scope deeper checks with permission and safety controls",
+    href: (id: string) => `/report/${id}/authorized-pentest`,
+    primary: true,
+    customerVisible: true,
+  },
+  {
+    label: "Real Security Evidence",
+    description: "Real HTTP, TLS, DNS, and controlled service evidence",
+    href: (id: string) => `/report/${id}/real-modules`,
+    primary: true,
+    customerVisible: true,
+  },
+  {
+    label: "Known Technology Risks",
+    description: "CVE-aware technology review with safe upgrade guidance",
+    href: (id: string) => `/report/${id}/known-risks`,
+    primary: true,
+    customerVisible: true,
+  },
+];
+
 export function AdvancedReportNavigation({
   scanId,
   variant = "full",
 }: AdvancedReportNavigationProps) {
-  const visibleLinks = customerReportLinks.filter(
-    (item) => item.customerVisible,
-  );
+  const visibleLinks = [
+    ...customerReportLinks.filter((item) => item.customerVisible),
+    ...extraLinks,
+  ];
 
   if (variant === "compact") {
     return (
       <div className="mt-5 flex flex-wrap gap-3">
-        {visibleLinks.slice(0, 6).map((item) => (
+        {visibleLinks.slice(0, 9).map((item) => (
           <Link
             key={item.label}
             href={item.href(scanId)}
@@ -43,9 +69,9 @@ export function AdvancedReportNavigation({
           </p>
           <h2 className="mt-2 text-3xl font-black">What should you do next?</h2>
           <p className="mt-3 max-w-3xl leading-7 text-slate-600">
-            Review your security score, create a fix plan, send clear tasks to
-            your developer, and run a retest after fixes to show before/after
-            proof.
+            Review your security score, real backend evidence, authorized deeper
+            review, known technology risks, fix plan, developer tasks, and
+            retest after fixes.
           </p>
         </div>
 
