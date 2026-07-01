@@ -10,7 +10,10 @@ type CategoryScore = {
 function getCategory(finding: ScanFinding) {
   if (
     finding.name.includes("HTTPS") ||
+    finding.name.includes("SSL") ||
+    finding.name.includes("HSTS") ||
     finding.name.includes("Security headers") ||
+    finding.name.includes("Server technology") ||
     finding.name.includes("admin")
   ) {
     return "Website security";
@@ -41,16 +44,16 @@ export function calculateScore(report: ScanReport) {
 
   let riskLevel: "Low" | "Medium" | "High" = "High";
   let summary =
-    "This website has important safety and trust gaps that should be fixed soon.";
+    "This website has important security and trust gaps that should be fixed soon.";
 
   if (percentage >= 80) {
     riskLevel = "Low";
     summary =
-      "This website passed most basic safety checks, but regular monitoring is still recommended.";
+      "This website passed most public safety checks. Keep monitoring it regularly.";
   } else if (percentage >= 50) {
     riskLevel = "Medium";
     summary =
-      "This website has some safety and trust gaps. Fixing the top issues can improve customer trust.";
+      "This website has some security or trust gaps. Fixing the top issues can improve customer trust.";
   }
 
   const categoryMap = new Map<string, { score: number; maxScore: number }>();
@@ -92,7 +95,7 @@ export function calculateScore(report: ScanReport) {
   const topFixes = report.findings
     .filter((finding) => finding.status !== "pass")
     .sort((a, b) => b.maxPoints - b.points - (a.maxPoints - a.points))
-    .slice(0, 5)
+    .slice(0, 6)
     .map((finding) => ({
       name: finding.name,
       message: finding.message,
