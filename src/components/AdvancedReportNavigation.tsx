@@ -13,6 +13,12 @@ const links = [
     primary: true,
   },
   {
+    label: "Tool Runner",
+    description: "Built-in tool architecture, job logs, evidence normalization",
+    href: (id: string) => `/report/${id}/tool-runner`,
+    primary: true,
+  },
+  {
     label: "Vulnerability Intelligence",
     description:
       "Tech stack, attack surface, version exposure, confidence labels",
@@ -92,18 +98,18 @@ export function AdvancedReportNavigation({
             Open deeper audit reports
           </h2>
           <p className="mt-3 max-w-3xl leading-7 text-slate-600">
-            This is where SecureMSME AI becomes useful after the scan: customer
-            value report, before/after tracking, vulnerability intelligence,
-            evidence calibration, inbuilt audit evidence, OWASP/ASVS mapping,
-            PDF, and developer handoff.
+            SecureMSME AI now includes customer value workflow, built-in tool
+            runner architecture, vulnerability intelligence, evidence
+            calibration, inbuilt audit evidence, OWASP/ASVS mapping, PDF, and
+            developer handoff.
           </p>
         </div>
 
         <Link
-          href={`/report/${scanId}/customer-value`}
+          href={`/report/${scanId}/tool-runner`}
           className="rounded-full bg-slate-950 px-6 py-3 text-sm font-black text-white hover:bg-slate-800"
         >
-          Open customer value report
+          Open tool runner
         </Link>
       </div>
 

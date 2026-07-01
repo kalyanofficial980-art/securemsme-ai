@@ -6,6 +6,7 @@ const publicPages = [
   { path: "/trust", text: "Trust" },
   { path: "/security", text: "Security" },
   { path: "/legal", text: "Legal" },
+  { path: "/tools", text: "Built-in cybersecurity tools" },
   { path: "/audit-framework", text: "Inbuilt advanced security audit" },
   {
     path: "/vulnerability-intelligence",

@@ -31,6 +31,20 @@ Added:
 - Proof-of-fix summary
 - Retest guidance
 
+## Mega Part 25 built-in tool runner architecture
+
+Added:
+
+- Security tool jobs table
+- Tool runs table
+- Tool evidence table
+- Safe tool registry
+- Tool runner report page
+- Public tools page
+- Normalized evidence pipeline
+- Verified-scope gating for future deeper tool modules
+- Foundation for Nuclei-style and ZAP-style backend modules
+
 ## Why this matters
 
 A serious cybersecurity SaaS must not only generate a report. It must help the customer:
@@ -40,6 +54,7 @@ A serious cybersecurity SaaS must not only generate a report. It must help the c
 - Track fix status
 - Retest after fixes
 - Show before/after proof
+- Run safe backend tool modules without asking the customer to install tools
 - Avoid unsafe claims
 
 ## Not allowed in current safe SaaS mode
@@ -60,15 +75,14 @@ Not allowed:
 
 ## Next international-standard layer
 
-Mega Part 25 should add:
+Mega Part 26 should add:
 
-- Built-in security tool runner architecture
-- Job queue-style scan orchestration
-- Tool module registry
-- Safe template categories
-- Scan logs
-- Tool evidence normalization
-- Customer does not install external tools
+- Safe Nuclei-style template engine
+- Local built-in safe templates
+- Template severity and confidence controls
+- Verified-scope enforcement
+- Template evidence normalization
+- No unsafe exploit templates
 
 ## Pre-deploy security gate
 

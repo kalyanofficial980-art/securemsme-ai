@@ -25,6 +25,12 @@ npm.cmd run audit:npm
 - Fix item status can be changed to open/in progress/fixed/needs review/accepted risk
 - Customer value report shows before/after score comparison
 - Customer value report shows proof-of-fix summary
+- Tool runner public page loads: `/tools`
+- Tool runner report page opens: `/report/<scan-id>/tool-runner`
+- Tool runner job can be created
+- Tool runner shows completed/blocked/architecture-ready modules
+- Tool runner stores job logs in Supabase
+- Tool runner stores normalized evidence in Supabase
 - Advanced report page opens: `/report/<scan-id>/advanced`
 - Inbuilt customer audit page opens: `/report/<scan-id>/inbuilt`
 - Vulnerability intelligence page opens: `/report/<scan-id>/vulnerability-intelligence`
@@ -59,4 +65,6 @@ npm.cmd run audit:npm
 - Fix workflow converts report into customer/developer tasks
 - Before/after comparison uses previous scan when available
 - Fixed items are not claimed fixed without retest guidance
+- Tool runner separates implemented, blocked, architecture-ready, and planned modules
+- Verified-only modules remain blocked until ownership/permission is verified
 - No aggressive scanning is added before written authorization
