@@ -1,8 +1,9 @@
 import type { NextRequest } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { buildAdvancedSecurityAudit } from "@/lib/advanced-security-audit";
 import { getNextScanDate } from "@/lib/monitoring";
 import { scanWebsite } from "@/lib/scanner";
 import { calculateScore } from "@/lib/score";
+import { createClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 
@@ -69,7 +70,7 @@ export async function POST(
     const report = await scanWebsite(website.url);
     const scoreResult = calculateScore(report);
 
-    const fullReport = {
+    const baseReport = {
       ...report,
       findings: scoreResult.enhancedFindings,
       score: scoreResult.score,
@@ -84,6 +85,11 @@ export async function POST(
       warningChecks: scoreResult.warningChecks,
       failedChecks: scoreResult.failedChecks,
       topFixes: scoreResult.topFixes,
+    };
+
+    const fullReport = {
+      ...baseReport,
+      advancedAudit: buildAdvancedSecurityAudit(baseReport),
     };
 
     const { data: scan, error: insertError } = await supabase

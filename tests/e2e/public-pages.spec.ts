@@ -1,4 +1,4 @@
-﻿import { expect, test } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 const publicPages = [
   { path: "/", text: "SecureMSME AI" },
@@ -6,6 +6,7 @@ const publicPages = [
   { path: "/trust", text: "Trust" },
   { path: "/security", text: "Security" },
   { path: "/legal", text: "Legal" },
+  { path: "/audit-framework", text: "Advanced automated security audit" },
   { path: "/legal/terms", text: "Terms" },
   { path: "/legal/privacy", text: "Privacy" },
 ];

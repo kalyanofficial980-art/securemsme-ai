@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { createClient } from "@/lib/supabase/server";
+import { buildAdvancedSecurityAudit } from "@/lib/advanced-security-audit";
 import { getNextScanDate } from "@/lib/monitoring";
 import { scanWebsite } from "@/lib/scanner";
 import { calculateScore } from "@/lib/score";
+import { createClient } from "@/lib/supabase/server";
 import { getWebsiteNameFromUrl } from "@/lib/websites";
 
 export const runtime = "nodejs";
@@ -127,7 +128,7 @@ export async function POST(request: Request) {
       }
     }
 
-    const fullReport = {
+    const baseReport = {
       ...report,
       findings: scoreResult.enhancedFindings,
       score: scoreResult.score,
@@ -142,6 +143,11 @@ export async function POST(request: Request) {
       warningChecks: scoreResult.warningChecks,
       failedChecks: scoreResult.failedChecks,
       topFixes: scoreResult.topFixes,
+    };
+
+    const fullReport = {
+      ...baseReport,
+      advancedAudit: buildAdvancedSecurityAudit(baseReport),
     };
 
     const { data: scan, error: insertError } = await supabase

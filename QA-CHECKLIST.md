@@ -10,7 +10,7 @@ npm.cmd run e2e
 npm.cmd run audit:npm
 ```
 
-## Manual checks
+## Manual product checks
 
 - Signup works
 - Login works
@@ -19,18 +19,24 @@ npm.cmd run audit:npm
 - Manual scan works
 - Saved website rescan works
 - Report page opens
+- Advanced report page opens: `/report/<scan-id>/advanced`
 - PDF download works
 - Printable report works
 - Admin page opens only for admin
+- Admin security intelligence opens: `/admin/security-intelligence`
+- Audit framework page loads: `/audit-framework`
 - Legal pages load
 - Trust page loads
 - Robots and sitemap work
+- Health check returns `status: ok`
 
-## Advanced checks
+## Advanced SaaS checks
 
-- Run Lighthouse on homepage
-- Check mobile layout
-- Check no sensitive secrets are committed
-- Check `.env.local` is not in Git
-- Check Supabase RLS is enabled
-- Check free test scan limit before production
+- Every scan creates an advanced audit object inside report JSON
+- OWASP-style controls are visible
+- ASVS-style controls are visible
+- Evidence records are generated
+- Maturity score is generated
+- Limitations clearly say it is not a full penetration test
+- No unsafe exploit claims are made
+- No aggressive scanning is added before written authorization
