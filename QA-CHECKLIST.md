@@ -23,6 +23,7 @@ npm.cmd run audit:npm
 - Advanced report page opens: `/report/<scan-id>/advanced`
 - Inbuilt customer audit page opens: `/report/<scan-id>/inbuilt`
 - Vulnerability intelligence page opens: `/report/<scan-id>/vulnerability-intelligence`
+- Evidence calibration page opens: `/report/<scan-id>/evidence-calibration`
 - Developer fix roadmap opens: `/report/<scan-id>/fix-roadmap`
 - Ownership verification public page loads: `/ownership-verification`
 - Website verification page opens: `/websites/<website-id>/verify`
@@ -42,11 +43,12 @@ npm.cmd run audit:npm
 
 ## Advanced SaaS checks
 
-- Deeper scan requires ownership verification
-- Permission checkbox is required before verification
-- DNS TXT verification instructions are clear
-- HTML file verification instructions are clear
-- Meta tag verification instructions are clear
-- Deep scan report stores authorization evidence
+- Evidence calibration shows confirmed/probable/manual-review labels
+- False-positive risk is visible
+- Report quality score is visible
+- Safe customer claims are visible
+- Blocked claims are visible
+- Every strong claim has evidence
+- Potential findings do not look like confirmed exploit findings
 - No unsafe exploit claims are made
 - No aggressive scanning is added before written authorization

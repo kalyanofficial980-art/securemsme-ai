@@ -4,28 +4,28 @@
 
 SecureMSME AI is becoming a cyber trust and vulnerability intelligence platform for MSME websites.
 
-## Mega Part 22 authorization layer
+## Mega Part 23 evidence calibration layer
 
 Added:
 
-- DNS TXT ownership verification
-- HTML file ownership verification
-- Meta tag ownership verification
-- Permission attestation checkbox
-- Deep scan locked until verification
-- Authorized deep scan endpoint
-- Deep scan report stores authorization metadata
+- Evidence calibration report
+- False-positive guard
+- Confirmed vs probable vs manual-review labels
+- Report quality score
+- Safe customer claim
+- Blocked claims
+- Why this is real explanation
+- What can/cannot be claimed per finding
+- Manual validation priority list
 
-## Customer-side product rule
+## Why this matters
 
-Customer should only do:
+A serious cybersecurity SaaS must not overclaim. Customers should understand:
 
-1. Add website
-2. Verify ownership/permission
-3. Run authorized deep scan
-4. Read advanced audit + vulnerability intelligence report
-5. Fix priority issues
-6. Rescan and monitor
+- What evidence is real
+- What is only likely risk
+- What needs manual validation
+- What claims are not allowed
 
 ## Not allowed in current safe SaaS mode
 
@@ -39,15 +39,18 @@ Not allowed:
 - Aggressive scanning
 - Destructive testing
 - Private data access
+- Claiming full pentest
+- Claiming no vulnerabilities exist
 
 ## Next international-standard layer
 
-Mega Part 23 should add:
+Mega Part 24 should add:
 
-- Asset inventory
-- Subdomain discovery from safe DNS/Certificate Transparency sources
-- Technology monitoring history
-- Risk regression alerts
+- Customer value layer
+- Before/after improvement tracking
+- Fix status workflow
+- Developer assignment notes
+- Agency-ready client view
 
 ## Pre-deploy security gate
 

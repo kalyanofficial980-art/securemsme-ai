@@ -14,6 +14,12 @@ const links = [
     primary: true,
   },
   {
+    label: "Evidence Calibration",
+    description: "False-positive guard, confirmed evidence, safe claims",
+    href: (id: string) => `/report/${id}/evidence-calibration`,
+    primary: true,
+  },
+  {
     label: "Inbuilt Advanced Audit",
     description: "Customer-ready evidence, modules, priority fixes",
     href: (id: string) => `/report/${id}/inbuilt`,
@@ -52,7 +58,7 @@ export function AdvancedReportNavigation({
   if (variant === "compact") {
     return (
       <div className="mt-5 flex flex-wrap gap-3">
-        {links.slice(0, 3).map((item) => (
+        {links.slice(0, 4).map((item) => (
           <Link
             key={item.label}
             href={item.href(scanId)}
@@ -81,16 +87,16 @@ export function AdvancedReportNavigation({
           </h2>
           <p className="mt-3 max-w-3xl leading-7 text-slate-600">
             This is where SecureMSME AI becomes more than a basic scanner:
-            vulnerability intelligence, inbuilt audit evidence, OWASP/ASVS
-            mapping, PDF, and developer handoff.
+            vulnerability intelligence, evidence calibration, inbuilt audit
+            evidence, OWASP/ASVS mapping, PDF, and developer handoff.
           </p>
         </div>
 
         <Link
-          href={`/report/${scanId}/vulnerability-intelligence`}
+          href={`/report/${scanId}/evidence-calibration`}
           className="rounded-full bg-slate-950 px-6 py-3 text-sm font-black text-white hover:bg-slate-800"
         >
-          Open main intelligence report
+          Open trust-calibrated report
         </Link>
       </div>
 
