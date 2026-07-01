@@ -13,7 +13,7 @@ const scanSchema = z.object({
   websiteId: z.string().uuid().optional(),
 });
 
-const TEMP_DEV_FREE_SCAN_LIMIT = 20;
+const TEMP_DEV_FREE_SCAN_LIMIT = 999;
 
 export async function POST(request: Request) {
   try {

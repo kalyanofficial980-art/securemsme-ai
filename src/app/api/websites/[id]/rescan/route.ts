@@ -6,7 +6,7 @@ import { calculateScore } from "@/lib/score";
 
 export const runtime = "nodejs";
 
-const TEMP_DEV_FREE_SCAN_LIMIT = 20;
+const TEMP_DEV_FREE_SCAN_LIMIT = 999;
 
 export async function POST(
   _request: NextRequest,
