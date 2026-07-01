@@ -317,7 +317,7 @@ export function parsePassiveToolReport(input: {
     generatedAt: new Date().toISOString(),
     findings,
     score,
-    riskLevel,
+    riskLevel: riskLevel as PassiveAuditReport["riskLevel"],
     summary,
     executiveSummary:
       riskLevel === "High"

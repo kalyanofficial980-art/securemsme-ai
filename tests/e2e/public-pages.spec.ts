@@ -11,6 +11,10 @@ const publicPages = [
     path: "/vulnerability-intelligence",
     text: "Evidence-based vulnerability intelligence",
   },
+  {
+    path: "/ownership-verification",
+    text: "Ownership verification before deeper scans",
+  },
   { path: "/legal/terms", text: "Terms" },
   { path: "/legal/privacy", text: "Privacy" },
 ];

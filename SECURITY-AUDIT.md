@@ -4,33 +4,28 @@
 
 SecureMSME AI is becoming a cyber trust and vulnerability intelligence platform for MSME websites.
 
+## Mega Part 22 authorization layer
+
+Added:
+
+- DNS TXT ownership verification
+- HTML file ownership verification
+- Meta tag ownership verification
+- Permission attestation checkbox
+- Deep scan locked until verification
+- Authorized deep scan endpoint
+- Deep scan report stores authorization metadata
+
 ## Customer-side product rule
 
 Customer should only do:
 
 1. Add website
-2. Click scan
-3. Read advanced audit + vulnerability intelligence report
-4. Fix priority issues
-5. Rescan and monitor
-
-## Current inbuilt vulnerability intelligence
-
-Added in Mega Part 21:
-
-- Technology fingerprinting
-- CMS detection
-- Framework detection
-- Ecommerce platform signals
-- Hosting/server signals
-- Version exposure detection
-- Attack surface inventory
-- API/docs/admin/debug/config/backup surface checks
-- External script supply-chain surface
-- Confidence labels
-- Confirmed vs likely vs manual-validation-needed status
-- Customer impact and technical explanation
-- Safe testing boundary on every report
+2. Verify ownership/permission
+3. Run authorized deep scan
+4. Read advanced audit + vulnerability intelligence report
+5. Fix priority issues
+6. Rescan and monitor
 
 ## Not allowed in current safe SaaS mode
 
@@ -47,13 +42,12 @@ Not allowed:
 
 ## Next international-standard layer
 
-Mega Part 22 should add ownership verification:
+Mega Part 23 should add:
 
-- DNS TXT verification
-- HTML file verification
-- Meta tag verification
-- Permission statement
-- Deeper scan unlock only after verification
+- Asset inventory
+- Subdomain discovery from safe DNS/Certificate Transparency sources
+- Technology monitoring history
+- Risk regression alerts
 
 ## Pre-deploy security gate
 
