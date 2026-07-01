@@ -1,16 +1,9 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Navbar } from "@/components/Navbar";
-import { signOut } from "@/app/auth/actions";
+import { RiskBadge } from "@/components/RiskBadge";
 import { createClient } from "@/lib/supabase/server";
-
-type ScanRow = {
-  id: string;
-  website_url: string;
-  score: number;
-  risk_level: string;
-  created_at: string;
-};
+import { signOut } from "@/app/auth/actions";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -20,30 +13,49 @@ export default async function DashboardPage() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/login?message=Please login to open dashboard");
+    redirect("/login?message=Please login to view dashboard");
   }
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("email, plan, full_name")
+    .select("full_name, plan")
     .eq("id", user.id)
     .single();
 
-  const { data: scansData } = await supabase
-    .from("scans")
-    .select("id, website_url, score, risk_level, created_at")
+  const { data: websites } = await supabase
+    .from("websites")
+    .select("id, name, url, created_at")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false })
-    .limit(10);
+    .limit(6);
 
-  const scans = (scansData ?? []) as ScanRow[];
-  const totalScans = scans.length;
+  const { data: scans } = await supabase
+    .from("scans")
+    .select("id, website_id, website_url, score, risk_level, created_at")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false })
+    .limit(8);
+
+  const { count: totalScans } = await supabase
+    .from("scans")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", user.id);
+
+  const { count: totalWebsites } = await supabase
+    .from("websites")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", user.id);
+
   const averageScore =
-    totalScans > 0
+    scans && scans.length
       ? Math.round(
-          scans.reduce((sum, scan) => sum + scan.score, 0) / totalScans,
+          scans.reduce((total, scan) => total + Number(scan.score || 0), 0) /
+            scans.length,
         )
-      : null;
+      : 0;
+
+  const highRiskCount =
+    scans?.filter((scan) => scan.risk_level === "High").length ?? 0;
 
   return (
     <main className="min-h-screen bg-slate-50 text-slate-950">
@@ -52,103 +64,161 @@ export default async function DashboardPage() {
       <section className="mx-auto max-w-6xl px-6 py-16">
         <div className="flex flex-col justify-between gap-6 md:flex-row md:items-start">
           <div>
-            <h1 className="text-4xl font-black">Dashboard</h1>
-            <p className="mt-3 text-slate-600">
-              Welcome, {profile?.full_name || profile?.email || user.email}.
+            <p className="text-sm font-bold text-slate-500">Welcome back</p>
+            <h1 className="mt-2 text-4xl font-black">
+              {profile?.full_name || user.email}
+            </h1>
+            <p className="mt-3 max-w-2xl text-slate-600">
+              Manage multiple business websites, run public safety checks, and
+              track scan history.
             </p>
           </div>
 
-          <form action={signOut}>
-            <button className="rounded-full border border-slate-300 bg-white px-5 py-3 font-bold text-slate-950 hover:bg-slate-100">
-              Logout
-            </button>
-          </form>
+          <div className="flex flex-wrap gap-3">
+            <Link
+              href="/websites/new"
+              className="rounded-full bg-slate-950 px-5 py-3 font-bold text-white hover:bg-slate-800"
+            >
+              Add website
+            </Link>
+
+            <Link
+              href="/scan"
+              className="rounded-full border border-slate-300 bg-white px-5 py-3 font-bold text-slate-950 hover:bg-slate-100"
+            >
+              Run scan
+            </Link>
+
+            <form action={signOut}>
+              <button className="rounded-full border border-slate-300 bg-white px-5 py-3 font-bold text-slate-950 hover:bg-slate-100">
+                Logout
+              </button>
+            </form>
+          </div>
         </div>
 
-        <div className="mt-8 grid gap-6 md:grid-cols-3">
+        <div className="mt-10 grid gap-4 md:grid-cols-4">
+          <div className="rounded-3xl border border-slate-200 bg-white p-6">
+            <p className="text-sm text-slate-500">Saved websites</p>
+            <p className="mt-2 text-4xl font-black">{totalWebsites ?? 0}</p>
+          </div>
+
           <div className="rounded-3xl border border-slate-200 bg-white p-6">
             <p className="text-sm text-slate-500">Total scans</p>
-            <p className="mt-2 text-4xl font-black">{totalScans}</p>
+            <p className="mt-2 text-4xl font-black">{totalScans ?? 0}</p>
           </div>
 
           <div className="rounded-3xl border border-slate-200 bg-white p-6">
-            <p className="text-sm text-slate-500">Average score</p>
-            <p className="mt-2 text-4xl font-black">
-              {averageScore === null ? "--" : averageScore}
-            </p>
+            <p className="text-sm text-slate-500">Recent avg score</p>
+            <p className="mt-2 text-4xl font-black">{averageScore}</p>
           </div>
 
           <div className="rounded-3xl border border-slate-200 bg-white p-6">
-            <p className="text-sm text-slate-500">Plan</p>
-            <p className="mt-2 text-4xl font-black capitalize">
-              {profile?.plan || "free"}
-            </p>
+            <p className="text-sm text-slate-500">High risk recent</p>
+            <p className="mt-2 text-4xl font-black">{highRiskCount}</p>
           </div>
         </div>
 
-        <div className="mt-8 rounded-3xl border border-slate-200 bg-white p-8">
-          <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
+        <div className="mt-10 rounded-3xl border border-slate-200 bg-white p-8">
+          <div className="flex items-center justify-between gap-4">
             <div>
-              <h2 className="text-2xl font-black">Scan history</h2>
+              <h2 className="text-2xl font-black">Your websites</h2>
               <p className="mt-2 text-slate-600">
-                Your latest website safety reports.
+                Save websites once and scan them again anytime.
               </p>
             </div>
 
             <Link
-              href="/scan"
-              className="rounded-full bg-slate-950 px-6 py-3 text-center font-bold text-white hover:bg-slate-800"
+              href="/websites"
+              className="text-sm font-black text-slate-700"
             >
-              New scan
+              View all
             </Link>
           </div>
 
-          {scans.length === 0 ? (
-            <div className="mt-8 rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center">
-              <h3 className="text-xl font-black">No scans yet</h3>
-              <p className="mt-2 text-slate-600">
-                Run your first website scan to see reports here.
-              </p>
-              <Link
-                href="/scan"
-                className="mt-5 inline-flex rounded-full bg-slate-950 px-6 py-3 font-bold text-white hover:bg-slate-800"
-              >
-                Start first scan
-              </Link>
-            </div>
-          ) : (
-            <div className="mt-8 overflow-hidden rounded-2xl border border-slate-200">
-              <div className="grid grid-cols-12 bg-slate-100 px-4 py-3 text-sm font-bold text-slate-700">
-                <div className="col-span-5">Website</div>
-                <div className="col-span-2">Score</div>
-                <div className="col-span-2">Risk</div>
-                <div className="col-span-3">Action</div>
-              </div>
-
-              {scans.map((scan) => (
-                <div
-                  key={scan.id}
-                  className="grid grid-cols-12 items-center border-t border-slate-200 px-4 py-4 text-sm"
+          {websites?.length ? (
+            <div className="mt-6 grid gap-4 md:grid-cols-2">
+              {websites.map((website) => (
+                <Link
+                  key={website.id}
+                  href={`/websites/${website.id}`}
+                  className="rounded-2xl border border-slate-200 p-5 hover:bg-slate-50"
                 >
-                  <div className="col-span-5 truncate font-semibold">
-                    {scan.website_url}
-                  </div>
-                  <div className="col-span-2 font-black">{scan.score}</div>
-                  <div className="col-span-2 font-semibold">
-                    {scan.risk_level}
-                  </div>
-                  <div className="col-span-3">
-                    <Link
-                      href={`/report/${scan.id}`}
-                      className="rounded-full bg-slate-950 px-4 py-2 text-xs font-bold text-white hover:bg-slate-800"
-                    >
-                      View report
-                    </Link>
-                  </div>
-                </div>
+                  <h3 className="font-black">{website.name || "Website"}</h3>
+                  <p className="mt-2 break-all text-sm text-slate-600">
+                    {website.url}
+                  </p>
+                </Link>
               ))}
             </div>
+          ) : (
+            <div className="mt-6 rounded-2xl border border-dashed border-slate-300 p-8 text-center">
+              <p className="font-bold">No websites saved yet.</p>
+              <Link
+                href="/websites/new"
+                className="mt-4 inline-flex rounded-full bg-slate-950 px-5 py-3 font-bold text-white"
+              >
+                Add first website
+              </Link>
+            </div>
           )}
+        </div>
+
+        <div className="mt-10 rounded-3xl border border-slate-200 bg-white p-8">
+          <h2 className="text-2xl font-black">Recent scans</h2>
+
+          {scans?.length ? (
+            <div className="mt-6 overflow-hidden rounded-2xl border border-slate-200">
+              <table className="w-full text-left text-sm">
+                <thead className="bg-slate-50 text-slate-600">
+                  <tr>
+                    <th className="px-4 py-3">Website</th>
+                    <th className="px-4 py-3">Score</th>
+                    <th className="px-4 py-3">Risk</th>
+                    <th className="px-4 py-3">Date</th>
+                    <th className="px-4 py-3">Report</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {scans.map((scan) => (
+                    <tr key={scan.id} className="border-t border-slate-200">
+                      <td className="max-w-xs break-all px-4 py-3 font-bold">
+                        {scan.website_url}
+                      </td>
+                      <td className="px-4 py-3 font-black">{scan.score}</td>
+                      <td className="px-4 py-3">
+                        <RiskBadge riskLevel={scan.risk_level} />
+                      </td>
+                      <td className="px-4 py-3 text-slate-600">
+                        {new Date(scan.created_at).toLocaleDateString()}
+                      </td>
+                      <td className="px-4 py-3">
+                        <Link
+                          href={`/report/${scan.id}`}
+                          className="font-black text-slate-950 underline"
+                        >
+                          View
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p className="mt-4 text-slate-600">
+              No scans yet. Add a website and run your first scan.
+            </p>
+          )}
+        </div>
+
+        <div className="mt-8 rounded-3xl border border-amber-200 bg-amber-50 p-6">
+          <p className="font-black text-amber-900">Development note</p>
+          <p className="mt-2 text-sm text-amber-800">
+            Free plan temporarily allows 20 scans while we build advanced
+            features. Final free/paid limits will be added with Razorpay at the
+            end.
+          </p>
         </div>
       </section>
     </main>

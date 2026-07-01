@@ -1,8 +1,16 @@
-﻿"use client";
+"use client";
 
-import { useState } from "react";
+import Link from "next/link";
+import { useMemo, useState } from "react";
 import { RiskBadge } from "@/components/RiskBadge";
 import { StatusBadge } from "@/components/StatusBadge";
+
+type WebsiteOption = {
+  id: string;
+  name: string | null;
+  url: string;
+  created_at?: string;
+};
 
 type ScanFinding = {
   name: string;
@@ -45,6 +53,7 @@ type SeverityCounts = {
 type ScanResponse = {
   scan: {
     id: string;
+    website_id?: string | null;
     website_url: string;
     score: number;
     risk_level: string;
@@ -107,11 +116,32 @@ function SeverityBadge({ severity }: { severity?: string }) {
   );
 }
 
-export function ScanForm() {
-  const [websiteUrl, setWebsiteUrl] = useState("");
+type ScanFormProps = {
+  websites?: WebsiteOption[];
+  selectedWebsiteId?: string;
+};
+
+export function ScanForm({ websites = [], selectedWebsiteId }: ScanFormProps) {
+  const selectedWebsite = useMemo(
+    () => websites.find((website) => website.id === selectedWebsiteId),
+    [selectedWebsiteId, websites],
+  );
+
+  const [websiteId, setWebsiteId] = useState(selectedWebsite?.id || "");
+  const [websiteUrl, setWebsiteUrl] = useState(selectedWebsite?.url || "");
   const [result, setResult] = useState<ScanResponse["scan"] | null>(null);
   const [error, setError] = useState("");
   const [isScanning, setIsScanning] = useState(false);
+
+  function handleWebsiteSelect(value: string) {
+    setWebsiteId(value);
+
+    const website = websites.find((item) => item.id === value);
+
+    if (website) {
+      setWebsiteUrl(website.url);
+    }
+  }
 
   async function handleScan(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -126,7 +156,10 @@ export function ScanForm() {
         headers: {
           "content-type": "application/json",
         },
-        body: JSON.stringify({ websiteUrl }),
+        body: JSON.stringify({
+          websiteId: websiteId || undefined,
+          websiteUrl: websiteId ? undefined : websiteUrl,
+        }),
       });
 
       const data = await response.json();
@@ -147,34 +180,69 @@ export function ScanForm() {
   return (
     <div className="space-y-8">
       <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-        <p className="mb-4 inline-flex rounded-full bg-slate-100 px-4 py-2 text-sm font-bold text-slate-700">
-          Safe public website checks only
-        </p>
+        <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
+          <div>
+            <p className="mb-4 inline-flex rounded-full bg-slate-100 px-4 py-2 text-sm font-bold text-slate-700">
+              Safe public website checks only
+            </p>
 
-        <h1 className="text-4xl font-black">Scan website</h1>
-        <p className="mt-3 max-w-2xl text-slate-600">
-          Enter a public business website URL. SecureMSME AI checks security,
-          email protection, exposure risk, and trust gaps.
-        </p>
+            <h1 className="text-4xl font-black">Scan website</h1>
+            <p className="mt-3 max-w-2xl text-slate-600">
+              Select a saved website or enter a new public website URL.
+              SecureMSME AI checks website security, email protection, exposure
+              risk, and trust gaps.
+            </p>
+          </div>
 
-        <form
-          onSubmit={handleScan}
-          className="mt-8 flex flex-col gap-3 sm:flex-row"
-        >
-          <input
-            value={websiteUrl}
-            onChange={(event) => setWebsiteUrl(event.target.value)}
-            required
-            className="flex-1 rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:border-slate-950"
-            placeholder="https://example.com"
-          />
-
-          <button
-            disabled={isScanning}
-            className="rounded-full bg-slate-950 px-6 py-3 font-bold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+          <Link
+            href="/websites/new"
+            className="rounded-full bg-slate-950 px-5 py-3 text-center font-bold text-white hover:bg-slate-800"
           >
-            {isScanning ? "Scanning..." : "Scan now"}
-          </button>
+            Add website
+          </Link>
+        </div>
+
+        <form onSubmit={handleScan} className="mt-8 grid gap-4">
+          {websites.length ? (
+            <label className="grid gap-2">
+              <span className="text-sm font-bold text-slate-700">
+                Saved websites
+              </span>
+              <select
+                value={websiteId}
+                onChange={(event) => handleWebsiteSelect(event.target.value)}
+                className="rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:border-slate-950"
+              >
+                <option value="">Manual URL scan</option>
+                {websites.map((website) => (
+                  <option key={website.id} value={website.id}>
+                    {website.name || website.url} — {website.url}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : null}
+
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <input
+              value={websiteUrl}
+              onChange={(event) => {
+                setWebsiteUrl(event.target.value);
+                setWebsiteId("");
+              }}
+              required={!websiteId}
+              disabled={Boolean(websiteId)}
+              className="flex-1 rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:border-slate-950 disabled:bg-slate-100"
+              placeholder="https://example.com"
+            />
+
+            <button
+              disabled={isScanning}
+              className="rounded-full bg-slate-950 px-6 py-3 font-bold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {isScanning ? "Scanning..." : "Scan now"}
+            </button>
+          </div>
         </form>
 
         {isScanning ? (
@@ -211,8 +279,24 @@ export function ScanForm() {
                     "Report generated successfully."}
                 </p>
 
-                <div className="mt-5">
+                <div className="mt-5 flex flex-wrap gap-3">
                   <RiskBadge riskLevel={result.risk_level} />
+
+                  <Link
+                    href={`/report/${result.id}`}
+                    className="rounded-full border border-slate-300 px-4 py-2 text-sm font-black text-slate-700 hover:bg-slate-100"
+                  >
+                    Open full report
+                  </Link>
+
+                  {result.website_id ? (
+                    <Link
+                      href={`/websites/${result.website_id}`}
+                      className="rounded-full border border-slate-300 px-4 py-2 text-sm font-black text-slate-700 hover:bg-slate-100"
+                    >
+                      Website history
+                    </Link>
+                  ) : null}
                 </div>
               </div>
 
@@ -337,52 +421,6 @@ export function ScanForm() {
                 No major fixes found in this scan.
               </p>
             )}
-          </div>
-
-          <div className="rounded-3xl border border-slate-200 bg-white p-8">
-            <h2 className="text-2xl font-black">All findings</h2>
-
-            <div className="mt-6 grid gap-4">
-              {result.report.findings.map((finding) => (
-                <div
-                  key={finding.name}
-                  className="rounded-2xl border border-slate-200 p-5"
-                >
-                  <div className="flex flex-col justify-between gap-3 md:flex-row md:items-start">
-                    <div>
-                      <p className="text-xs font-bold uppercase tracking-wide text-slate-500">
-                        {finding.category || "General"}
-                      </p>
-                      <h3 className="mt-1 font-black">{finding.name}</h3>
-                      <p className="mt-2 text-sm text-slate-600">
-                        {finding.message}
-                      </p>
-                    </div>
-
-                    <div className="flex gap-2">
-                      <StatusBadge status={finding.status} />
-                      <SeverityBadge severity={finding.severity} />
-                    </div>
-                  </div>
-
-                  {finding.businessImpact ? (
-                    <p className="mt-4 text-sm text-slate-700">
-                      <strong>Business impact:</strong> {finding.businessImpact}
-                    </p>
-                  ) : null}
-
-                  {finding.fixRecommendation ? (
-                    <p className="mt-2 text-sm text-slate-700">
-                      <strong>Fix:</strong> {finding.fixRecommendation}
-                    </p>
-                  ) : null}
-
-                  <p className="mt-4 text-sm font-semibold text-slate-700">
-                    {finding.points}/{finding.maxPoints} points
-                  </p>
-                </div>
-              ))}
-            </div>
           </div>
         </div>
       ) : null}
