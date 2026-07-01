@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Navbar } from "@/components/Navbar";
+import { RiskBadge } from "@/components/RiskBadge";
+import { StatusBadge } from "@/components/StatusBadge";
 import { createClient } from "@/lib/supabase/server";
 
 type Finding = {
@@ -11,15 +13,28 @@ type Finding = {
   maxPoints: number;
 };
 
+type CategoryScore = {
+  name: string;
+  score: number;
+  maxScore: number;
+  percentage: number;
+};
+
 type TopFix = {
   name: string;
   message: string;
   lostPoints: number;
+  priority?: string;
 };
 
 type ReportJson = {
+  summary?: string;
   findings?: Finding[];
+  categoryScores?: CategoryScore[];
   topFixes?: TopFix[];
+  passedChecks?: number;
+  warningChecks?: number;
+  failedChecks?: number;
   raw?: {
     finalStatus?: number;
     responseTimeMs?: number;
@@ -57,6 +72,7 @@ export default async function ReportPage({ params }: ReportPageProps) {
 
   const report = scan.report as ReportJson;
   const findings = report.findings ?? [];
+  const categoryScores = report.categoryScores ?? [];
   const topFixes = report.topFixes ?? [];
 
   return (
@@ -76,40 +92,88 @@ export default async function ReportPage({ params }: ReportPageProps) {
                 {scan.website_url}
               </h1>
               <p className="mt-3 text-slate-600">
+                {report.summary ||
+                  "Basic website safety report generated successfully."}
+              </p>
+              <p className="mt-3 text-sm text-slate-500">
                 Checked on {new Date(scan.created_at).toLocaleString()}
               </p>
+
+              <div className="mt-5">
+                <RiskBadge riskLevel={scan.risk_level} />
+              </div>
             </div>
 
             <div className="rounded-3xl bg-slate-950 px-8 py-6 text-white">
               <p className="text-sm text-slate-300">Score</p>
               <p className="text-6xl font-black">{scan.score}</p>
-              <p className="text-sm text-slate-300">{scan.risk_level} risk</p>
+              <p className="text-sm text-slate-300">out of 100</p>
             </div>
           </div>
 
-          <div className="mt-8 grid gap-4 md:grid-cols-3">
+          <div className="mt-8 grid gap-4 md:grid-cols-4">
             <div className="rounded-2xl bg-slate-50 p-5">
-              <p className="text-sm text-slate-500">HTTP status</p>
-              <p className="mt-2 text-2xl font-black">
-                {report.raw?.finalStatus ?? "--"}
+              <p className="text-sm text-slate-500">Passed</p>
+              <p className="mt-2 text-3xl font-black text-emerald-700">
+                {report.passedChecks ?? 0}
               </p>
             </div>
 
             <div className="rounded-2xl bg-slate-50 p-5">
-              <p className="text-sm text-slate-500">Response time</p>
-              <p className="mt-2 text-2xl font-black">
+              <p className="text-sm text-slate-500">Warnings</p>
+              <p className="mt-2 text-3xl font-black text-amber-700">
+                {report.warningChecks ?? 0}
+              </p>
+            </div>
+
+            <div className="rounded-2xl bg-slate-50 p-5">
+              <p className="text-sm text-slate-500">Failed</p>
+              <p className="mt-2 text-3xl font-black text-red-700">
+                {report.failedChecks ?? 0}
+              </p>
+            </div>
+
+            <div className="rounded-2xl bg-slate-50 p-5">
+              <p className="text-sm text-slate-500">Response</p>
+              <p className="mt-2 text-3xl font-black">
                 {report.raw?.responseTimeMs
                   ? `${report.raw.responseTimeMs}ms`
                   : "--"}
               </p>
             </div>
-
-            <div className="rounded-2xl bg-slate-50 p-5">
-              <p className="text-sm text-slate-500">Checks completed</p>
-              <p className="mt-2 text-2xl font-black">{findings.length}</p>
-            </div>
           </div>
         </div>
+
+        {categoryScores.length ? (
+          <div className="mt-8 rounded-3xl border border-slate-200 bg-white p-8">
+            <h2 className="text-2xl font-black">Category scores</h2>
+
+            <div className="mt-6 grid gap-4 md:grid-cols-2">
+              {categoryScores.map((category) => (
+                <div
+                  key={category.name}
+                  className="rounded-2xl border border-slate-200 p-5"
+                >
+                  <div className="flex justify-between gap-4">
+                    <h3 className="font-black">{category.name}</h3>
+                    <p className="font-black">{category.percentage}/100</p>
+                  </div>
+
+                  <div className="mt-4 h-3 overflow-hidden rounded-full bg-slate-100">
+                    <div
+                      className="h-full rounded-full bg-slate-950"
+                      style={{ width: `${category.percentage}%` }}
+                    />
+                  </div>
+
+                  <p className="mt-3 text-sm text-slate-600">
+                    {category.score}/{category.maxScore} points
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
 
         <div className="mt-8 rounded-3xl border border-slate-200 bg-white p-8">
           <h2 className="text-2xl font-black">Findings</h2>
@@ -126,9 +190,7 @@ export default async function ReportPage({ params }: ReportPageProps) {
                     <p className="mt-2 text-slate-600">{finding.message}</p>
                   </div>
 
-                  <span className="w-fit rounded-full bg-slate-100 px-4 py-2 text-xs font-black capitalize text-slate-700">
-                    {finding.status}
-                  </span>
+                  <StatusBadge status={finding.status} />
                 </div>
 
                 <p className="mt-4 text-sm font-semibold text-slate-700">
@@ -156,7 +218,8 @@ export default async function ReportPage({ params }: ReportPageProps) {
                   <h3 className="font-black">{fix.name}</h3>
                   <p className="mt-2 text-slate-600">{fix.message}</p>
                   <p className="mt-3 text-sm font-bold text-slate-700">
-                    Lost points: {fix.lostPoints}
+                    {fix.priority || "Fix recommended"} · Lost points:{" "}
+                    {fix.lostPoints}
                   </p>
                 </li>
               ))}
