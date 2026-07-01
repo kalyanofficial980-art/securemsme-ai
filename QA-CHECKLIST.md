@@ -20,6 +20,11 @@ npm.cmd run audit:npm
 - Saved website rescan works
 - Scan result shows advanced navigation buttons
 - Normal report page shows advanced navigation buttons
+- Customer value page opens: `/report/<scan-id>/customer-value`
+- Customer value page can create/refresh fix workflow
+- Fix item status can be changed to open/in progress/fixed/needs review/accepted risk
+- Customer value report shows before/after score comparison
+- Customer value report shows proof-of-fix summary
 - Advanced report page opens: `/report/<scan-id>/advanced`
 - Inbuilt customer audit page opens: `/report/<scan-id>/inbuilt`
 - Vulnerability intelligence page opens: `/report/<scan-id>/vulnerability-intelligence`
@@ -51,4 +56,7 @@ npm.cmd run audit:npm
 - Every strong claim has evidence
 - Potential findings do not look like confirmed exploit findings
 - No unsafe exploit claims are made
+- Fix workflow converts report into customer/developer tasks
+- Before/after comparison uses previous scan when available
+- Fixed items are not claimed fixed without retest guidance
 - No aggressive scanning is added before written authorization

@@ -18,14 +18,29 @@ Added:
 - What can/cannot be claimed per finding
 - Manual validation priority list
 
+## Mega Part 24 customer value layer
+
+Added:
+
+- Fix workflow table
+- Customer value report
+- Before/after score comparison
+- Fix status workflow
+- Developer checklist
+- Owner action plan
+- Proof-of-fix summary
+- Retest guidance
+
 ## Why this matters
 
-A serious cybersecurity SaaS must not overclaim. Customers should understand:
+A serious cybersecurity SaaS must not only generate a report. It must help the customer:
 
-- What evidence is real
-- What is only likely risk
-- What needs manual validation
-- What claims are not allowed
+- Understand what matters
+- Give tasks to developer/vendor
+- Track fix status
+- Retest after fixes
+- Show before/after proof
+- Avoid unsafe claims
 
 ## Not allowed in current safe SaaS mode
 
@@ -41,16 +56,19 @@ Not allowed:
 - Private data access
 - Claiming full pentest
 - Claiming no vulnerabilities exist
+- Claiming a fix is proven before retest/evidence change
 
 ## Next international-standard layer
 
-Mega Part 24 should add:
+Mega Part 25 should add:
 
-- Customer value layer
-- Before/after improvement tracking
-- Fix status workflow
-- Developer assignment notes
-- Agency-ready client view
+- Built-in security tool runner architecture
+- Job queue-style scan orchestration
+- Tool module registry
+- Safe template categories
+- Scan logs
+- Tool evidence normalization
+- Customer does not install external tools
 
 ## Pre-deploy security gate
 

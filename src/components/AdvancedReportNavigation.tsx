@@ -7,6 +7,12 @@ type AdvancedReportNavigationProps = {
 
 const links = [
   {
+    label: "Customer Value Report",
+    description: "Before/after score, fix workflow, proof-of-fix tracking",
+    href: (id: string) => `/report/${id}/customer-value`,
+    primary: true,
+  },
+  {
     label: "Vulnerability Intelligence",
     description:
       "Tech stack, attack surface, version exposure, confidence labels",
@@ -58,7 +64,7 @@ export function AdvancedReportNavigation({
   if (variant === "compact") {
     return (
       <div className="mt-5 flex flex-wrap gap-3">
-        {links.slice(0, 4).map((item) => (
+        {links.slice(0, 5).map((item) => (
           <Link
             key={item.label}
             href={item.href(scanId)}
@@ -86,17 +92,18 @@ export function AdvancedReportNavigation({
             Open deeper audit reports
           </h2>
           <p className="mt-3 max-w-3xl leading-7 text-slate-600">
-            This is where SecureMSME AI becomes more than a basic scanner:
-            vulnerability intelligence, evidence calibration, inbuilt audit
-            evidence, OWASP/ASVS mapping, PDF, and developer handoff.
+            This is where SecureMSME AI becomes useful after the scan: customer
+            value report, before/after tracking, vulnerability intelligence,
+            evidence calibration, inbuilt audit evidence, OWASP/ASVS mapping,
+            PDF, and developer handoff.
           </p>
         </div>
 
         <Link
-          href={`/report/${scanId}/evidence-calibration`}
+          href={`/report/${scanId}/customer-value`}
           className="rounded-full bg-slate-950 px-6 py-3 text-sm font-black text-white hover:bg-slate-800"
         >
-          Open trust-calibrated report
+          Open customer value report
         </Link>
       </div>
 
