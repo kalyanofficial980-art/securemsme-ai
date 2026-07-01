@@ -13,6 +13,13 @@ const links = [
     primary: true,
   },
   {
+    label: "Safe Templates",
+    description:
+      "Safe Nuclei-style templates, matched evidence, blocked exploits",
+    href: (id: string) => `/report/${id}/safe-templates`,
+    primary: true,
+  },
+  {
     label: "Tool Runner",
     description: "Built-in tool architecture, job logs, evidence normalization",
     href: (id: string) => `/report/${id}/tool-runner`,
@@ -70,7 +77,7 @@ export function AdvancedReportNavigation({
   if (variant === "compact") {
     return (
       <div className="mt-5 flex flex-wrap gap-3">
-        {links.slice(0, 5).map((item) => (
+        {links.slice(0, 6).map((item) => (
           <Link
             key={item.label}
             href={item.href(scanId)}
@@ -98,18 +105,18 @@ export function AdvancedReportNavigation({
             Open deeper audit reports
           </h2>
           <p className="mt-3 max-w-3xl leading-7 text-slate-600">
-            SecureMSME AI now includes customer value workflow, built-in tool
-            runner architecture, vulnerability intelligence, evidence
-            calibration, inbuilt audit evidence, OWASP/ASVS mapping, PDF, and
-            developer handoff.
+            SecureMSME AI now includes safe template checks, customer value
+            workflow, built-in tool runner architecture, vulnerability
+            intelligence, evidence calibration, inbuilt audit evidence,
+            OWASP/ASVS mapping, PDF, and developer handoff.
           </p>
         </div>
 
         <Link
-          href={`/report/${scanId}/tool-runner`}
+          href={`/report/${scanId}/safe-templates`}
           className="rounded-full bg-slate-950 px-6 py-3 text-sm font-black text-white hover:bg-slate-800"
         >
-          Open tool runner
+          Open safe templates
         </Link>
       </div>
 

@@ -45,6 +45,20 @@ Added:
 - Verified-scope gating for future deeper tool modules
 - Foundation for Nuclei-style and ZAP-style backend modules
 
+## Mega Part 26 safe template engine
+
+Added:
+
+- Local safe Nuclei-style template catalog
+- Template matcher over normalized report evidence
+- Safe template report page
+- Public safe templates page
+- Safe template execution action
+- Storage of template job/evidence in Part 25 tables
+- Verified-only template blocking
+- Unsafe exploit template blocker
+- Can/cannot claim controls for template results
+
 ## Why this matters
 
 A serious cybersecurity SaaS must not only generate a report. It must help the customer:
@@ -75,14 +89,14 @@ Not allowed:
 
 ## Next international-standard layer
 
-Mega Part 26 should add:
+Mega Part 27 should add:
 
-- Safe Nuclei-style template engine
-- Local built-in safe templates
-- Template severity and confidence controls
-- Verified-scope enforcement
-- Template evidence normalization
-- No unsafe exploit templates
+- Passive ZAP-style worker integration
+- Backend-only passive crawler simulation/adapter
+- Passive scan queue support
+- Passive alert normalization
+- Customer-safe crawl limits
+- No active attacks
 
 ## Pre-deploy security gate
 

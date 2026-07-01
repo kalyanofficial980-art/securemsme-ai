@@ -28,6 +28,12 @@ npm.cmd run audit:npm
 - Tool runner public page loads: `/tools`
 - Tool runner report page opens: `/report/<scan-id>/tool-runner`
 - Tool runner job can be created
+- Safe templates public page loads: `/safe-templates`
+- Safe templates report page opens: `/report/<scan-id>/safe-templates`
+- Safe templates can be executed and saved
+- Safe templates show matched/blocked/manual-review counts
+- Unsafe exploit template blocker is visible
+- Verified-only templates remain blocked when website is not verified
 - Tool runner shows completed/blocked/architecture-ready modules
 - Tool runner stores job logs in Supabase
 - Tool runner stores normalized evidence in Supabase
@@ -66,5 +72,7 @@ npm.cmd run audit:npm
 - Before/after comparison uses previous scan when available
 - Fixed items are not claimed fixed without retest guidance
 - Tool runner separates implemented, blocked, architecture-ready, and planned modules
+- Safe template engine runs local templates without external customer install
+- Safe template engine blocks exploit-style templates
 - Verified-only modules remain blocked until ownership/permission is verified
 - No aggressive scanning is added before written authorization
