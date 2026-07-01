@@ -19,24 +19,25 @@ npm.cmd run audit:npm
 - Manual scan works
 - Saved website rescan works
 - Customer report hub opens: `/report/<scan-id>/security-hub`
+- Real safe templates public page opens: `/real-safe-templates`
+- Real safe template report page opens: `/report/<scan-id>/real-template-worker`
+- Real safe templates are locked if website is not verified
+- Real safe templates require authorization checkbox
+- Real safe templates run only after verified scope and permission
+- Real safe templates show path observations
+- Real safe templates show template findings
+- Sensitive-path body storage is blocked
+- Real safe template results are saved in authorized module results table
 - Real security checks public page opens: `/real-security-checks`
 - Real modules report page opens: `/report/<scan-id>/real-modules`
 - Real modules are locked if website is not verified
-- Real modules require authorization checkbox
-- Real modules run only after verified scope and permission
 - Real modules show HTTP/TLS/DNS/service evidence
-- Real modules block private/internal targets
-- Real module results are saved in authorized module results table
-- Admin real module page opens only for admin: `/admin/real-modules`
 - Authorized security review public page opens: `/authorized-pentest`
 - Authorized security review report page opens: `/report/<scan-id>/authorized-pentest`
 - Known technology risks page opens: `/report/<scan-id>/known-risks`
 - Customer value page opens: `/report/<scan-id>/customer-value`
 - Evidence confidence page opens: `/report/<scan-id>/evidence-calibration`
 - Developer instructions page opens: `/report/<scan-id>/fix-roadmap`
-- Public `/tools` page uses business language
-- Public `/safe-templates` page uses business language
-- Public `/passive-worker` page uses business language
 - Ownership verification public page loads: `/ownership-verification`
 - Website verification page opens: `/websites/<website-id>/verify`
 - PDF download works
@@ -47,15 +48,15 @@ npm.cmd run audit:npm
 - Robots and sitemap work
 - Health check returns `status: ok`
 
-## Real module safety checks
+## Real safe template safety checks
 
 Allowed:
 
-- HTTP GET request
-- TLS handshake
-- DNS queries
-- Low-rate TCP connect checks
+- GET requests
+- HEAD requests
 - Public verified targets only
+- Header/status/body pattern matching
+- Sensitive HEAD-only checks
 
 Blocked:
 
@@ -68,3 +69,4 @@ Blocked:
 - Form submission
 - Destructive test
 - Private data collection
+- Sensitive response body storage
