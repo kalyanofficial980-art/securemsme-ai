@@ -5,10 +5,21 @@ import { getNextScanDate } from "@/lib/monitoring";
 import { scanWebsite } from "@/lib/scanner";
 import { calculateScore } from "@/lib/score";
 import { createClient } from "@/lib/supabase/server";
+import { runVulnerabilityIntelligence } from "@/lib/vulnerability-intelligence";
 
 export const runtime = "nodejs";
 
 const TEMP_DEV_FREE_SCAN_LIMIT = 999;
+
+function mergedRiskLevel(
+  baseRisk: string,
+  intelRisk: "Low" | "Medium" | "High" | "Critical",
+) {
+  if (intelRisk === "Critical") return "High";
+  if (intelRisk === "High") return "High";
+  if (baseRisk === "High" || intelRisk === "Medium") return "Medium";
+  return baseRisk;
+}
 
 export async function POST(
   _request: NextRequest,
@@ -69,10 +80,12 @@ export async function POST(
     }
 
     const report = await scanWebsite(website.url);
-    const [inbuiltAdvancedAudit, scoreResult] = await Promise.all([
-      runInbuiltAdvancedAudit(report.normalizedUrl),
-      Promise.resolve(calculateScore(report)),
-    ]);
+    const [inbuiltAdvancedAudit, vulnerabilityIntelligence, scoreResult] =
+      await Promise.all([
+        runInbuiltAdvancedAudit(report.normalizedUrl),
+        runVulnerabilityIntelligence(report.normalizedUrl),
+        Promise.resolve(calculateScore(report)),
+      ]);
 
     const baseReport = {
       ...report,
@@ -90,6 +103,7 @@ export async function POST(
       failedChecks: scoreResult.failedChecks,
       topFixes: scoreResult.topFixes,
       inbuiltAdvancedAudit,
+      vulnerabilityIntelligence,
     };
 
     const fullReport = {
@@ -98,7 +112,15 @@ export async function POST(
     };
 
     const finalScore = Math.round(
-      (scoreResult.score + inbuiltAdvancedAudit.overallScore) / 2,
+      (scoreResult.score +
+        inbuiltAdvancedAudit.overallScore +
+        vulnerabilityIntelligence.intelligenceScore) /
+        3,
+    );
+
+    const finalRiskLevel = mergedRiskLevel(
+      scoreResult.riskLevel,
+      vulnerabilityIntelligence.riskLevel,
     );
 
     const { data: scan, error: insertError } = await supabase
@@ -108,7 +130,7 @@ export async function POST(
         website_id: website.id,
         website_url: report.normalizedUrl,
         score: finalScore,
-        risk_level: scoreResult.riskLevel,
+        risk_level: finalRiskLevel,
         report: fullReport,
       })
       .select(
@@ -132,7 +154,7 @@ export async function POST(
           website.scan_frequency || "weekly",
         ),
         latest_score: finalScore,
-        latest_risk_level: scoreResult.riskLevel,
+        latest_risk_level: finalRiskLevel,
         latest_scan_id: scan.id,
       })
       .eq("id", website.id)

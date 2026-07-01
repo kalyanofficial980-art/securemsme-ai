@@ -6,6 +6,7 @@ import { getNextScanDate } from "@/lib/monitoring";
 import { scanWebsite } from "@/lib/scanner";
 import { calculateScore } from "@/lib/score";
 import { createClient } from "@/lib/supabase/server";
+import { runVulnerabilityIntelligence } from "@/lib/vulnerability-intelligence";
 import { getWebsiteNameFromUrl } from "@/lib/websites";
 
 export const runtime = "nodejs";
@@ -16,6 +17,16 @@ const scanSchema = z.object({
 });
 
 const TEMP_DEV_FREE_SCAN_LIMIT = 999;
+
+function mergedRiskLevel(
+  baseRisk: string,
+  intelRisk: "Low" | "Medium" | "High" | "Critical",
+) {
+  if (intelRisk === "Critical") return "High";
+  if (intelRisk === "High") return "High";
+  if (baseRisk === "High" || intelRisk === "Medium") return "Medium";
+  return baseRisk;
+}
 
 export async function POST(request: Request) {
   try {
@@ -98,10 +109,12 @@ export async function POST(request: Request) {
     }
 
     const report = await scanWebsite(websiteUrl);
-    const [inbuiltAdvancedAudit, scoreResult] = await Promise.all([
-      runInbuiltAdvancedAudit(report.normalizedUrl),
-      Promise.resolve(calculateScore(report)),
-    ]);
+    const [inbuiltAdvancedAudit, vulnerabilityIntelligence, scoreResult] =
+      await Promise.all([
+        runInbuiltAdvancedAudit(report.normalizedUrl),
+        runVulnerabilityIntelligence(report.normalizedUrl),
+        Promise.resolve(calculateScore(report)),
+      ]);
 
     if (!savedWebsiteId) {
       const { data: existingWebsite } = await supabase
@@ -148,6 +161,7 @@ export async function POST(request: Request) {
       failedChecks: scoreResult.failedChecks,
       topFixes: scoreResult.topFixes,
       inbuiltAdvancedAudit,
+      vulnerabilityIntelligence,
     };
 
     const fullReport = {
@@ -155,16 +169,26 @@ export async function POST(request: Request) {
       advancedAudit: buildAdvancedSecurityAudit(baseReport),
     };
 
+    const finalScore = Math.round(
+      (scoreResult.score +
+        inbuiltAdvancedAudit.overallScore +
+        vulnerabilityIntelligence.intelligenceScore) /
+        3,
+    );
+
+    const finalRiskLevel = mergedRiskLevel(
+      scoreResult.riskLevel,
+      vulnerabilityIntelligence.riskLevel,
+    );
+
     const { data: scan, error: insertError } = await supabase
       .from("scans")
       .insert({
         user_id: user.id,
         website_id: savedWebsiteId,
         website_url: report.normalizedUrl,
-        score: Math.round(
-          (scoreResult.score + inbuiltAdvancedAudit.overallScore) / 2,
-        ),
-        risk_level: scoreResult.riskLevel,
+        score: finalScore,
+        risk_level: finalRiskLevel,
         report: fullReport,
       })
       .select(
@@ -185,8 +209,8 @@ export async function POST(request: Request) {
         .update({
           last_scan_at: scan.created_at,
           next_scan_at: getNextScanDate(scan.created_at, scanFrequency),
-          latest_score: scan.score,
-          latest_risk_level: scoreResult.riskLevel,
+          latest_score: finalScore,
+          latest_risk_level: finalRiskLevel,
           latest_scan_id: scan.id,
         })
         .eq("id", savedWebsiteId)

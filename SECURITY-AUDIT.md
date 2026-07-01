@@ -2,48 +2,35 @@
 
 ## Current product direction
 
-SecureMSME AI is not a basic manual freelance testing checklist. It is an automated, repeatable, customer-friendly cybersecurity SaaS for MSMEs.
+SecureMSME AI is becoming a cyber trust and vulnerability intelligence platform for MSME websites.
 
 ## Customer-side product rule
-
-Customer should not need:
-
-- Docker
-- ZAP install
-- JSON paste
-- External testing-tool setup
-- Manual freelancer-style checklist
 
 Customer should only do:
 
 1. Add website
 2. Click scan
-3. Read advanced audit report
-4. Download/share report
-5. Monitor improvements
+3. Read advanced audit + vulnerability intelligence report
+4. Fix priority issues
+5. Rescan and monitor
 
-## Current inbuilt audit depth
+## Current inbuilt vulnerability intelligence
 
-Allowed inbuilt passive checks:
+Added in Mega Part 21:
 
-- HTTPS and TLS posture
-- HSTS
-- Security headers
-- Browser protections
-- Server fingerprint signals
-- Mixed content detection
-- Script surface review
-- Public form/session signals
-- robots.txt
-- sitemap.xml
-- security.txt
-- Privacy/terms/contact trust signals
-- Evidence records
-- Priority fixes
-- OWASP-style mapping
-- ASVS-style mapping
-- Security maturity score
-- Customer business readiness label
+- Technology fingerprinting
+- CMS detection
+- Framework detection
+- Ecommerce platform signals
+- Hosting/server signals
+- Version exposure detection
+- Attack surface inventory
+- API/docs/admin/debug/config/backup surface checks
+- External script supply-chain surface
+- Confidence labels
+- Confirmed vs likely vs manual-validation-needed status
+- Customer impact and technical explanation
+- Safe testing boundary on every report
 
 ## Not allowed in current safe SaaS mode
 
@@ -56,6 +43,17 @@ Not allowed:
 - Unauthorized private testing
 - Aggressive scanning
 - Destructive testing
+- Private data access
+
+## Next international-standard layer
+
+Mega Part 22 should add ownership verification:
+
+- DNS TXT verification
+- HTML file verification
+- Meta tag verification
+- Permission statement
+- Deeper scan unlock only after verification
 
 ## Pre-deploy security gate
 
