@@ -17,6 +17,14 @@ export type SslCertificateInfo = {
   issuer?: string;
 };
 
+export type EmailSecurityInfo = {
+  domain: string;
+  mxRecords: string[];
+  spfRecord?: string;
+  dmarcRecord?: string;
+  dmarcPolicy?: string;
+};
+
 export type ScanReport = {
   url: string;
   normalizedUrl: string;
@@ -32,6 +40,7 @@ export type ScanReport = {
       status?: number;
       location?: string | null;
     };
+    emailSecurity?: EmailSecurityInfo;
   };
 };
 
@@ -65,6 +74,16 @@ function normalizeUrl(input: string) {
   url.hash = "";
 
   return url;
+}
+
+function getEmailDomain(hostname: string) {
+  const lowerHost = hostname.toLowerCase();
+
+  if (lowerHost.startsWith("www.")) {
+    return lowerHost.slice(4);
+  }
+
+  return lowerHost;
 }
 
 function isPrivateIp(ip: string) {
@@ -126,7 +145,7 @@ async function fetchWithTimeout(url: string, options?: RequestInit) {
       signal: controller.signal,
       redirect: options?.redirect ?? "follow",
       headers: {
-        "user-agent": "SecureMSME-AI-Safety-Checker/0.2",
+        "user-agent": "SecureMSME-AI-Safety-Checker/0.3",
         ...(options?.headers || {}),
       },
     });
@@ -227,6 +246,53 @@ function getSslCertificate(
       resolve(null);
     });
   });
+}
+
+async function resolveTxtRecords(domain: string) {
+  try {
+    const records = await dns.resolveTxt(domain);
+    return records.map((recordParts) => recordParts.join(""));
+  } catch {
+    return [];
+  }
+}
+
+async function checkEmailSecurity(
+  hostname: string,
+): Promise<EmailSecurityInfo> {
+  const domain = getEmailDomain(hostname);
+
+  let mxRecords: string[] = [];
+
+  try {
+    const mx = await dns.resolveMx(domain);
+    mxRecords = mx
+      .sort((a, b) => a.priority - b.priority)
+      .map((record) => record.exchange);
+  } catch {
+    mxRecords = [];
+  }
+
+  const txtRecords = await resolveTxtRecords(domain);
+  const spfRecord = txtRecords.find((record) =>
+    record.toLowerCase().startsWith("v=spf1"),
+  );
+
+  const dmarcRecords = await resolveTxtRecords(`_dmarc.${domain}`);
+  const dmarcRecord = dmarcRecords.find((record) =>
+    record.toLowerCase().startsWith("v=dmarc1"),
+  );
+
+  const dmarcPolicyMatch = dmarcRecord?.match(/(?:^|;)\s*p=([^;]+)/i);
+  const dmarcPolicy = dmarcPolicyMatch?.[1]?.toLowerCase();
+
+  return {
+    domain,
+    mxRecords,
+    spfRecord,
+    dmarcRecord,
+    dmarcPolicy,
+  };
 }
 
 export async function scanWebsite(inputUrl: string): Promise<ScanReport> {
@@ -354,6 +420,68 @@ export async function scanWebsite(inputUrl: string): Promise<ScanReport> {
     maxPoints: 10,
   });
 
+  const emailSecurity = await checkEmailSecurity(url.hostname);
+
+  findings.push({
+    name: "MX records",
+    status: emailSecurity.mxRecords.length > 0 ? "pass" : "warning",
+    message:
+      emailSecurity.mxRecords.length > 0
+        ? `${emailSecurity.mxRecords.length} mail exchange record(s) found for ${emailSecurity.domain}.`
+        : `No MX records found for ${emailSecurity.domain}. Business email may not be configured.`,
+    points: emailSecurity.mxRecords.length > 0 ? 10 : 3,
+    maxPoints: 10,
+  });
+
+  findings.push({
+    name: "SPF record",
+    status: emailSecurity.spfRecord ? "pass" : "warning",
+    message: emailSecurity.spfRecord
+      ? "SPF record found. This helps reduce email spoofing."
+      : "SPF record was not found. Add SPF to reduce email spoofing risk.",
+    points: emailSecurity.spfRecord ? 15 : 4,
+    maxPoints: 15,
+  });
+
+  findings.push({
+    name: "DMARC record",
+    status: emailSecurity.dmarcRecord ? "pass" : "fail",
+    message: emailSecurity.dmarcRecord
+      ? "DMARC record found."
+      : "DMARC record was not found. Add DMARC to protect business email identity.",
+    points: emailSecurity.dmarcRecord ? 15 : 0,
+    maxPoints: 15,
+  });
+
+  const dmarcPolicy = emailSecurity.dmarcPolicy;
+
+  findings.push({
+    name: "DMARC policy strength",
+    status:
+      dmarcPolicy === "reject" || dmarcPolicy === "quarantine"
+        ? "pass"
+        : dmarcPolicy === "none"
+          ? "warning"
+          : "fail",
+    message:
+      dmarcPolicy === "reject"
+        ? "DMARC policy is set to reject. This is strong protection."
+        : dmarcPolicy === "quarantine"
+          ? "DMARC policy is set to quarantine. This is good protection."
+          : dmarcPolicy === "none"
+            ? "DMARC policy is monitoring only. Move to quarantine or reject after testing."
+            : "DMARC policy was not found or could not be read.",
+    points:
+      dmarcPolicy === "reject"
+        ? 15
+        : dmarcPolicy === "quarantine"
+          ? 12
+          : dmarcPolicy === "none"
+            ? 5
+            : 0,
+    maxPoints: 15,
+  });
+
   const privacyFound =
     (await pageExists(url, "/privacy-policy")) ||
     (await pageExists(url, "/privacy")) ||
@@ -440,6 +568,7 @@ export async function scanWebsite(inputUrl: string): Promise<ScanReport> {
         status: httpsRedirect.status,
         location: httpsRedirect.location,
       },
+      emailSecurity,
     },
   };
 }
