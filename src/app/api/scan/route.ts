@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { getNextScanDate } from "@/lib/monitoring";
 import { scanWebsite } from "@/lib/scanner";
 import { calculateScore } from "@/lib/score";
 import { getWebsiteNameFromUrl } from "@/lib/websites";
@@ -42,11 +43,12 @@ export async function POST(request: Request) {
 
     let websiteUrl = parsed.data.websiteUrl;
     let savedWebsiteId: string | null = parsed.data.websiteId || null;
+    let scanFrequency = "weekly";
 
     if (savedWebsiteId) {
       const { data: savedWebsite } = await supabase
         .from("websites")
-        .select("id, url")
+        .select("id, url, scan_frequency")
         .eq("id", savedWebsiteId)
         .eq("user_id", user.id)
         .single();
@@ -59,6 +61,7 @@ export async function POST(request: Request) {
       }
 
       websiteUrl = savedWebsite.url;
+      scanFrequency = savedWebsite.scan_frequency || "weekly";
     }
 
     if (!websiteUrl) {
@@ -79,10 +82,10 @@ export async function POST(request: Request) {
       .select("id", { count: "exact", head: true })
       .eq("user_id", user.id);
 
-    const plan = profile?.plan || "free";
-    const scanCount = count || 0;
-
-    if (plan === "free" && scanCount >= TEMP_DEV_FREE_SCAN_LIMIT) {
+    if (
+      (profile?.plan || "free") === "free" &&
+      (count || 0) >= TEMP_DEV_FREE_SCAN_LIMIT
+    ) {
       return NextResponse.json(
         {
           error:
@@ -98,13 +101,14 @@ export async function POST(request: Request) {
     if (!savedWebsiteId) {
       const { data: existingWebsite } = await supabase
         .from("websites")
-        .select("id")
+        .select("id, scan_frequency")
         .eq("user_id", user.id)
         .eq("url", report.normalizedUrl)
         .maybeSingle();
 
       if (existingWebsite?.id) {
         savedWebsiteId = existingWebsite.id;
+        scanFrequency = existingWebsite.scan_frequency || "weekly";
       } else {
         const { data: newWebsite } = await supabase
           .from("websites")
@@ -112,11 +116,14 @@ export async function POST(request: Request) {
             user_id: user.id,
             url: report.normalizedUrl,
             name: getWebsiteNameFromUrl(report.normalizedUrl),
+            monitoring_enabled: true,
+            scan_frequency: "weekly",
           })
-          .select("id")
+          .select("id, scan_frequency")
           .single();
 
         savedWebsiteId = newWebsite?.id || null;
+        scanFrequency = newWebsite?.scan_frequency || "weekly";
       }
     }
 
@@ -152,16 +159,28 @@ export async function POST(request: Request) {
       )
       .single();
 
-    if (insertError) {
+    if (insertError || !scan) {
       return NextResponse.json(
         { error: "Scan completed but could not save report." },
         { status: 500 },
       );
     }
 
-    return NextResponse.json({
-      scan,
-    });
+    if (savedWebsiteId) {
+      await supabase
+        .from("websites")
+        .update({
+          last_scan_at: scan.created_at,
+          next_scan_at: getNextScanDate(scan.created_at, scanFrequency),
+          latest_score: scoreResult.score,
+          latest_risk_level: scoreResult.riskLevel,
+          latest_scan_id: scan.id,
+        })
+        .eq("id", savedWebsiteId)
+        .eq("user_id", user.id);
+    }
+
+    return NextResponse.json({ scan });
   } catch (error) {
     const message =
       error instanceof Error
