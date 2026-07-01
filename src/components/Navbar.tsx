@@ -15,8 +15,14 @@ export function Navbar() {
           <Link href="/pricing" className="hover:text-slate-950">
             Pricing
           </Link>
+          <Link href="/dashboard" className="hover:text-slate-950">
+            Dashboard
+          </Link>
           <Link href="/login" className="hover:text-slate-950">
             Login
+          </Link>
+          <Link href="/signup" className="hover:text-slate-950">
+            Signup
           </Link>
           <Link
             href="/scan"

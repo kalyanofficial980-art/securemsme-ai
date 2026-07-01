@@ -1,14 +1,14 @@
 ﻿import Link from "next/link";
 import { Navbar } from "@/components/Navbar";
-import { signIn } from "@/app/auth/actions";
+import { signUp } from "@/app/auth/actions";
 
-type LoginPageProps = {
+type SignupPageProps = {
   searchParams?: Promise<{
     message?: string;
   }>;
 };
 
-export default async function LoginPage({ searchParams }: LoginPageProps) {
+export default async function SignupPage({ searchParams }: SignupPageProps) {
   const params = await searchParams;
   const message = params?.message;
 
@@ -18,9 +18,9 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
       <section className="mx-auto flex max-w-md flex-col px-6 py-20">
         <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-          <h1 className="text-3xl font-black">Login</h1>
+          <h1 className="text-3xl font-black">Create account</h1>
           <p className="mt-2 text-slate-600">
-            Login to your SecureMSME AI dashboard.
+            Start your free SecureMSME AI account.
           </p>
 
           {message ? (
@@ -29,7 +29,14 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             </div>
           ) : null}
 
-          <form action={signIn} className="mt-8 space-y-4">
+          <form action={signUp} className="mt-8 space-y-4">
+            <input
+              name="fullName"
+              type="text"
+              className="w-full rounded-2xl border border-slate-300 px-4 py-3"
+              placeholder="Full name"
+            />
+
             <input
               name="email"
               type="email"
@@ -42,19 +49,20 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
               name="password"
               type="password"
               required
+              minLength={6}
               className="w-full rounded-2xl border border-slate-300 px-4 py-3"
-              placeholder="Password"
+              placeholder="Password minimum 6 characters"
             />
 
             <button className="w-full rounded-full bg-slate-950 px-4 py-3 font-bold text-white hover:bg-slate-800">
-              Login
+              Create account
             </button>
           </form>
 
           <p className="mt-6 text-center text-sm text-slate-600">
-            New user?{" "}
-            <Link href="/signup" className="font-bold text-slate-950 underline">
-              Create account
+            Already have account?{" "}
+            <Link href="/login" className="font-bold text-slate-950 underline">
+              Login
             </Link>
           </p>
         </div>
