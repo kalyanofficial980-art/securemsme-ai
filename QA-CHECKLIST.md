@@ -19,16 +19,20 @@ npm.cmd run audit:npm
 - Manual scan works
 - Saved website rescan works
 - Customer report hub opens: `/report/<scan-id>/security-hub`
+- Retest proof public page opens: `/retest-proof`
+- Retest proof report page opens: `/report/<scan-id>/retest-proof`
+- Retest proof shows previous scan selector
+- Retest proof requires a previous scan for same website
+- Retest proof generates before/after comparison
+- Retest proof shows score change
+- Retest proof shows fixed items
+- Retest proof shows improved items
+- Retest proof shows still-open items
+- Retest proof shows new issues
+- Retest proof shows can/cannot claim boundary
+- Retest proof saves history in `retest_proof_reports`
 - CMS/WordPress scanner public page opens: `/cms-wordpress-scanner`
 - CMS/WordPress report page opens: `/report/<scan-id>/cms-wordpress`
-- CMS/WordPress scanner is locked if website is not verified
-- CMS/WordPress scanner requires authorization checkbox
-- CMS/WordPress scanner runs only after verified scope and permission
-- CMS/WordPress scanner shows WordPress/WooCommerce status
-- CMS/WordPress scanner shows plugin/theme/version signals
-- CMS/WordPress scanner shows findings and observations
-- User endpoint bodies are not stored
-- XML-RPC POST is not used
 - Real safe templates public page opens: `/real-safe-templates`
 - Real safe template report page opens: `/report/<scan-id>/real-template-worker`
 - Real security checks public page opens: `/real-security-checks`
@@ -48,30 +52,19 @@ npm.cmd run audit:npm
 - Robots and sitemap work
 - Health check returns `status: ok`
 
-## CMS/WordPress scanner safety checks
+## Retest proof safety checks
 
 Allowed:
 
-- GET requests
-- HEAD requests
-- Public verified targets only
-- WordPress REST signal review
-- Login/admin status review
-- XML-RPC HEAD-only status
-- Plugin/theme public asset signal detection
-- WooCommerce/storefront public signal detection
+- Compare previously stored evidence
+- Compare score before/after
+- Mark observed fixed/improved/still-open/new items
+- Generate developer next actions
+- Generate customer-safe proof statements
 
 Blocked:
 
-- Localhost
-- Private IP
-- Internal hostname
-- Password guessing
-- Brute force
-- Login bypass
-- XML-RPC POST
-- Exploit payload
-- Form submission
-- Destructive test
-- Private data collection
-- User endpoint body storage
+- Claiming every vulnerability was fixed
+- Claiming website is 100% secure
+- Claiming full pentest coverage
+- Claiming no vulnerabilities remain

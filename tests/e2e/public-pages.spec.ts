@@ -17,6 +17,7 @@ const publicPages = [
     path: "/cms-wordpress-scanner",
     text: "WordPress and WooCommerce risk signals",
   },
+  { path: "/retest-proof", text: "Show what improved" },
   { path: "/audit-framework", text: "Inbuilt advanced security audit" },
   {
     path: "/vulnerability-intelligence",

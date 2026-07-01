@@ -1,65 +1,51 @@
 # SecureMSME AI Security Audit Notes
 
-## Mega Part 33 CMS/WordPress deep risk scanner
+## Mega Part 34 Retest Proof Automation + Evidence Diff Engine
 
 Added:
 
-- CMS/WordPress scanner library
-- WordPress REST API signal review
-- wp-login and wp-admin surface review
-- XML-RPC HEAD-only status check
-- readme/license status review
-- plugin public asset signal detection
-- theme public asset signal detection
-- version-like signal review
-- WooCommerce/storefront signal review
-- user endpoint status check without storing user data
-- WordPress hardening checklist
-- CMS/WordPress report page
-- CMS/WordPress server action
-- public CMS/WordPress scanner page
-- unit tests for target blocking
+- `retest_proof_reports` SQL table
+- Retest proof engine library
+- Evidence item extraction from reports and module results
+- Before/after score comparison
+- Fixed/improved/still-open/new issue diffing
+- Retest proof server action
+- Retest proof report page
+- Public retest proof page
+- Customer report hub link
+- Advanced report navigation link
+- Unit tests for proof states
 - E2E public page coverage
 
-## Safety boundary
+## What retest proof can claim
 
-Still not allowed:
+- Before/after evidence was compared.
+- Score improved, declined, or stayed the same.
+- Specific previously observed items were not observed in the retest.
+- Specific items still appear in retest evidence.
+- New items appeared after retest.
+- Developer next actions are recommended.
 
-- Exploitation
-- Brute force
-- Login bypass
-- Password guessing
-- XML-RPC POST calls
-- Form submission
-- Unauthorized private testing
-- Destructive testing
-- Private data access
-- User endpoint response body storage
-- Denial-of-service testing
-- Payment abuse testing
-- Claiming full pentest
-- Claiming all vulnerabilities found
+## What retest proof cannot claim
 
-## Real evidence collected
+- Every vulnerability was fixed.
+- No vulnerabilities remain.
+- The website is 100% secure.
+- Full pentest coverage was achieved.
+- Exploitation is impossible.
+- Compliance certification is granted.
 
-- URL/path requested
-- GET/HEAD method
-- HTTP status
-- content-type
-- content-length
-- safe header samples
-- limited body sample for non-sensitive public pages only
-- plugin slugs from public asset paths
-- theme slugs from public asset paths
-- version-like public signals
-- no user endpoint body storage
+## Security boundary
+
+Retest proof compares stored evidence only. It does not run exploitation, brute force,
+credential attacks, login bypass, destructive testing, or private data extraction.
 
 ## Next layer
 
-Mega Part 34 should add:
+Mega Part 35 should add:
 
-- Retest proof automation for real modules and CMS findings
-- Compare old vs new module evidence
-- Auto-detect fixed/improved findings
-- Before/after proof report
-- Developer handoff export
+- Authenticated customer scan foundation
+- Test account vault instructions
+- Role/scope boundaries
+- Session-safe crawling
+- No destructive mutation rules

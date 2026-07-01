@@ -23,6 +23,13 @@ export const customerReportLinks: CustomerFriendlyLink[] = [
     customerVisible: true,
   },
   {
+    label: "Retest Proof",
+    description: "Compare before/after evidence and show what improved",
+    href: (id) => `/report/${id}/retest-proof`,
+    primary: true,
+    customerVisible: true,
+  },
+  {
     label: "Advanced Website Checks",
     description: "Extra safe checks that support the main security report",
     href: (id) => `/report/${id}/safe-templates`,
@@ -101,6 +108,7 @@ export function customerTerm(term: string) {
     "Architecture-ready": "Coming Soon",
     "Security Tool Jobs": "Internal Security Runs",
     "Worker Jobs": "Internal Review Runs",
+    "Evidence Diff": "Retest Proof",
   };
 
   return replacements[term] || term;
