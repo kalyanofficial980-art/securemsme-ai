@@ -133,6 +133,7 @@ export async function POST(request: Request) {
           .insert({
             user_id: user.id,
             url: report.normalizedUrl,
+            website_url: report.normalizedUrl,
             name: getWebsiteNameFromUrl(report.normalizedUrl),
             monitoring_enabled: true,
             scan_frequency: "weekly",
