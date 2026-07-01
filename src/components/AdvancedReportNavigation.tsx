@@ -30,6 +30,14 @@ const extraLinks = [
     customerVisible: true,
   },
   {
+    label: "CMS/WordPress Review",
+    description:
+      "WordPress, WooCommerce, plugin, theme, login and XML-RPC signals",
+    href: (id: string) => `/report/${id}/cms-wordpress`,
+    primary: true,
+    customerVisible: true,
+  },
+  {
     label: "Known Technology Risks",
     description: "CVE-aware technology review with safe upgrade guidance",
     href: (id: string) => `/report/${id}/known-risks`,
@@ -50,7 +58,7 @@ export function AdvancedReportNavigation({
   if (variant === "compact") {
     return (
       <div className="mt-5 flex flex-wrap gap-3">
-        {visibleLinks.slice(0, 10).map((item) => (
+        {visibleLinks.slice(0, 11).map((item) => (
           <Link
             key={item.label}
             href={item.href(scanId)}
@@ -76,9 +84,9 @@ export function AdvancedReportNavigation({
           </p>
           <h2 className="mt-2 text-3xl font-black">What should you do next?</h2>
           <p className="mt-3 max-w-3xl leading-7 text-slate-600">
-            Review your security score, real backend evidence, real safe
-            templates, authorized deeper review, known technology risks, fix
-            plan, developer tasks, and retest after fixes.
+            Review your security score, real backend evidence, CMS/WordPress
+            review, real safe templates, known technology risks, fix plan,
+            developer tasks, and retest after fixes.
           </p>
         </div>
 

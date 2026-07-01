@@ -13,6 +13,10 @@ const publicPages = [
   { path: "/authorized-pentest", text: "Deeper security checks" },
   { path: "/real-security-checks", text: "Real evidence" },
   { path: "/real-safe-templates", text: "Real path evidence" },
+  {
+    path: "/cms-wordpress-scanner",
+    text: "WordPress and WooCommerce risk signals",
+  },
   { path: "/audit-framework", text: "Inbuilt advanced security audit" },
   {
     path: "/vulnerability-intelligence",

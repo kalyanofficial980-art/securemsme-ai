@@ -19,21 +19,21 @@ npm.cmd run audit:npm
 - Manual scan works
 - Saved website rescan works
 - Customer report hub opens: `/report/<scan-id>/security-hub`
+- CMS/WordPress scanner public page opens: `/cms-wordpress-scanner`
+- CMS/WordPress report page opens: `/report/<scan-id>/cms-wordpress`
+- CMS/WordPress scanner is locked if website is not verified
+- CMS/WordPress scanner requires authorization checkbox
+- CMS/WordPress scanner runs only after verified scope and permission
+- CMS/WordPress scanner shows WordPress/WooCommerce status
+- CMS/WordPress scanner shows plugin/theme/version signals
+- CMS/WordPress scanner shows findings and observations
+- User endpoint bodies are not stored
+- XML-RPC POST is not used
 - Real safe templates public page opens: `/real-safe-templates`
 - Real safe template report page opens: `/report/<scan-id>/real-template-worker`
-- Real safe templates are locked if website is not verified
-- Real safe templates require authorization checkbox
-- Real safe templates run only after verified scope and permission
-- Real safe templates show path observations
-- Real safe templates show template findings
-- Sensitive-path body storage is blocked
-- Real safe template results are saved in authorized module results table
 - Real security checks public page opens: `/real-security-checks`
 - Real modules report page opens: `/report/<scan-id>/real-modules`
-- Real modules are locked if website is not verified
-- Real modules show HTTP/TLS/DNS/service evidence
 - Authorized security review public page opens: `/authorized-pentest`
-- Authorized security review report page opens: `/report/<scan-id>/authorized-pentest`
 - Known technology risks page opens: `/report/<scan-id>/known-risks`
 - Customer value page opens: `/report/<scan-id>/customer-value`
 - Evidence confidence page opens: `/report/<scan-id>/evidence-calibration`
@@ -48,25 +48,30 @@ npm.cmd run audit:npm
 - Robots and sitemap work
 - Health check returns `status: ok`
 
-## Real safe template safety checks
+## CMS/WordPress scanner safety checks
 
 Allowed:
 
 - GET requests
 - HEAD requests
 - Public verified targets only
-- Header/status/body pattern matching
-- Sensitive HEAD-only checks
+- WordPress REST signal review
+- Login/admin status review
+- XML-RPC HEAD-only status
+- Plugin/theme public asset signal detection
+- WooCommerce/storefront public signal detection
 
 Blocked:
 
 - Localhost
 - Private IP
 - Internal hostname
+- Password guessing
 - Brute force
-- Exploit payload
 - Login bypass
+- XML-RPC POST
+- Exploit payload
 - Form submission
 - Destructive test
 - Private data collection
-- Sensitive response body storage
+- User endpoint body storage

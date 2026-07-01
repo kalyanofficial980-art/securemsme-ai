@@ -1,22 +1,23 @@
 # SecureMSME AI Security Audit Notes
 
-## Mega Part 32 real safe template execution worker
+## Mega Part 33 CMS/WordPress deep risk scanner
 
 Added:
 
-- Real safe template catalog
-- GET/HEAD-only verified-scope template runner
-- security.txt check
-- robots/sitemap checks
-- admin/login surface checks
-- API docs surface checks
-- sensitive debug/config HEAD-only checks
-- .git/config HEAD-only check
-- sensitive body storage block
-- private/internal target safety guard
-- real safe template report page
-- real safe template server action
-- public real safe templates page
+- CMS/WordPress scanner library
+- WordPress REST API signal review
+- wp-login and wp-admin surface review
+- XML-RPC HEAD-only status check
+- readme/license status review
+- plugin public asset signal detection
+- theme public asset signal detection
+- version-like signal review
+- WooCommerce/storefront signal review
+- user endpoint status check without storing user data
+- WordPress hardening checklist
+- CMS/WordPress report page
+- CMS/WordPress server action
+- public CMS/WordPress scanner page
 - unit tests for target blocking
 - E2E public page coverage
 
@@ -28,11 +29,12 @@ Still not allowed:
 - Brute force
 - Login bypass
 - Password guessing
+- XML-RPC POST calls
 - Form submission
 - Unauthorized private testing
 - Destructive testing
 - Private data access
-- Sensitive response body storage
+- User endpoint response body storage
 - Denial-of-service testing
 - Payment abuse testing
 - Claiming full pentest
@@ -46,16 +48,18 @@ Still not allowed:
 - content-type
 - content-length
 - safe header samples
-- limited body sample only for non-sensitive text/json/xml/html paths
-- no sensitive body storage
+- limited body sample for non-sensitive public pages only
+- plugin slugs from public asset paths
+- theme slugs from public asset paths
+- version-like public signals
+- no user endpoint body storage
 
 ## Next layer
 
-Mega Part 33 should add:
+Mega Part 34 should add:
 
-- CMS/WordPress real deep risk scanner
-- WordPress REST/API checks
-- plugin/theme signal detection
-- WooCommerce/store surface detection
-- login/admin hardening guidance
-- no credential attacks
+- Retest proof automation for real modules and CMS findings
+- Compare old vs new module evidence
+- Auto-detect fixed/improved findings
+- Before/after proof report
+- Developer handoff export
