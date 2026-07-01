@@ -1,22 +1,19 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Navbar } from "@/components/Navbar";
-import { ToolRunnerPanel } from "@/components/ToolRunnerPanel";
-import { buildToolRunnerReport } from "@/lib/tool-runner";
+import { PassiveWorkerPanel } from "@/components/PassiveWorkerPanel";
+import { runPassiveZapStyleWorker } from "@/lib/passive-zap-worker";
 import { createClient } from "@/lib/supabase/server";
 
-type SavedJob = {
+type SavedPassiveJob = {
   id: string;
   status: string;
   tool_mode: string;
-  total_tools: number;
-  completed_tools: number;
-  blocked_tools: number;
   result_summary?: Record<string, unknown> | null;
   created_at: string;
 };
 
-export default async function ToolRunnerPage({
+export default async function PassiveWorkerPage({
   params,
   searchParams,
 }: {
@@ -32,7 +29,7 @@ export default async function ToolRunnerPage({
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/login?message=Please login to view internal engine details");
+    redirect("/login?message=Please login to view passive worker");
   }
 
   const { data: profile } = await supabase
@@ -41,24 +38,19 @@ export default async function ToolRunnerPage({
     .eq("id", user.id)
     .single();
 
-  if (profile?.role !== "admin") {
-    redirect(
-      `/report/${id}/security-hub?message=${encodeURIComponent(
-        "Internal engine details are hidden from customer view.",
-      )}`,
-    );
-  }
-
-  const { data: scan } = await supabase
+  let scanQuery = supabase
     .from("scans")
     .select("id, user_id, website_id, website_url, report, created_at")
-    .eq("id", id)
-    .single();
+    .eq("id", id);
+
+  if (profile?.role !== "admin") {
+    scanQuery = scanQuery.eq("user_id", user.id);
+  }
+
+  const { data: scan } = await scanQuery.single();
 
   if (!scan) {
-    redirect(
-      "/admin/internal-engines?message=Internal engine report not found",
-    );
+    redirect("/dashboard?message=Passive worker report not found");
   }
 
   let verifiedScope = false;
@@ -77,20 +69,18 @@ export default async function ToolRunnerPage({
     );
   }
 
-  const report = buildToolRunnerReport({
+  const workerReport = runPassiveZapStyleWorker({
     websiteUrl: scan.website_url,
-    scanId: scan.id,
     report: (scan.report || {}) as Record<string, unknown>,
     verifiedScope,
   });
 
   const { data: savedJobs } = await supabase
     .from("security_tool_jobs")
-    .select(
-      "id, status, tool_mode, total_tools, completed_tools, blocked_tools, result_summary, created_at",
-    )
+    .select("id, status, tool_mode, result_summary, created_at")
     .eq("scan_id", scan.id)
     .eq("user_id", scan.user_id)
+    .eq("job_type", "passive-zap-worker")
     .order("created_at", { ascending: false })
     .limit(10);
 
@@ -102,27 +92,43 @@ export default async function ToolRunnerPage({
         <div className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-end">
           <div>
             <Link
-              href="/admin/internal-engines"
+              href={`/report/${scan.id}`}
               className="text-sm font-bold text-slate-600"
             >
-              Back to internal engines
+              Back to normal report
             </Link>
             <p className="mt-6 text-sm font-bold text-slate-500">
-              Admin-only technical engine details
+              Passive ZAP-style worker
             </p>
             <h1 className="mt-2 break-all text-4xl font-black">
-              Internal tool logs
+              {scan.website_url}
             </h1>
             <p className="mt-3 text-slate-600">
-              Customer-facing pages hide these technical details.
+              Backend passive discovery and alert normalization without attacks
+              or customer installation.
             </p>
+          </div>
+
+          <div className="flex flex-wrap gap-3">
+            <Link
+              href={`/report/${scan.id}/safe-templates`}
+              className="rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-black hover:bg-slate-100"
+            >
+              Safe templates
+            </Link>
+            <Link
+              href={`/report/${scan.id}/tool-runner`}
+              className="rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-black hover:bg-slate-100"
+            >
+              Tool runner
+            </Link>
           </div>
         </div>
 
-        <ToolRunnerPanel
+        <PassiveWorkerPanel
           scanId={scan.id}
-          report={report}
-          savedJobs={(savedJobs || []) as SavedJob[]}
+          report={workerReport}
+          savedJobs={(savedJobs || []) as SavedPassiveJob[]}
           message={message}
         />
       </section>

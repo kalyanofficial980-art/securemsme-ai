@@ -1,83 +1,23 @@
 import Link from "next/link";
+import { customerReportLinks } from "@/lib/customer-language";
 
 type AdvancedReportNavigationProps = {
   scanId: string;
   variant?: "full" | "compact";
 };
 
-const links = [
-  {
-    label: "Customer Value Report",
-    description: "Before/after score, fix workflow, proof-of-fix tracking",
-    href: (id: string) => `/report/${id}/customer-value`,
-    primary: true,
-  },
-  {
-    label: "Safe Templates",
-    description:
-      "Safe Nuclei-style templates, matched evidence, blocked exploits",
-    href: (id: string) => `/report/${id}/safe-templates`,
-    primary: true,
-  },
-  {
-    label: "Tool Runner",
-    description: "Built-in tool architecture, job logs, evidence normalization",
-    href: (id: string) => `/report/${id}/tool-runner`,
-    primary: true,
-  },
-  {
-    label: "Vulnerability Intelligence",
-    description:
-      "Tech stack, attack surface, version exposure, confidence labels",
-    href: (id: string) => `/report/${id}/vulnerability-intelligence`,
-    primary: true,
-  },
-  {
-    label: "Evidence Calibration",
-    description: "False-positive guard, confirmed evidence, safe claims",
-    href: (id: string) => `/report/${id}/evidence-calibration`,
-    primary: true,
-  },
-  {
-    label: "Inbuilt Advanced Audit",
-    description: "Customer-ready evidence, modules, priority fixes",
-    href: (id: string) => `/report/${id}/inbuilt`,
-    primary: false,
-  },
-  {
-    label: "OWASP/ASVS Mapping",
-    description: "Control mapping, maturity score, executive actions",
-    href: (id: string) => `/report/${id}/advanced`,
-    primary: false,
-  },
-  {
-    label: "Printable Report",
-    description: "Clean printable customer report",
-    href: (id: string) => `/report/${id}/print`,
-    primary: false,
-  },
-  {
-    label: "PDF Download",
-    description: "Download/share professional report",
-    href: (id: string) => `/api/report/${id}/pdf`,
-    primary: false,
-  },
-  {
-    label: "Developer Fix Roadmap",
-    description: "Technical action list for developer handoff",
-    href: (id: string) => `/report/${id}/fix-roadmap`,
-    primary: false,
-  },
-];
-
 export function AdvancedReportNavigation({
   scanId,
   variant = "full",
 }: AdvancedReportNavigationProps) {
+  const visibleLinks = customerReportLinks.filter(
+    (item) => item.customerVisible,
+  );
+
   if (variant === "compact") {
     return (
       <div className="mt-5 flex flex-wrap gap-3">
-        {links.slice(0, 6).map((item) => (
+        {visibleLinks.slice(0, 6).map((item) => (
           <Link
             key={item.label}
             href={item.href(scanId)}
@@ -99,29 +39,26 @@ export function AdvancedReportNavigation({
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
         <div>
           <p className="text-sm font-black text-slate-500">
-            Advanced security intelligence
+            Website security report
           </p>
-          <h2 className="mt-2 text-3xl font-black">
-            Open deeper audit reports
-          </h2>
+          <h2 className="mt-2 text-3xl font-black">What should you do next?</h2>
           <p className="mt-3 max-w-3xl leading-7 text-slate-600">
-            SecureMSME AI now includes safe template checks, customer value
-            workflow, built-in tool runner architecture, vulnerability
-            intelligence, evidence calibration, inbuilt audit evidence,
-            OWASP/ASVS mapping, PDF, and developer handoff.
+            Review your security score, create a fix plan, send clear tasks to
+            your developer, and run a retest after fixes to show before/after
+            proof.
           </p>
         </div>
 
         <Link
-          href={`/report/${scanId}/safe-templates`}
+          href={`/report/${scanId}/security-hub`}
           className="rounded-full bg-slate-950 px-6 py-3 text-sm font-black text-white hover:bg-slate-800"
         >
-          Open safe templates
+          Open customer report hub
         </Link>
       </div>
 
       <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {links.map((item) => (
+        {visibleLinks.map((item) => (
           <Link
             key={item.label}
             href={item.href(scanId)}
