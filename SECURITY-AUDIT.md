@@ -2,31 +2,50 @@
 
 ## Current product direction
 
-SecureMSME AI is not a basic manual freelance testing checklist. It is being built as an automated, repeatable, evidence-based cybersecurity SaaS for MSMEs.
+SecureMSME AI is not a basic manual freelance testing checklist. It is an automated, repeatable, customer-friendly cybersecurity SaaS for MSMEs.
 
-## Current audit depth
+## Customer-side product rule
 
-### Automated passive checks
+Customer should not need:
 
-Allowed:
+- Docker
+- ZAP install
+- JSON paste
+- External testing-tool setup
+- Manual freelancer-style checklist
+
+Customer should only do:
+
+1. Add website
+2. Click scan
+3. Read advanced audit report
+4. Download/share report
+5. Monitor improvements
+
+## Current inbuilt audit depth
+
+Allowed inbuilt passive checks:
 
 - HTTPS and TLS posture
-- SSL certificate expiry
-- HTTP to HTTPS redirect
 - HSTS
 - Security headers
-- Server fingerprint reduction signals
-- Email security DNS checks
-- Public trust pages
+- Browser protections
+- Server fingerprint signals
+- Mixed content detection
+- Script surface review
+- Public form/session signals
 - robots.txt
 - sitemap.xml
 - security.txt
-- Common sensitive public file indicators
-- Cookie security signals where visible
-- Advanced report mapping to OWASP-style and ASVS-style categories
-- Evidence records and business recommendations
+- Privacy/terms/contact trust signals
+- Evidence records
+- Priority fixes
+- OWASP-style mapping
+- ASVS-style mapping
+- Security maturity score
+- Customer business readiness label
 
-### Not allowed in current safe SaaS mode
+## Not allowed in current safe SaaS mode
 
 Not allowed:
 
@@ -37,18 +56,6 @@ Not allowed:
 - Unauthorized private testing
 - Aggressive scanning
 - Destructive testing
-
-## Advanced audit layers
-
-1. Public security posture
-2. Trust and compliance signals
-3. OWASP-style risk mapping
-4. ASVS-style control mapping
-5. Evidence records
-6. Security maturity score
-7. Executive actions
-8. Safe testing limitations
-9. Next audit depth roadmap
 
 ## Pre-deploy security gate
 
@@ -67,7 +74,3 @@ npm audit fix --force
 ```
 
 unless you are ready to manually test every breaking dependency update.
-
-## Future advanced connector
-
-Later, add safe ZAP Baseline passive connector only for authorized customer-owned websites.

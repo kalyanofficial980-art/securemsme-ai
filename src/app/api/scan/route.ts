@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { buildAdvancedSecurityAudit } from "@/lib/advanced-security-audit";
+import { runInbuiltAdvancedAudit } from "@/lib/inbuilt-advanced-audit";
 import { getNextScanDate } from "@/lib/monitoring";
 import { scanWebsite } from "@/lib/scanner";
 import { calculateScore } from "@/lib/score";
@@ -97,7 +98,10 @@ export async function POST(request: Request) {
     }
 
     const report = await scanWebsite(websiteUrl);
-    const scoreResult = calculateScore(report);
+    const [inbuiltAdvancedAudit, scoreResult] = await Promise.all([
+      runInbuiltAdvancedAudit(report.normalizedUrl),
+      Promise.resolve(calculateScore(report)),
+    ]);
 
     if (!savedWebsiteId) {
       const { data: existingWebsite } = await supabase
@@ -143,6 +147,7 @@ export async function POST(request: Request) {
       warningChecks: scoreResult.warningChecks,
       failedChecks: scoreResult.failedChecks,
       topFixes: scoreResult.topFixes,
+      inbuiltAdvancedAudit,
     };
 
     const fullReport = {
@@ -156,7 +161,9 @@ export async function POST(request: Request) {
         user_id: user.id,
         website_id: savedWebsiteId,
         website_url: report.normalizedUrl,
-        score: scoreResult.score,
+        score: Math.round(
+          (scoreResult.score + inbuiltAdvancedAudit.overallScore) / 2,
+        ),
         risk_level: scoreResult.riskLevel,
         report: fullReport,
       })
@@ -178,7 +185,7 @@ export async function POST(request: Request) {
         .update({
           last_scan_at: scan.created_at,
           next_scan_at: getNextScanDate(scan.created_at, scanFrequency),
-          latest_score: scoreResult.score,
+          latest_score: scan.score,
           latest_risk_level: scoreResult.riskLevel,
           latest_scan_id: scan.id,
         })

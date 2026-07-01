@@ -20,6 +20,7 @@ npm.cmd run audit:npm
 - Saved website rescan works
 - Report page opens
 - Advanced report page opens: `/report/<scan-id>/advanced`
+- Inbuilt customer audit page opens: `/report/<scan-id>/inbuilt`
 - PDF download works
 - Printable report works
 - Admin page opens only for admin
@@ -32,10 +33,15 @@ npm.cmd run audit:npm
 
 ## Advanced SaaS checks
 
-- Every scan creates an advanced audit object inside report JSON
+- Customer does not need Docker
+- Customer does not need external JSON import
+- Customer only needs add website + click scan
+- Every normal scan creates inbuilt advanced audit object
+- Inbuilt audit evidence records are visible
+- Inbuilt audit modules are visible
+- Priority fixes are visible
 - OWASP-style controls are visible
 - ASVS-style controls are visible
-- Evidence records are generated
 - Maturity score is generated
 - Limitations clearly say it is not a full penetration test
 - No unsafe exploit claims are made

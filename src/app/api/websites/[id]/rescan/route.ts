@@ -1,5 +1,6 @@
 import type { NextRequest } from "next/server";
 import { buildAdvancedSecurityAudit } from "@/lib/advanced-security-audit";
+import { runInbuiltAdvancedAudit } from "@/lib/inbuilt-advanced-audit";
 import { getNextScanDate } from "@/lib/monitoring";
 import { scanWebsite } from "@/lib/scanner";
 import { calculateScore } from "@/lib/score";
@@ -68,7 +69,10 @@ export async function POST(
     }
 
     const report = await scanWebsite(website.url);
-    const scoreResult = calculateScore(report);
+    const [inbuiltAdvancedAudit, scoreResult] = await Promise.all([
+      runInbuiltAdvancedAudit(report.normalizedUrl),
+      Promise.resolve(calculateScore(report)),
+    ]);
 
     const baseReport = {
       ...report,
@@ -85,6 +89,7 @@ export async function POST(
       warningChecks: scoreResult.warningChecks,
       failedChecks: scoreResult.failedChecks,
       topFixes: scoreResult.topFixes,
+      inbuiltAdvancedAudit,
     };
 
     const fullReport = {
@@ -92,13 +97,17 @@ export async function POST(
       advancedAudit: buildAdvancedSecurityAudit(baseReport),
     };
 
+    const finalScore = Math.round(
+      (scoreResult.score + inbuiltAdvancedAudit.overallScore) / 2,
+    );
+
     const { data: scan, error: insertError } = await supabase
       .from("scans")
       .insert({
         user_id: user.id,
         website_id: website.id,
         website_url: report.normalizedUrl,
-        score: scoreResult.score,
+        score: finalScore,
         risk_level: scoreResult.riskLevel,
         report: fullReport,
       })
@@ -122,7 +131,7 @@ export async function POST(
           scan.created_at,
           website.scan_frequency || "weekly",
         ),
-        latest_score: scoreResult.score,
+        latest_score: finalScore,
         latest_risk_level: scoreResult.riskLevel,
         latest_scan_id: scan.id,
       })

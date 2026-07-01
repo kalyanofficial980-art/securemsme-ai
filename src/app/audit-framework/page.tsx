@@ -3,29 +3,29 @@ import { Navbar } from "@/components/Navbar";
 
 const layers = [
   {
-    title: "Layer 1: Public posture",
+    title: "Layer 1: Inbuilt public posture scan",
     description:
-      "HTTPS, TLS certificate, HSTS, security headers, public policy pages, robots, sitemap, and security.txt.",
+      "HTTPS, HSTS, security headers, browser protections, mixed content, public assets, and visible form/session signals.",
   },
   {
-    title: "Layer 2: Trust and compliance signals",
+    title: "Layer 2: Customer trust readiness",
     description:
-      "Privacy policy, terms, contact, responsible disclosure, email domain trust, and customer-readable risk summaries.",
+      "Privacy, terms, contact, security process, robots, sitemap, and customer-visible trust signals.",
   },
   {
-    title: "Layer 3: OWASP-style mapping",
+    title: "Layer 3: Evidence-based scoring",
     description:
-      "Findings are mapped to major web risk categories without claiming unsafe exploit validation.",
+      "Every result becomes an evidence record with customer impact and practical fix guidance.",
   },
   {
-    title: "Layer 4: ASVS-style controls",
+    title: "Layer 4: OWASP/ASVS-style intelligence",
     description:
-      "Controls are grouped by architecture, authentication, session management, communications, and configuration.",
+      "Findings are mapped into higher-level risk and control areas for serious business reporting.",
   },
   {
-    title: "Layer 5: Evidence-based reports",
+    title: "Layer 5: SaaS workflow, not freelancer checklist",
     description:
-      "Each result is converted into evidence records, risk statements, and recommended business actions.",
+      "Customer adds a website, clicks scan, and gets automated reports without Docker, JSON paste, or manual setup.",
   },
 ];
 
@@ -39,11 +39,13 @@ export default function AuditFrameworkPage() {
           SecureMSME AI audit framework
         </p>
         <h1 className="mt-2 max-w-4xl text-5xl font-black leading-tight">
-          Advanced automated security audit for MSMEs
+          Inbuilt advanced security audit for MSMEs
         </h1>
         <p className="mt-5 max-w-3xl text-lg leading-8 text-slate-600">
-          This SaaS is designed to replace basic manual freelance checklists
-          with repeatable, evidence-based, safe public website audits.
+          SecureMSME AI is designed as a productized cybersecurity SaaS. The
+          customer should not install external tools or paste scanner reports.
+          The platform performs safe inbuilt audits and produces evidence-based
+          reports automatically.
         </p>
 
         <div className="mt-10 grid gap-5">
@@ -62,13 +64,12 @@ export default function AuditFrameworkPage() {
 
         <div className="mt-10 rounded-3xl border border-emerald-200 bg-emerald-50 p-8">
           <h2 className="text-2xl font-black text-emerald-950">
-            Safe by design
+            Customer-side promise
           </h2>
           <p className="mt-3 leading-7 text-emerald-900">
-            The platform uses passive public checks only. It does not exploit,
-            brute force, bypass login, or access private systems. Deeper
-            authenticated testing should be added only with written
-            authorization.
+            No Docker. No JSON paste. No external setup. No exploitation. Just
+            safe inbuilt scanning, evidence, scoring, and business-friendly
+            reports.
           </p>
         </div>
 
@@ -77,7 +78,7 @@ export default function AuditFrameworkPage() {
             href="/scan"
             className="rounded-full bg-slate-950 px-6 py-3 font-bold text-white hover:bg-slate-800"
           >
-            Start audit
+            Start inbuilt audit
           </Link>
           <Link
             href="/trust"
