@@ -10,6 +10,10 @@ type ScanFinding = {
   message: string;
   points: number;
   maxPoints: number;
+  category?: string;
+  severity?: "Critical" | "High" | "Medium" | "Low" | "Info";
+  businessImpact?: string;
+  fixRecommendation?: string;
 };
 
 type CategoryScore = {
@@ -17,6 +21,7 @@ type CategoryScore = {
   score: number;
   maxScore: number;
   percentage: number;
+  grade?: string;
 };
 
 type TopFix = {
@@ -24,6 +29,17 @@ type TopFix = {
   message: string;
   lostPoints: number;
   priority?: string;
+  severity?: string;
+  businessImpact?: string;
+  fixRecommendation?: string;
+};
+
+type SeverityCounts = {
+  critical?: number;
+  high?: number;
+  medium?: number;
+  low?: number;
+  info?: number;
 };
 
 type ScanResponse = {
@@ -34,9 +50,11 @@ type ScanResponse = {
     risk_level: string;
     report: {
       summary?: string;
+      executiveSummary?: string;
       findings: ScanFinding[];
       categoryScores?: CategoryScore[];
       topFixes: TopFix[];
+      severityCounts?: SeverityCounts;
       passedChecks?: number;
       warningChecks?: number;
       failedChecks?: number;
@@ -48,6 +66,46 @@ type ScanResponse = {
     created_at: string;
   };
 };
+
+function SeverityBadge({ severity }: { severity?: string }) {
+  if (severity === "Critical") {
+    return (
+      <span className="rounded-full bg-red-950 px-3 py-1 text-xs font-black text-white">
+        Critical
+      </span>
+    );
+  }
+
+  if (severity === "High") {
+    return (
+      <span className="rounded-full bg-red-100 px-3 py-1 text-xs font-black text-red-700">
+        High
+      </span>
+    );
+  }
+
+  if (severity === "Medium") {
+    return (
+      <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-black text-amber-700">
+        Medium
+      </span>
+    );
+  }
+
+  if (severity === "Low") {
+    return (
+      <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-black text-blue-700">
+        Low
+      </span>
+    );
+  }
+
+  return (
+    <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-black text-slate-700">
+      Info
+    </span>
+  );
+}
 
 export function ScanForm() {
   const [websiteUrl, setWebsiteUrl] = useState("");
@@ -95,9 +153,8 @@ export function ScanForm() {
 
         <h1 className="text-4xl font-black">Scan website</h1>
         <p className="mt-3 max-w-2xl text-slate-600">
-          Enter a public business website URL. SecureMSME AI checks basic
-          website security, privacy trust signals, and customer-facing safety
-          gaps.
+          Enter a public business website URL. SecureMSME AI checks security,
+          email protection, exposure risk, and trust gaps.
         </p>
 
         <form
@@ -124,8 +181,8 @@ export function ScanForm() {
           <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-5">
             <p className="font-bold">Scanning in progress...</p>
             <p className="mt-2 text-sm text-slate-600">
-              Checking HTTPS, headers, privacy pages, contact pages, and common
-              public admin paths.
+              Checking website security, DNS email security, public exposure,
+              and trust signals.
             </p>
           </div>
         ) : null}
@@ -142,13 +199,16 @@ export function ScanForm() {
           <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
             <div className="flex flex-col justify-between gap-6 md:flex-row md:items-start">
               <div>
-                <p className="text-sm font-bold text-slate-500">Scan result</p>
+                <p className="text-sm font-bold text-slate-500">
+                  Executive summary
+                </p>
                 <h2 className="mt-2 break-all text-3xl font-black">
                   {result.website_url}
                 </h2>
                 <p className="mt-3 max-w-2xl text-slate-600">
-                  {result.report.summary ||
-                    "Basic website safety report generated successfully."}
+                  {result.report.executiveSummary ||
+                    result.report.summary ||
+                    "Report generated successfully."}
                 </p>
 
                 <div className="mt-5">
@@ -163,25 +223,32 @@ export function ScanForm() {
               </div>
             </div>
 
-            <div className="mt-8 grid gap-4 md:grid-cols-4">
+            <div className="mt-8 grid gap-4 md:grid-cols-5">
+              <div className="rounded-2xl bg-slate-50 p-5">
+                <p className="text-sm text-slate-500">Critical</p>
+                <p className="mt-2 text-3xl font-black text-red-950">
+                  {result.report.severityCounts?.critical ?? 0}
+                </p>
+              </div>
+
+              <div className="rounded-2xl bg-slate-50 p-5">
+                <p className="text-sm text-slate-500">High</p>
+                <p className="mt-2 text-3xl font-black text-red-700">
+                  {result.report.severityCounts?.high ?? 0}
+                </p>
+              </div>
+
+              <div className="rounded-2xl bg-slate-50 p-5">
+                <p className="text-sm text-slate-500">Medium</p>
+                <p className="mt-2 text-3xl font-black text-amber-700">
+                  {result.report.severityCounts?.medium ?? 0}
+                </p>
+              </div>
+
               <div className="rounded-2xl bg-slate-50 p-5">
                 <p className="text-sm text-slate-500">Passed</p>
                 <p className="mt-2 text-3xl font-black text-emerald-700">
                   {result.report.passedChecks ?? 0}
-                </p>
-              </div>
-
-              <div className="rounded-2xl bg-slate-50 p-5">
-                <p className="text-sm text-slate-500">Warnings</p>
-                <p className="mt-2 text-3xl font-black text-amber-700">
-                  {result.report.warningChecks ?? 0}
-                </p>
-              </div>
-
-              <div className="rounded-2xl bg-slate-50 p-5">
-                <p className="text-sm text-slate-500">Failed</p>
-                <p className="mt-2 text-3xl font-black text-red-700">
-                  {result.report.failedChecks ?? 0}
                 </p>
               </div>
 
@@ -208,7 +275,10 @@ export function ScanForm() {
                   >
                     <div className="flex justify-between gap-4">
                       <h3 className="font-black">{category.name}</h3>
-                      <p className="font-black">{category.percentage}/100</p>
+                      <p className="font-black">
+                        Grade {category.grade || "-"} · {category.percentage}
+                        /100
+                      </p>
                     </div>
 
                     <div className="mt-4 h-3 overflow-hidden rounded-full bg-slate-100">
@@ -228,34 +298,6 @@ export function ScanForm() {
           ) : null}
 
           <div className="rounded-3xl border border-slate-200 bg-white p-8">
-            <h2 className="text-2xl font-black">Findings</h2>
-
-            <div className="mt-6 grid gap-4">
-              {result.report.findings.map((finding) => (
-                <div
-                  key={finding.name}
-                  className="rounded-2xl border border-slate-200 p-5"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <h3 className="font-black">{finding.name}</h3>
-                      <p className="mt-2 text-sm text-slate-600">
-                        {finding.message}
-                      </p>
-                    </div>
-
-                    <StatusBadge status={finding.status} />
-                  </div>
-
-                  <p className="mt-4 text-sm font-semibold text-slate-700">
-                    {finding.points}/{finding.maxPoints} points
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="rounded-3xl border border-slate-200 bg-white p-8">
             <h2 className="text-2xl font-black">Top fixes</h2>
 
             {result.report.topFixes.length ? (
@@ -273,22 +315,74 @@ export function ScanForm() {
                         </p>
                       </div>
 
-                      <span className="w-fit rounded-full bg-slate-100 px-3 py-1 text-xs font-black text-slate-700">
-                        {fix.priority || "Fix recommended"}
-                      </span>
+                      <SeverityBadge severity={fix.severity} />
                     </div>
 
-                    <p className="mt-3 text-sm font-bold text-slate-700">
-                      Lost points: {fix.lostPoints}
-                    </p>
+                    {fix.businessImpact ? (
+                      <p className="mt-4 text-sm text-slate-700">
+                        <strong>Business impact:</strong> {fix.businessImpact}
+                      </p>
+                    ) : null}
+
+                    {fix.fixRecommendation ? (
+                      <p className="mt-2 text-sm text-slate-700">
+                        <strong>Fix:</strong> {fix.fixRecommendation}
+                      </p>
+                    ) : null}
                   </li>
                 ))}
               </ul>
             ) : (
               <p className="mt-4 text-slate-600">
-                No major fixes found in this basic scan.
+                No major fixes found in this scan.
               </p>
             )}
+          </div>
+
+          <div className="rounded-3xl border border-slate-200 bg-white p-8">
+            <h2 className="text-2xl font-black">All findings</h2>
+
+            <div className="mt-6 grid gap-4">
+              {result.report.findings.map((finding) => (
+                <div
+                  key={finding.name}
+                  className="rounded-2xl border border-slate-200 p-5"
+                >
+                  <div className="flex flex-col justify-between gap-3 md:flex-row md:items-start">
+                    <div>
+                      <p className="text-xs font-bold uppercase tracking-wide text-slate-500">
+                        {finding.category || "General"}
+                      </p>
+                      <h3 className="mt-1 font-black">{finding.name}</h3>
+                      <p className="mt-2 text-sm text-slate-600">
+                        {finding.message}
+                      </p>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <StatusBadge status={finding.status} />
+                      <SeverityBadge severity={finding.severity} />
+                    </div>
+                  </div>
+
+                  {finding.businessImpact ? (
+                    <p className="mt-4 text-sm text-slate-700">
+                      <strong>Business impact:</strong> {finding.businessImpact}
+                    </p>
+                  ) : null}
+
+                  {finding.fixRecommendation ? (
+                    <p className="mt-2 text-sm text-slate-700">
+                      <strong>Fix:</strong> {finding.fixRecommendation}
+                    </p>
+                  ) : null}
+
+                  <p className="mt-4 text-sm font-semibold text-slate-700">
+                    {finding.points}/{finding.maxPoints} points
+                  </p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       ) : null}

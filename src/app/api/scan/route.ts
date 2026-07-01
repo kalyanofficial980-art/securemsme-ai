@@ -54,7 +54,7 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           error:
-            "Free plan allows 1 scan only. Upgrade to paid plan for more scans.",
+            "Free plan allows 1 scan only. Upgrade later to paid plan for more scans.",
         },
         { status: 402 },
       );
@@ -65,8 +65,18 @@ export async function POST(request: Request) {
 
     const fullReport = {
       ...report,
+      findings: scoreResult.enhancedFindings,
       score: scoreResult.score,
+      rawScore: scoreResult.rawScore,
+      maxScore: scoreResult.maxScore,
       riskLevel: scoreResult.riskLevel,
+      summary: scoreResult.summary,
+      executiveSummary: scoreResult.executiveSummary,
+      categoryScores: scoreResult.categoryScores,
+      severityCounts: scoreResult.severityCounts,
+      passedChecks: scoreResult.passedChecks,
+      warningChecks: scoreResult.warningChecks,
+      failedChecks: scoreResult.failedChecks,
       topFixes: scoreResult.topFixes,
     };
 
