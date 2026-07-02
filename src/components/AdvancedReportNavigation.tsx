@@ -8,6 +8,14 @@ type AdvancedReportNavigationProps = {
 
 const workflowLinks = [
   {
+    label: "Developer Portal",
+    description:
+      "Create developer fix board, track remediation, comments and safe retest requests",
+    href: (id: string) => `/report/${id}/developer-portal`,
+    primary: true,
+    customerVisible: true,
+  },
+  {
     label: "Client Report v4",
     description:
       "Generate executive dashboard, business impact, evidence strength and client-safe report sections",
@@ -87,27 +95,27 @@ const workflowLinks = [
     primary: true,
     customerVisible: true,
   },
-];
-
-const technicalLinks = [
   {
     label: "Client Portal",
     description: "Create shareable client-safe report access links",
     href: (id: string) => `/report/${id}/client-portal`,
-    primary: false,
-    customerVisible: true,
-  },
-  {
-    label: "Developer Fix Plan",
-    description: "Copy useful fix instructions for your website developer",
-    href: (id: string) => `/report/${id}/fix-roadmap`,
-    primary: false,
+    primary: true,
     customerVisible: true,
   },
   {
     label: "Retest Proof",
     description: "Show before and after evidence after developer fixes",
     href: (id: string) => `/report/${id}/retest-proof`,
+    primary: true,
+    customerVisible: true,
+  },
+];
+
+const technicalLinks = [
+  {
+    label: "Developer Fix Plan",
+    description: "Copy useful fix instructions for your website developer",
+    href: (id: string) => `/report/${id}/fix-roadmap`,
     primary: false,
     customerVisible: true,
   },
@@ -120,10 +128,10 @@ const technicalLinks = [
     customerVisible: true,
   },
   {
-    label: "Browser Security Analyzer",
+    label: "Score Explanation",
     description:
-      "CSP, CORS, cookies, clickjacking, HSTS and client-side signals",
-    href: (id: string) => `/report/${id}/browser-security`,
+      "Explain score changes, latest scan status and old-vs-new differences",
+    href: (id: string) => `/report/${id}/scan-consistency`,
     primary: false,
     customerVisible: true,
   },
@@ -142,7 +150,7 @@ export function AdvancedReportNavigation({
   if (variant === "compact") {
     return (
       <div className="mt-5 flex flex-wrap gap-3">
-        {visibleLinks.slice(0, 40).map((item) => (
+        {visibleLinks.slice(0, 42).map((item) => (
           <Link
             key={item.label}
             href={item.href(scanId)}
@@ -164,23 +172,25 @@ export function AdvancedReportNavigation({
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
         <div>
           <p className="text-sm font-black text-slate-500">
-            Executive client reporting workflow
+            Developer collaboration workflow
           </p>
           <h2 className="mt-2 text-3xl font-black">
-            Turn evidence into a client-safe executive security report
+            Convert security evidence into developer fixes and safe retests
           </h2>
           <p className="mt-3 max-w-3xl leading-7 text-slate-600">
-            Use Client Report v4 after crawler, API review, authenticated
-            review, evidence warehouse and accuracy foundation.
+            Use Developer Portal after Client Report v4 and Security Review
+            Workspace to execute fixes and track remediation progress.
           </p>
         </div>
+
         <Link
-          href={`/report/${scanId}/client-report-v4`}
+          href={`/report/${scanId}/developer-portal`}
           className="rounded-full bg-slate-950 px-6 py-3 text-sm font-black text-white hover:bg-slate-800"
         >
-          Report v4
+          Developer Portal
         </Link>
       </div>
+
       <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {visibleLinks.map((item) => (
           <Link

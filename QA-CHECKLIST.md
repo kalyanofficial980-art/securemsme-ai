@@ -8,48 +8,44 @@ npm.cmd run build
 npm.cmd run e2e
 ```
 
-## Mega Part 61 QA: Client Report v4 + Executive Dashboard
+## Mega Part 62 QA: Developer Portal + Fix Collaboration v2
 
 Database:
 
-- Run `supabase/mega-part-61-client-report-v4-executive-dashboard.sql`
+- Run `supabase/mega-part-62-developer-portal-fix-collaboration-v2.sql`
 - Confirm tables:
-  - `client_report_v4_snapshots`
-  - `client_report_v4_sections`
-  - `executive_security_metrics_v4`
-  - `client_report_v4_events`
+  - `developer_fix_portals_v2`
+  - `developer_fix_tasks_v2`
+  - `developer_fix_comments_v2`
+  - `developer_retest_requests_v2`
+  - `developer_portal_events_v2`
 
 Public:
 
-- `/client-report-v4` opens.
+- `/developer-portal` opens.
 
 Logged-in report workflow:
 
-- Open `/report/[scan-id]/client-report-v4`.
-- Generate Client Report v4 snapshot.
-- Confirm executive score appears.
-- Confirm readiness, business risk, technical risk and evidence strength appear.
-- Confirm sections appear:
-  - Executive Summary
-  - Business Impact
-  - Surface Summary
-  - Developer Action Plan
-  - Evidence and Confidence
-  - Limitations
-- Confirm no 100% security wording.
-- Confirm no legal compliance certificate wording.
-- Confirm no private data appears.
+- Open `/report/[scan-id]/developer-portal`.
+- Create Developer Fix Portal.
+- Sync tasks from findings.
+- Add manual task.
+- Change task status.
+- Add safe developer comment.
+- Mark task as retest-requested.
+- Confirm retest request row is created.
+- Confirm progress scores update.
 
 Admin:
 
-- `/admin/client-report-v4` requires admin.
-- Admin can view report snapshots.
+- `/admin/developer-portal` requires admin.
+- Admin can view portals and tasks.
 
-Recommended before generating:
+Safety:
 
-- Run Advanced Crawler
-- Run API Security Review
-- Run Authenticated Safe Review when in scope
-- Run Evidence Warehouse
-- Run Accuracy Foundation
-- Run Advanced Vulnerability Engine
+- No passwords.
+- No tokens.
+- No session cookies.
+- No private customer data.
+- No exploit payloads.
+- No destructive retest steps.

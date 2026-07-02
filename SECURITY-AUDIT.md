@@ -1,45 +1,48 @@
 # SecureMSME AI Security Audit Notes
 
-## Mega Part 61: Client Report v4 + Executive Security Dashboard
+## Mega Part 62: Developer Portal + Fix Collaboration v2
 
 Added:
 
-- Client Report v4 snapshots
-- Executive security metrics
-- Client-safe report sections
-- Report readiness score
-- Executive score
-- Business risk score
-- Evidence strength score
-- Admin report observability
+- Developer fix portals
+- Developer task board
+- Safe developer comments
+- Retest request workflow
+- Fix progress score
+- Developer readiness score
+- Retest readiness score
+- Admin developer collaboration observability
 
 ## Purpose
 
-This part turns evidence into a client-safe executive report:
+This part helps clients and developers execute fixes:
 
-- business impact
-- developer action plan
-- confidence distribution
-- evidence strength
-- surface coverage
-- limitations
-- blocked claims
+- convert findings into tasks
+- track status from open to verified-fixed
+- add safe developer comments
+- request safe retests
+- avoid unsafe exploit details in collaboration
 
 ## Safety boundary
 
-This part does not claim:
+This part does not allow:
 
-- 100% security
-- all vulnerabilities found
-- legal compliance certification
-- confirmed exploitation without proof
-- replacement of expert pentesters
-
-It does not expose:
-
-- private customer data
 - passwords
+- API tokens
 - session cookies
+- private customer data
 - exploit payloads
+- destructive test instructions
+- payment/order mutation steps
 
-Strong claims require Confirmed or High Confidence evidence.
+## Correct use
+
+Use after:
+
+- Vulnerability Scanner
+- Security Review Workspace
+- API Security Review
+- Authenticated Safe Review
+- Client Report v4
+
+A task should be marked verified-fixed only after safe retest evidence exists.
