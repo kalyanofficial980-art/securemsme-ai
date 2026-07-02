@@ -8,44 +8,42 @@ npm.cmd run build
 npm.cmd run e2e
 ```
 
-## Mega Part 71 QA: Cloud Config Audit for Supabase / Vercel / DNS
+## Mega Part 72 QA: Customer Onboarding Wizard + First Scan Funnel
 
 Database:
 
-- Run `supabase/mega-part-71-cloud-config-audit.sql`
+- Run `supabase/mega-part-72-customer-onboarding-first-scan.sql`
 - Confirm tables:
-  - `cloud_config_projects_v2`
-  - `cloud_config_audit_runs_v2`
-  - `cloud_config_check_items_v2`
-  - `cloud_config_dns_records_v2`
-  - `cloud_config_remediation_tasks_v2`
-  - `cloud_config_admin_events_v2`
+  - `customer_onboarding_profiles_v2`
+  - `customer_onboarding_steps_v2`
+  - `customer_first_scan_funnels_v2`
+  - `customer_plan_recommendations_v2`
+  - `customer_onboarding_admin_events_v2`
 
 Pages:
 
-- `/cloud-config-audit`
-- `/report/[scan-id]/cloud-config-audit`
-- `/admin/cloud-config-audit`
+- `/onboarding`
+- `/onboarding/first-scan`
+- `/onboarding/success`
+- `/admin/onboarding`
 
 Workflow:
 
 1. Login.
-2. Open `/cloud-config-audit`.
-3. Create cloud config project with authorization checkbox.
-4. Run audit with Supabase/Vercel checklist.
-5. Paste DNS text with SPF/DKIM/DMARC signals.
-6. Confirm audit run appears.
-7. Confirm check items appear.
-8. Confirm DNS record findings appear.
-9. Confirm remediation tasks appear.
-10. Admin opens `/admin/cloud-config-audit`.
+2. Open `/onboarding`.
+3. Save business profile.
+4. Confirm plan recommendation appears.
+5. Open `/onboarding/first-scan`.
+6. Enter website URL.
+7. Confirm ownership/written permission.
+8. Prepare first scan funnel.
+9. Open `/onboarding/success`.
+10. Open `/admin/onboarding`.
 
 Safety:
 
-- Do not paste Supabase service role keys.
-- Do not paste Vercel tokens.
-- Do not paste private keys.
-- Do not paste passwords/OTPs/API secrets.
-- No 100% secure claim.
-- No legal compliance certificate claim.
-- Manual checklist must be reviewed before launch claims.
+- Website authorization required.
+- No aggressive scan automation.
+- No payment/card/UPI PIN/OTP collection.
+- No guarantee that all vulnerabilities are found.
+- No compliance certification claim.

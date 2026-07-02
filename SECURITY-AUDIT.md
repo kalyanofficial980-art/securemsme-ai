@@ -1,48 +1,34 @@
 # SecureMSME AI Security Audit Notes
 
-## Mega Part 71: Cloud Config Audit for Supabase / Vercel / DNS
+## Mega Part 72: Customer Onboarding Wizard + First Scan Funnel
 
 Added:
 
-- Cloud config projects
-- Supabase checklist review
-- Vercel checklist review
-- DNS/email security review
-- SPF/DKIM/DMARC signal analysis
-- CAA/MX manual-review signals
-- Cloud remediation tasks
-- Admin observability
+- Customer business profile onboarding
+- First scan setup funnel
+- Website authorization confirmation
+- Plan recommendation engine
+- Onboarding progress steps
+- Admin onboarding observability
 
 ## Safety model
 
-This part does not collect:
+The onboarding flow:
 
-- Supabase service role keys
-- Vercel API tokens
-- DNS provider passwords
-- private keys
-- OTPs
-- production secrets
+- requires ownership or written permission for website testing
+- does not collect card data
+- does not collect banking credentials
+- does not claim all vulnerabilities will be found
+- does not claim legal compliance certification
+- does not run aggressive scans automatically
 
-## Limitations
+## Launch notes
 
-This is a manual checklist foundation.
-It does not yet:
+This part improves conversion and customer clarity.
+Customers should still complete:
 
-- connect to Supabase API
-- connect to Vercel API
-- query live DNS externally
-- issue legal compliance certification
-- guarantee 100% secure cloud configuration
-
-## Before real API integration
-
-Add:
-
-- OAuth/scoped tokens
-- encrypted credential storage
-- token rotation
-- audit logging
-- least-privilege access
-- provider webhook verification
-- strong admin review
+- legal acceptance
+- scan authorization
+- manual billing if paid
+- first safe scan
+- report review

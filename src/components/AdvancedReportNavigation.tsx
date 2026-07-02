@@ -13,6 +13,12 @@ type NavItem = {
 
 const launchCustomerLinks: NavItem[] = [
   {
+    label: "Onboarding",
+    description: "Customer setup, first scan funnel and plan recommendation",
+    href: () => `/onboarding`,
+    primary: true,
+  },
+  {
     label: "Security Scan",
     description: "Run authorized safe website checks and review security risks",
     href: (id) => `/report/${id}`,
@@ -121,6 +127,11 @@ const launchAccountLinks: NavItem[] = [
 
 const internalLinks: NavItem[] = [
   {
+    label: "Customer Onboarding Admin",
+    description: "Internal onboarding funnel observability",
+    href: () => `/admin/onboarding`,
+  },
+  {
     label: "Production Launch",
     description: "Internal benchmark and launch readiness dashboard",
     href: () => `/production-launch`,
@@ -170,16 +181,16 @@ export function AdvancedReportNavigation({
             Simple AI security workflow
           </h2>
           <p className="mt-3 max-w-3xl leading-7 text-slate-600">
-            Customer UI is simplified into scan, AI copilot, repo security,
-            cloud config, report, developer fixes, retest proof, scheduled
-            monitoring, billing and support.
+            Customer UI is simplified into onboarding, scan, AI copilot, repo
+            security, cloud config, report, developer fixes, retest proof,
+            scheduled monitoring, billing and support.
           </p>
         </div>
         <Link
-          href={`/report/${scanId}/cloud-config-audit`}
+          href="/onboarding"
           className="rounded-full bg-slate-950 px-6 py-3 text-sm font-black text-white hover:bg-slate-800"
         >
-          Cloud Config
+          Start Onboarding
         </Link>
       </div>
 
