@@ -17,39 +17,38 @@ npm.cmd run audit:npm
 - Dashboard opens after login
 - Add website works
 - Manual scan works
-- Saved website rescan works
-- Email provider public page opens: `/email-provider-integration`
-- Email delivery report page opens: `/report/<scan-id>/email-delivery`
-- Email settings save works
-- Test email works when env is configured
-- Missing env shows provider-not-configured or missing-env
-- Pending alert emails process after alerts are generated
-- Delivery runs are saved
-- Provider message ID is saved when sent
-- Provider error is saved when failed
-- Email events are saved
-- Admin email provider page opens only for admin: `/admin/email-provider`
-- Email cron helper route opens: `/api/email/process-alerts`
-- Monitoring public page opens: `/monitoring-worker`
-- Alerts page opens: `/report/<scan-id>/alerts`
-- Report truth cleanup public page opens: `/report-truth-cleanup`
-- Scan consistency public page opens: `/scan-consistency`
+- Client portal public info page opens: `/client-portal`
+- Report client portal page opens: `/report/<scan-id>/client-portal`
+- Create client portal link works
+- Shareable token link opens: `/client-portal/<token>`
+- Client portal shows score/risk/executive summary
+- Client portal shows client-safe findings
+- Client portal shows safe claims and blocked claims
+- Link view count updates after opening token link
+- Refresh snapshot works
+- Revoke link works
+- Revoked link no longer opens
+- Admin client portal page opens only for admin: `/admin/client-portal`
+- Organization page still works
+- Agency dashboard still works
+- Email delivery page still works
 - Health check returns `status: ok`
 
-## Email safety checks
+## Client portal safety checks
 
 Allowed:
 
-- Send security alert emails through Resend when configured
-- Track sent/failed/provider-not-configured
-- Store provider message ID
-- Store delivery error
-- Use safe alert wording
+- Share safe report snapshot
+- Show score, risk, summary, findings and next actions
+- Track link views
+- Expire/revoke links
+- Show blocked claims clearly
 
 Blocked:
 
-- Do not store RESEND_API_KEY in database
-- Do not claim exploitation or compromise from alert alone
-- Do not claim full pentest coverage
-- Do not claim compliance certificate
-- Do not email low severity alerts if threshold blocks them
+- Do not expose raw scanner payloads
+- Do not expose admin/internal tools
+- Do not claim 100% security
+- Do not claim full pentest certificate
+- Do not claim compliance certification
+- Do not expose private authenticated evidence

@@ -33,7 +33,11 @@ const publicPages = [
   { path: "/scan-consistency", text: "Explain why security scores change" },
   { path: "/report-truth-cleanup", text: "Replace fake-looking report text" },
   { path: "/monitoring-worker", text: "Track score drift" },
+  { path: "/background-worker", text: "Background Job Queue" },
+  { path: "/alerts-notifications", text: "In-app security alerts" },
   { path: "/email-provider-integration", text: "Send real monitoring alerts" },
+  { path: "/agency-platform", text: "Manage client security workspaces" },
+  { path: "/client-portal", text: "Share client-safe security reports" },
   {
     path: "/international-security-engine",
     text: "Advanced backend foundation",

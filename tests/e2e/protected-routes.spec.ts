@@ -1,6 +1,11 @@
 import { expect, test } from "@playwright/test";
 
-const protectedRoutes = ["/dashboard", "/admin"];
+const protectedRoutes = [
+  "/dashboard",
+  "/admin",
+  "/organizations",
+  "/agency-dashboard",
+];
 
 for (const route of protectedRoutes) {
   test(`protected page redirects when logged out: ${route}`, async ({

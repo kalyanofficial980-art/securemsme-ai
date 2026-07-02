@@ -8,6 +8,28 @@ type AdvancedReportNavigationProps = {
 
 const extraLinks = [
   {
+    label: "Client Portal",
+    description: "Create shareable client-safe report access links",
+    href: (id: string) => `/report/${id}/client-portal`,
+    primary: true,
+    customerVisible: true,
+  },
+  {
+    label: "Agency Dashboard",
+    description:
+      "Manage organization workspaces and client delivery operations",
+    href: () => "/agency-dashboard",
+    primary: true,
+    customerVisible: true,
+  },
+  {
+    label: "Organizations",
+    description: "Team members, roles, invites and organization-scoped assets",
+    href: () => "/organizations",
+    primary: true,
+    customerVisible: true,
+  },
+  {
     label: "Email Delivery",
     description:
       "Send real provider-backed email alerts and test notifications",
@@ -77,45 +99,6 @@ const extraLinks = [
     primary: true,
     customerVisible: true,
   },
-  {
-    label: "Authenticated Safe Crawler",
-    description:
-      "Approved allowed-path route inventory with private evidence protection",
-    href: (id: string) => `/report/${id}/authenticated-crawler`,
-    primary: true,
-    customerVisible: true,
-  },
-  {
-    label: "Access Control Signals",
-    description:
-      "Broken access control, object ID and role-boundary metadata signals",
-    href: (id: string) => `/report/${id}/access-control`,
-    primary: true,
-    customerVisible: true,
-  },
-  {
-    label: "Authenticated Scan Request",
-    description:
-      "Request safe review for login-protected pages with a test account",
-    href: (id: string) => `/report/${id}/authenticated-scan`,
-    primary: true,
-    customerVisible: true,
-  },
-  {
-    label: "Real Security Evidence",
-    description: "Real HTTP, TLS, DNS, and controlled service evidence",
-    href: (id: string) => `/report/${id}/real-modules`,
-    primary: true,
-    customerVisible: true,
-  },
-  {
-    label: "CMS/WordPress Review",
-    description:
-      "WordPress, WooCommerce, plugin, theme, login and XML-RPC signals",
-    href: (id: string) => `/report/${id}/cms-wordpress`,
-    primary: true,
-    customerVisible: true,
-  },
 ];
 
 export function AdvancedReportNavigation({
@@ -130,7 +113,7 @@ export function AdvancedReportNavigation({
   if (variant === "compact") {
     return (
       <div className="mt-5 flex flex-wrap gap-3">
-        {visibleLinks.slice(0, 24).map((item) => (
+        {visibleLinks.slice(0, 27).map((item) => (
           <Link
             key={item.label}
             href={item.href(scanId)}
@@ -156,9 +139,8 @@ export function AdvancedReportNavigation({
           </p>
           <h2 className="mt-2 text-3xl font-black">What should you do next?</h2>
           <p className="mt-3 max-w-3xl leading-7 text-slate-600">
-            Set up Email Delivery and Continuous Monitoring for ongoing alerts.
-            Then review Truth Cleanup, score explanation and advanced security
-            evidence.
+            For client delivery, create a Client Portal link after Truth
+            Cleanup, Score Explanation, Monitoring and Email Delivery are ready.
           </p>
         </div>
 
