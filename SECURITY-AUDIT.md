@@ -1,53 +1,55 @@
 # SecureMSME AI Security Audit Notes
 
-## Mega Part 59: Authenticated Safe Review v2
+## Mega Part 60: API Security Review v2
 
 Added:
 
-- Authenticated review context
-- Safe review run
-- Manual page observations
-- Role comparison workflow
-- Session/cookie/account checklist
-- Auth risk score
-- Coverage score
-- Admin observability
-- Public info page
+- API security review runs
+- API spec/docs discovery
+- API endpoint inventory
+- API observations
+- API review checklist
+- API review events
+- Public API security info page
+- Report-level API security review page
+- Admin API security observability
 
 ## Purpose
 
-This part supports authorized login-area review for:
+This part reviews API security safely:
 
-- account pages
-- dashboards
-- profile pages
-- settings
-- checkout/account pages
-- role differences
-- customer-data surfaces
+- OpenAPI/Swagger discovery
+- GraphQL signal review
+- endpoint inventory
+- sensitive endpoint classification
+- mutation endpoint classification
+- auth requirement classification
+- public API docs exposure
+- developer fix guidance
+- client-safe API summary
 
 ## Safety boundary
 
 This part does not:
 
-- store passwords
-- store session cookies
-- perform brute force
-- bypass login
-- submit forms
-- mutate account state
+- execute POST/PUT/PATCH/DELETE
+- fuzz endpoints
 - run exploit payloads
+- bypass authentication
+- brute force
+- guess tokens
 - extract private data
-- perform payment/order actions
+- mutate payment/order/customer data
+- perform denial-of-service testing
 
 ## Correct use
 
-The client should provide:
+Use this after:
 
-- temporary test account
-- approved roles
-- allowed paths
-- excluded paths
-- written scope
+- Advanced Crawler
+- Authenticated Safe Review if account APIs are in scope
+- Evidence Warehouse
+- Accuracy Foundation
+- Advanced Vulnerability Engine
 
-SecureMSME AI stores only metadata and manual observations, not credentials.
+Strong claims require evidence and authorized validation.
