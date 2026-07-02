@@ -107,6 +107,14 @@ const workflowLinks = [
 
 const technicalLinks = [
   {
+    label: "Production Launch",
+    description:
+      "Final accuracy benchmark, production checklist and launch readiness",
+    href: () => `/production-launch`,
+    primary: false,
+    customerVisible: false,
+  },
+  {
     label: "Agency SOC",
     description: "View multi-client SOC dashboard and risk watchlist",
     href: () => `/agency-soc`,
@@ -128,14 +136,6 @@ const technicalLinks = [
     primary: false,
     customerVisible: true,
   },
-  {
-    label: "Vulnerability Scanner",
-    description:
-      "Run authorized bug finder with evidence, developer fixes and retest steps",
-    href: (id: string) => `/report/${id}/vulnerability-scanner`,
-    primary: false,
-    customerVisible: true,
-  },
 ];
 
 export function AdvancedReportNavigation({
@@ -151,7 +151,7 @@ export function AdvancedReportNavigation({
   if (variant === "compact") {
     return (
       <div className="mt-5 flex flex-wrap gap-3">
-        {visibleLinks.slice(0, 46).map((item) => (
+        {visibleLinks.slice(0, 47).map((item) => (
           <Link
             key={item.label}
             href={item.href(scanId)}
@@ -173,22 +173,22 @@ export function AdvancedReportNavigation({
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
         <div>
           <p className="text-sm font-black text-slate-500">
-            Billing, usage and AI triage workflow
+            Final production workflow
           </p>
           <h2 className="mt-2 text-3xl font-black">
-            Control usage and prioritize remediation safely
+            Benchmark accuracy and confirm launch readiness
           </h2>
           <p className="mt-3 max-w-3xl leading-7 text-slate-600">
-            Use Billing + AI Triage after monitoring and retest workflows to
-            decide the next safest remediation order within plan limits.
+            Use Production Launch after all client, developer, monitoring,
+            billing and triage workflows are complete.
           </p>
         </div>
 
         <Link
-          href={`/report/${scanId}/billing-ai-triage`}
+          href="/production-launch"
           className="rounded-full bg-slate-950 px-6 py-3 text-sm font-black text-white hover:bg-slate-800"
         >
-          Billing + AI Triage
+          Production Launch
         </Link>
       </div>
 

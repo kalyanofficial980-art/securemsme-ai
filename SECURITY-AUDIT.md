@@ -1,57 +1,64 @@
 # SecureMSME AI Security Audit Notes
 
-## Mega Part 65: Billing + AI Triage + Usage Limits
+## Mega Part 66: Accuracy Benchmark + Production Launch Hardening
 
 Added:
 
-- Billing plan catalog
-- User billing profiles
-- Usage counters and usage events
-- Rule-based AI triage runs
-- Triage item ranking
-- Billing/admin observability
+- Accuracy benchmark runs
+- Benchmark cases
+- Production launch checks
+- Launch readiness snapshots
+- Release notes
+- Launch hardening events
+- Admin launch observability
 
 ## Purpose
 
-This part adds SaaS business controls:
+This final part provides:
 
-- plan limits
-- usage tracking
-- manual billing profile foundation
-- AI triage usage metering
-- safe remediation prioritization
+- evidence coverage checks
+- false-positive control checks
+- claim-safety checks
+- developer/retest/monitoring workflow checks
+- production hardening checklist
+- final launch readiness score
+- final release notes and blockers
 
-## Payment safety
+## Safety boundary
 
-This part does not collect payments.
-It does not store:
+This part does not:
 
-- card data
-- payment secrets
-- provider webhooks
-- customer financial tokens
-
-Payment provider integration must be added separately with secure webhook validation.
-
-## AI triage safety
-
-AI triage is rule-based prioritization only.
-It does not:
-
-- confirm exploitation
-- prove vulnerabilities
-- generate exploit payloads
-- run destructive actions
+- claim 100% security
+- claim every vulnerability was found
+- claim legal compliance certification
+- hide launch blockers
 - expose private customer data
-- replace manual expert review
+- run exploit payloads
+- perform destructive testing
 
-## Correct use
+## Correct final launch use
 
-Use after:
+Before production launch:
 
-- Developer Portal
-- Retest + Client Portal Pro
-- Monitoring Pro
-- Security Review Workspace
+1. Run all tests.
+2. Run build.
+3. Run E2E.
+4. Run SQL.
+5. Seed launch checks.
+6. Mark checks with proof.
+7. Run accuracy benchmark.
+8. Create launch snapshot.
+9. Fix blockers.
+10. Deploy only after readiness is acceptable.
 
-Strong claims still require evidence, confidence classification and manual validation.
+## Remaining future real-world work
+
+Before paid public launch, add:
+
+- real payment provider integration with webhook validation
+- email domain setup
+- support process
+- legal review
+- incident response plan
+- backups and monitoring policies
+- production secret rotation process

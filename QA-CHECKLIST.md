@@ -8,45 +8,56 @@ npm.cmd run build
 npm.cmd run e2e
 ```
 
-## Mega Part 65 QA: Billing + AI Triage + Usage Limits
+## Mega Part 66 QA: Accuracy Benchmark + Production Launch Hardening
 
 Database:
 
-- Run `supabase/mega-part-65-billing-ai-triage-usage-limits.sql`
+- Run `supabase/mega-part-66-accuracy-benchmark-production-launch.sql`
 - Confirm tables:
-  - `billing_plan_catalog_v2`
-  - `user_billing_profiles_v2`
-  - `usage_counters_v2`
-  - `usage_events_v2`
-  - `ai_triage_runs_v2`
-  - `ai_triage_items_v2`
-  - `billing_ai_triage_events_v2`
+  - `accuracy_benchmark_runs_v2`
+  - `accuracy_benchmark_cases_v2`
+  - `production_launch_checks_v2`
+  - `production_launch_snapshots_v2`
+  - `production_release_notes_v2`
+  - `launch_hardening_events_v2`
 
-Public/account:
+Workflow:
 
-- `/billing-ai-triage` opens.
-- Login and create billing profile.
-- Change manual plan.
-- Confirm usage bars show current limits.
-
-Report workflow:
-
-- Open `/report/[scan-id]/billing-ai-triage`.
-- Run AI triage.
-- Confirm triage score, business impact, efficiency and confidence score.
-- Confirm prioritized remediation order.
-- Confirm usage counter increases for AI triage.
+- Open `/production-launch`.
+- Seed production launch checks.
+- Update each check status and owner note.
+- Run accuracy benchmark.
+- Create production launch snapshot.
+- Confirm launch readiness, security hardening, operations, quality and trust scores.
+- Confirm release notes appear.
+- Confirm blockers are visible.
 
 Admin:
 
-- `/admin/billing-ai-triage` requires admin.
-- Admin can view billing profiles, usage events and triage runs.
+- `/admin/production-launch` requires admin.
+- Admin can view benchmarks, launch snapshots and production checks.
+
+Final local test:
+
+```powershell
+Remove-Item .next -Recurse -Force -ErrorAction SilentlyContinue
+npx.cmd prettier --write src tests QA-CHECKLIST.md SECURITY-AUDIT.md
+npm.cmd run test
+npm.cmd run build
+npm.cmd run e2e
+```
+
+Final Git:
+
+- Commit Part 66.
+- Push to GitHub.
+- Confirm Vercel deploy passes.
+- Test live `/production-launch`.
 
 Safety:
 
-- No real payment provider secrets.
-- No exploit payload ranking.
-- No destructive automation.
-- No private customer data.
-- No fake vulnerability certainty.
-- No 100% security claim.
+- No 100% secure claim.
+- No all vulnerabilities found claim.
+- No legal compliance certificate claim.
+- Launch blockers must remain visible.
+- Known limitations must remain visible.
