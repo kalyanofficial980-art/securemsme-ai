@@ -8,6 +8,14 @@ type AdvancedReportNavigationProps = {
 
 const workflowLinks = [
   {
+    label: "Monitoring Pro",
+    description:
+      "Watch retest proof, fix progress, client readiness and regression alerts",
+    href: (id: string) => `/report/${id}/monitoring-pro`,
+    primary: true,
+    customerVisible: true,
+  },
+  {
     label: "Retest + Client Portal Pro",
     description:
       "Create safe retest proof and generate shareable Client Portal Pro links",
@@ -95,50 +103,35 @@ const workflowLinks = [
     primary: true,
     customerVisible: true,
   },
+];
+
+const technicalLinks = [
+  {
+    label: "Agency SOC",
+    description: "View multi-client SOC dashboard and risk watchlist",
+    href: () => `/agency-soc`,
+    primary: false,
+    customerVisible: false,
+  },
   {
     label: "Vulnerability Scanner",
     description:
       "Run authorized bug finder with evidence, developer fixes and retest steps",
     href: (id: string) => `/report/${id}/vulnerability-scanner`,
-    primary: true,
+    primary: false,
     customerVisible: true,
   },
   {
     label: "Client Portal",
     description: "Create shareable client-safe report access links",
     href: (id: string) => `/report/${id}/client-portal`,
-    primary: true,
+    primary: false,
     customerVisible: true,
   },
-];
-const technicalLinks = [
   {
     label: "Retest Proof",
     description: "Show before and after evidence after developer fixes",
     href: (id: string) => `/report/${id}/retest-proof`,
-    primary: false,
-    customerVisible: true,
-  },
-  {
-    label: "Developer Fix Plan",
-    description: "Copy useful fix instructions for your website developer",
-    href: (id: string) => `/report/${id}/fix-roadmap`,
-    primary: false,
-    customerVisible: true,
-  },
-  {
-    label: "Truth Cleanup",
-    description:
-      "Remove generic/fake-looking wording with evidence-specific fixes",
-    href: (id: string) => `/report/${id}/truth-cleanup`,
-    primary: false,
-    customerVisible: true,
-  },
-  {
-    label: "Score Explanation",
-    description:
-      "Explain score changes, latest scan status and old-vs-new differences",
-    href: (id: string) => `/report/${id}/scan-consistency`,
     primary: false,
     customerVisible: true,
   },
@@ -153,7 +146,8 @@ export function AdvancedReportNavigation({
     ...technicalLinks,
     ...customerReportLinks.filter((item) => item.customerVisible),
   ];
-  if (variant === "compact")
+
+  if (variant === "compact") {
     return (
       <div className="mt-5 flex flex-wrap gap-3">
         {visibleLinks.slice(0, 45).map((item) => (
@@ -171,28 +165,32 @@ export function AdvancedReportNavigation({
         ))}
       </div>
     );
+  }
+
   return (
     <section className="rounded-3xl border border-slate-200 bg-white p-8">
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
         <div>
           <p className="text-sm font-black text-slate-500">
-            Retest and client sharing workflow
+            Monitoring and agency SOC workflow
           </p>
           <h2 className="mt-2 text-3xl font-black">
-            Verify fixes and share client-safe proof
+            Watch fixes, retests and client readiness after delivery
           </h2>
           <p className="mt-3 max-w-3xl leading-7 text-slate-600">
-            Use Retest + Client Portal Pro after Developer Portal and Client
-            Report v4.
+            Use Monitoring Pro after Retest + Client Portal Pro to detect
+            regressions, readiness drops and operational priorities.
           </p>
         </div>
+
         <Link
-          href={`/report/${scanId}/retest-client-portal-pro`}
+          href={`/report/${scanId}/monitoring-pro`}
           className="rounded-full bg-slate-950 px-6 py-3 text-sm font-black text-white hover:bg-slate-800"
         >
-          Retest + Portal Pro
+          Monitoring Pro
         </Link>
       </div>
+
       <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {visibleLinks.map((item) => (
           <Link

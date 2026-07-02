@@ -8,42 +8,46 @@ npm.cmd run build
 npm.cmd run e2e
 ```
 
-## Mega Part 63 QA: Retest + Client Portal Pro
+## Mega Part 64 QA: Monitoring Pro + Agency SOC
 
 Database:
 
-- Run `supabase/mega-part-63-retest-client-portal-pro.sql`
+- Run `supabase/mega-part-64-monitoring-pro-agency-soc.sql`
 - Confirm tables:
-  - `retest_runs_v2`
-  - `retest_items_v2`
-  - `client_portal_pro_links_v2`
-  - `client_portal_pro_sections_v2`
-  - `retest_client_portal_events_v2`
+  - `monitoring_pro_targets_v2`
+  - `monitoring_pro_runs_v2`
+  - `monitoring_regression_alerts_v2`
+  - `agency_soc_snapshots_v2`
+  - `agency_soc_client_risks_v2`
+  - `monitoring_soc_events_v2`
 
 Public:
 
-- `/retest-client-portal-pro` opens.
+- `/monitoring-pro` opens.
 
 Logged-in workflow:
 
-- Open `/report/[scan-id]/retest-client-portal-pro`.
-- Create safe retest run.
-- Update one retest item as passed with safe proof note.
-- Generate Client Portal Pro link.
-- Open `/client-portal-pro/[token]`.
-- Confirm executive summary, fix progress, retest proof and limitations are visible.
+- Open `/report/[scan-id]/monitoring-pro`.
+- Create Monitoring Pro target.
+- Run Monitoring Pro.
+- Confirm health, regression, risk and client readiness scores.
+- Confirm alerts appear when sources indicate regression/gaps.
+- Update alert status.
+- Open `/agency-soc`.
+- Create Agency SOC snapshot.
+- Confirm client risk watchlist appears.
 
 Admin:
 
-- `/admin/retest-client-portal-pro` requires admin.
-- Admin can view retest runs and Client Portal Pro links.
+- `/admin/monitoring-pro` requires admin.
+- Admin can see monitoring targets and alerts.
 
 Safety:
 
+- Passive-safe only.
 - No exploit payloads.
 - No destructive testing.
 - No brute force.
-- No password/token/session exposure.
 - No private customer data.
-- No 100% secure claim.
-- No legal compliance certificate claim.
+- No breach claim without confirmed evidence.
+- No 100% security claim.

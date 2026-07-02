@@ -1,36 +1,51 @@
 # SecureMSME AI Security Audit Notes
 
-## Mega Part 63: Retest + Client Portal Pro
+## Mega Part 64: Monitoring Pro + Agency SOC
 
 Added:
 
-- Safe retest workflow
-- Verified fix proof items
-- Client Portal Pro share links
-- Client-safe portal sections
-- Admin retest/client portal observability
+- Monitoring Pro targets
+- Passive monitoring runs
+- Regression alerts
+- Agency SOC snapshots
+- Client risk watchlist
+- Monitoring/SOC event timeline
 
 ## Purpose
 
-This part converts developer remediation into client-safe proof:
+This part supports post-delivery security operations:
 
-- create retest runs from fixed/retest-requested developer tasks
-- update verification status
-- calculate pass rate, proof strength and client readiness
-- generate a shareable Client Portal Pro link
+- monitor client readiness
+- monitor fix progress
+- monitor retest proof
+- detect safe regression signals
+- prioritize agency clients by risk
+- track operational response
 
 ## Safety boundary
 
-This part does not allow:
+Monitoring Pro does not run:
 
-- exploit payload sharing
-- destructive testing
+- exploit payloads
+- destructive tests
 - brute force
-- login bypass attempts
-- private customer data
-- passwords
-- tokens
-- session cookies
+- login bypass
+- private data extraction
 
-Verified-fixed claims are allowed only for individual items with passed retest proof.
-The portal must not claim 100% security, legal compliance certification, or that all vulnerabilities were found/fixed.
+It does not claim:
+
+- breach detection unless confirmed by evidence
+- complete security coverage
+- legal compliance certification
+- all regressions detected
+
+## Correct use
+
+Use after:
+
+- Client Report v4
+- Developer Portal
+- Retest + Client Portal Pro
+- Client Portal Pro link generation
+
+Agency SOC is an internal prioritization view, not a public compliance certificate.
