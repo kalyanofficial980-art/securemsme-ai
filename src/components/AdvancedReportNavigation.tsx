@@ -6,7 +6,15 @@ type AdvancedReportNavigationProps = {
   variant?: "full" | "compact";
 };
 
-const extraLinks = [
+const workflowLinks = [
+  {
+    label: "Security Review Workspace",
+    description:
+      "Create client workspace with bug lifecycle, developer fixes and retest tracking",
+    href: (id: string) => `/report/${id}/security-review-workspace`,
+    primary: true,
+    customerVisible: true,
+  },
   {
     label: "Vulnerability Scanner",
     description:
@@ -43,6 +51,9 @@ const extraLinks = [
     primary: true,
     customerVisible: true,
   },
+];
+
+const technicalLinks = [
   {
     label: "Truth Cleanup",
     description:
@@ -82,14 +93,15 @@ export function AdvancedReportNavigation({
   variant = "full",
 }: AdvancedReportNavigationProps) {
   const visibleLinks = [
-    ...extraLinks,
+    ...workflowLinks,
+    ...technicalLinks,
     ...customerReportLinks.filter((item) => item.customerVisible),
   ];
 
   if (variant === "compact") {
     return (
       <div className="mt-5 flex flex-wrap gap-3">
-        {visibleLinks.slice(0, 22).map((item) => (
+        {visibleLinks.slice(0, 24).map((item) => (
           <Link
             key={item.label}
             href={item.href(scanId)}
@@ -111,22 +123,23 @@ export function AdvancedReportNavigation({
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
         <div>
           <p className="text-sm font-black text-slate-500">
-            Website security report
+            Advanced client security workflow
           </p>
           <h2 className="mt-2 text-3xl font-black">
-            Advanced vulnerability review workflow
+            From scanner finding to verified fix
           </h2>
           <p className="mt-3 max-w-3xl leading-7 text-slate-600">
-            Run the Vulnerability Scanner first, then share Developer Fix Plan,
-            Retest Proof, Monitoring Alerts and Client Portal with your client.
+            Create a Security Review Workspace first. Then run the Vulnerability
+            Scanner, sync findings, track developer fixes, verify retest proof
+            and share the Client Portal.
           </p>
         </div>
 
         <Link
-          href={`/report/${scanId}/vulnerability-scanner`}
+          href={`/report/${scanId}/security-review-workspace`}
           className="rounded-full bg-slate-950 px-6 py-3 text-sm font-black text-white hover:bg-slate-800"
         >
-          Run Bug Finder
+          Create Workspace
         </Link>
       </div>
 

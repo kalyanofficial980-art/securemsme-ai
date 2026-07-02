@@ -1,6 +1,6 @@
 # SecureMSME AI QA Checklist
 
-Run this before deployment:
+Run before deployment:
 
 ```powershell
 npm.cmd run test
@@ -8,52 +8,51 @@ npm.cmd run build
 npm.cmd run e2e
 ```
 
-## Vulnerability Scanner + Bug Finder QA
+## Mega Part 53 QA: Security Review Workspace + Bug Lifecycle Dashboard
 
-- `/vulnerability-scanner` public info page opens.
-- `/report/<scan-id>/vulnerability-scanner` opens for logged-in scan owner.
-- Scanner blocks if permission checkbox is not accepted.
-- Scanner blocks localhost/private/internal targets.
-- Safe light/standard/deep mode can be selected.
-- Scanner run saves to `vulnerability_scanner_runs`.
-- Bug findings save to `vulnerability_bug_findings`.
-- Findings show:
-  - severity
-  - confidence
-  - false-positive risk
-  - evidence
-  - customer data risk
-  - business impact
-  - developer fix
-  - retest steps
-  - safe claim
-  - blocked claim
-- Lifecycle status can be updated.
-- Admin page `/admin/vulnerability-scanner` opens only for admin.
-- E2E passes.
-- Build passes on Vercel.
+Database:
 
-## Safety checks
+- Run `supabase/mega-part-53-security-review-workspace.sql`
+- Confirm tables:
+  - `security_review_workspaces`
+  - `security_review_bug_items`
+  - `security_review_activity_events`
 
-Allowed:
+Public:
 
-- authorized public website checks
-- GET/HEAD only
-- security headers
-- cookie flags
-- trust pages
-- public admin/API surface signals
-- HEAD-only sensitive path status checks
-- developer fix guidance
+- `/security-review-workspace` opens.
+- `/reviews` redirects to login when logged out.
+- `/admin/security-review-workspaces` requires admin.
 
-Blocked:
+Logged-in workflow:
 
-- brute force
-- password guessing
-- login bypass
-- exploit payloads
-- SQLi/XSS exploitation
-- private data extraction
-- form submission
-- destructive testing
-- payment/order mutation
+- `/reviews` opens.
+- Manual workspace can be created.
+- `/reviews/[id]` opens.
+- Manual bug/risk item can be added.
+- Bug lifecycle can be changed:
+  - Open
+  - In Progress
+  - Fixed by Developer
+  - Needs Retest
+  - Verified Fixed
+  - Accepted Risk
+  - False Positive
+- Workspace progress and counts update.
+- Workspace summaries can be edited.
+- Activity timeline records important actions.
+
+Scan-linked workflow:
+
+- Open any scan report.
+- Open `/report/[scan-id]/security-review-workspace`.
+- Create workspace from scan.
+- Run Vulnerability Scanner first.
+- Click "Sync latest scanner findings".
+- Scanner findings appear in lifecycle dashboard.
+
+Safety:
+
+- Workspace is workflow-only.
+- It does not perform exploit testing.
+- It tracks evidence, developer fixes and retest status.
