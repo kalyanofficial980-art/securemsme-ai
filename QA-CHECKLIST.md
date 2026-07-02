@@ -8,51 +8,57 @@ npm.cmd run build
 npm.cmd run e2e
 ```
 
-## Mega Part 53 QA: Security Review Workspace + Bug Lifecycle Dashboard
+## Mega Part 54 QA: Advanced Finding Taxonomy + 99% Accuracy Foundation
 
 Database:
 
-- Run `supabase/mega-part-53-security-review-workspace.sql`
+- Run `supabase/mega-part-54-accuracy-foundation.sql`
 - Confirm tables:
-  - `security_review_workspaces`
-  - `security_review_bug_items`
-  - `security_review_activity_events`
+  - `finding_taxonomy_rules`
+  - `finding_accuracy_assessments`
+  - `finding_evidence_requirements`
+  - `finding_validation_reviews`
+  - `finding_accuracy_metrics`
 
 Public:
 
-- `/security-review-workspace` opens.
-- `/reviews` redirects to login when logged out.
-- `/admin/security-review-workspaces` requires admin.
+- `/accuracy-foundation` opens.
 
-Logged-in workflow:
+Logged-in report workflow:
 
-- `/reviews` opens.
-- Manual workspace can be created.
-- `/reviews/[id]` opens.
-- Manual bug/risk item can be added.
-- Bug lifecycle can be changed:
-  - Open
-  - In Progress
-  - Fixed by Developer
-  - Needs Retest
-  - Verified Fixed
-  - Accepted Risk
+- Run normal website scan.
+- Run Vulnerability Scanner + Bug Finder.
+- Open `/report/[scan-id]/accuracy-foundation`.
+- Click `Assess scanner findings`.
+- Assessments are created.
+- Findings show:
+  - taxonomy key
+  - category
+  - severity
+  - accuracy status
+  - confidence score
+  - false-positive risk
+  - evidence quality
+  - required evidence met
+  - client-safe claim
+  - blocked claim
+
+Admin workflow:
+
+- `/admin/accuracy` requires admin.
+- Admin can validate assessment:
+  - Confirmed
+  - High Confidence
+  - Potential
+  - Needs Manual Review
   - False Positive
-- Workspace progress and counts update.
-- Workspace summaries can be edited.
-- Activity timeline records important actions.
+  - Accepted Risk
+- Validation creates review record.
+- Accuracy metrics update.
 
-Scan-linked workflow:
+99% rule:
 
-- Open any scan report.
-- Open `/report/[scan-id]/security-review-workspace`.
-- Create workspace from scan.
-- Run Vulnerability Scanner first.
-- Click "Sync latest scanner findings".
-- Scanner findings appear in lifecycle dashboard.
-
-Safety:
-
-- Workspace is workflow-only.
-- It does not perform exploit testing.
-- It tracks evidence, developer fixes and retest status.
+- 99% target is for Confirmed finding correctness only.
+- Do not claim the platform finds 99% of all vulnerabilities.
+- High/Critical findings should be reviewed before strong client wording.
+- AI can assist wording, but not independently confirm findings.

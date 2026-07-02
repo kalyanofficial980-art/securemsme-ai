@@ -8,6 +8,14 @@ type AdvancedReportNavigationProps = {
 
 const workflowLinks = [
   {
+    label: "Accuracy Foundation",
+    description:
+      "Classify findings, score confidence, control false positives and target 99% confirmed-finding correctness",
+    href: (id: string) => `/report/${id}/accuracy-foundation`,
+    primary: true,
+    customerVisible: true,
+  },
+  {
     label: "Security Review Workspace",
     description:
       "Create client workspace with bug lifecycle, developer fixes and retest tracking",
@@ -101,7 +109,7 @@ export function AdvancedReportNavigation({
   if (variant === "compact") {
     return (
       <div className="mt-5 flex flex-wrap gap-3">
-        {visibleLinks.slice(0, 24).map((item) => (
+        {visibleLinks.slice(0, 26).map((item) => (
           <Link
             key={item.label}
             href={item.href(scanId)}
@@ -126,20 +134,20 @@ export function AdvancedReportNavigation({
             Advanced client security workflow
           </p>
           <h2 className="mt-2 text-3xl font-black">
-            From scanner finding to verified fix
+            From scanner finding to verified accurate fix
           </h2>
           <p className="mt-3 max-w-3xl leading-7 text-slate-600">
-            Create a Security Review Workspace first. Then run the Vulnerability
-            Scanner, sync findings, track developer fixes, verify retest proof
-            and share the Client Portal.
+            Use Accuracy Foundation before sending strong client claims. It
+            separates Confirmed findings from Potential risks, controls false
+            positives and queues expert review.
           </p>
         </div>
 
         <Link
-          href={`/report/${scanId}/security-review-workspace`}
+          href={`/report/${scanId}/accuracy-foundation`}
           className="rounded-full bg-slate-950 px-6 py-3 text-sm font-black text-white hover:bg-slate-800"
         >
-          Create Workspace
+          Check Accuracy
         </Link>
       </div>
 
