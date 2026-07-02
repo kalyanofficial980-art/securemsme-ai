@@ -27,6 +27,14 @@ const publicPages = [
     text: "Advanced backend foundation",
   },
   { path: "/attack-surface-discovery", text: "Discover the website surface" },
+  {
+    path: "/api-security-scanner",
+    text: "Discover and prioritize API security surfaces",
+  },
+  {
+    path: "/browser-security-analyzer",
+    text: "Review browser-side security controls",
+  },
   { path: "/audit-framework", text: "Inbuilt advanced security audit" },
   {
     path: "/vulnerability-intelligence",

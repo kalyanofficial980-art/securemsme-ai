@@ -19,20 +19,25 @@ npm.cmd run audit:npm
 - Manual scan works
 - Saved website rescan works
 - Customer report hub opens: `/report/<scan-id>/security-hub`
+- Browser security public page opens: `/browser-security-analyzer`
+- Browser security report page opens: `/report/<scan-id>/browser-security`
+- Browser security page is locked if website is not verified
+- Browser security run requires authorization checkbox
+- Browser security score is visible
+- CSP findings are saved
+- CORS findings are saved
+- Cookie/session flag findings are saved
+- Clickjacking findings are saved
+- Mixed content findings are saved
+- External script findings are saved
+- Browser security findings are stored
+- Browser security creates normalized evidence
+- Browser security creates vulnerability lifecycle seeds
+- Admin browser security page opens only for admin: `/admin/browser-security`
+- API scanner public page opens: `/api-security-scanner`
+- API scanner report page opens: `/report/<scan-id>/api-security`
 - Attack surface public page opens: `/attack-surface-discovery`
 - Attack surface report page opens: `/report/<scan-id>/attack-surface`
-- Attack surface page is locked if website is not verified
-- Attack surface run requires authorization checkbox
-- Attack surface inventory saves route count
-- Attack surface inventory saves API endpoint count
-- Attack surface inventory saves form/input count
-- Attack surface inventory saves parameter count
-- Attack surface inventory saves JS route count
-- Attack surface inventory saves blocked route count
-- Attack surface items are visible
-- Normalized evidence is created for attack surface discovery
-- Vulnerability lifecycle seeds are created for API/form/risk signals
-- Admin attack surface page opens only for admin: `/admin/attack-surface`
 - International security engine public page opens: `/international-security-engine`
 - International security engine report page opens: `/report/<scan-id>/security-engine`
 - Authenticated scan public page opens: `/authenticated-scan`
@@ -46,29 +51,25 @@ npm.cmd run audit:npm
 - Trust page loads
 - Health check returns `status: ok`
 
-## Advanced crawler safety checks
+## Browser security safety checks
 
 Allowed:
 
-- Same-origin GET/HEAD crawling
-- Link discovery
-- JavaScript route extraction
-- API path signal discovery
-- Form/input inventory without submission
-- URL parameter inventory
-- Script inventory
-- Metadata-only evidence
+- GET-only page observation
+- Header review
+- Cookie attribute review
+- CSP/CORS/clickjacking/HSTS/referrer/permissions policy review
+- Mixed content signal detection
+- External script metadata review
+- Normalized evidence output
 
 Blocked:
 
 - Unverified targets
 - Localhost/private/internal targets
-- Cross-origin crawling
 - Form submission
 - POST/PUT/PATCH/DELETE
-- Login attempt
-- Brute force
 - Exploit payloads
-- Payment/order mutation
 - Private body storage
 - Credential/session storage
+- Destructive testing

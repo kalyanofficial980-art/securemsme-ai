@@ -23,6 +23,22 @@ const extraLinks = [
     customerVisible: true,
   },
   {
+    label: "API Security Scanner",
+    description:
+      "OpenAPI/Swagger discovery, endpoint inventory and API Top 10 mapping",
+    href: (id: string) => `/report/${id}/api-security`,
+    primary: true,
+    customerVisible: true,
+  },
+  {
+    label: "Browser Security Analyzer",
+    description:
+      "CSP, CORS, cookies, clickjacking, HSTS and client-side signals",
+    href: (id: string) => `/report/${id}/browser-security`,
+    primary: true,
+    customerVisible: true,
+  },
+  {
     label: "Authenticated Scan Request",
     description:
       "Request safe review for login-protected pages with a test account",
@@ -81,7 +97,7 @@ export function AdvancedReportNavigation({
   if (variant === "compact") {
     return (
       <div className="mt-5 flex flex-wrap gap-3">
-        {visibleLinks.slice(0, 15).map((item) => (
+        {visibleLinks.slice(0, 17).map((item) => (
           <Link
             key={item.label}
             href={item.href(scanId)}
@@ -107,10 +123,10 @@ export function AdvancedReportNavigation({
           </p>
           <h2 className="mt-2 text-3xl font-black">What should you do next?</h2>
           <p className="mt-3 max-w-3xl leading-7 text-slate-600">
-            Review international engine pipeline, attack surface discovery,
-            retest proof, real backend evidence, authenticated scan request,
-            CMS/WordPress review, known technology risks, fix plan, and
-            developer tasks.
+            Review international engine pipeline, attack surface discovery, API
+            security, browser security, retest proof, real backend evidence,
+            authenticated scan request, CMS/WordPress review and developer
+            tasks.
           </p>
         </div>
 

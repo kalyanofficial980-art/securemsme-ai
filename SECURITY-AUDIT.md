@@ -1,54 +1,55 @@
 # SecureMSME AI Security Audit Notes
 
-## Mega Part 37 Advanced Crawler + Attack Surface Discovery Engine
+## Mega Part 39 Advanced Browser Security Analyzer v2
 
 Added:
 
-- `attack_surface_inventories`
-- `attack_surface_items`
-- Advanced crawler engine
-- Same-origin route discovery
-- JavaScript/SPA route extraction
-- API endpoint signal discovery
-- Form and input inventory
-- URL parameter inventory
-- Script and external link inventory
-- Blocked route policy
+- `browser_security_inventories`
+- `browser_security_findings`
+- Advanced browser security analyzer engine
+- CSP missing/weakness analysis
+- CORS misconfiguration signal analyzer
+- Cookie/session security flag review
+- Clickjacking header review
+- HSTS review
+- Referrer-Policy review
+- Permissions-Policy review
+- X-Content-Type-Options nosniff review
+- Mixed content signal detection
+- External script supply-chain surface review
+- Browser security score
 - Normalized evidence output
 - Vulnerability lifecycle seeds
-- Customer attack surface page
-- Admin attack surface observability page
-- Public attack surface discovery page
+- Customer browser security page
+- Admin browser security observability page
+- Public browser security analyzer page
 - Unit tests and E2E page coverage
 
 ## What this part does
 
-- Executes a safe crawler only after verified scope and permission.
-- Uses GET only for page fetches.
-- Does not submit forms.
-- Does not use POST/PUT/PATCH/DELETE.
-- Does not store private page bodies.
-- Stores attack surface metadata and risk signals.
-- Writes normalized evidence and vulnerability lifecycle seeds into Part 36 tables.
+- Performs GET-only browser security observation.
+- Reviews security headers and cookie attributes.
+- Parses HTML in memory only for mixed content and script metadata.
+- Does not store private response body content.
+- Writes browser security evidence and lifecycle seeds.
 
 ## What this part does not do
 
-- It does not exploit vulnerabilities.
-- It does not test injection payloads.
-- It does not test authentication bypass.
-- It does not brute force.
-- It does not mutate data.
-- It does not complete checkout or payment.
-- It does not store credentials, cookies, sessions, or private data.
+- It does not exploit XSS.
+- It does not perform CORS exploitation.
+- It does not attempt clickjacking exploitation.
+- It does not steal sessions.
+- It does not submit forms.
+- It does not run browser exploit payloads.
+- It does not mutate website data.
 
 ## Next layer
 
-Mega Part 38 should add:
+Mega Part 40 should add:
 
-- API Discovery + OpenAPI Security Scanner
-- Parse OpenAPI/Swagger documents safely
-- REST endpoint inventory
-- API method risk classification
-- Auth boundary metadata
-- Rate-limit signal checks
-- Sensitive response metadata guard
+- GraphQL Risk Analyzer
+- GraphQL surface discovery
+- Introspection signal review using safe rules
+- GraphQL endpoint inventory
+- Query/mutation classification from docs/signals
+- API Top 10 mapping for GraphQL
