@@ -8,43 +8,43 @@ npm.cmd run build
 npm.cmd run e2e
 ```
 
-## Mega Part 73 QA: Public Landing Page + Pricing + Demo Funnel
+## Mega Part 74 QA: SEO + Sitemap + Launch Analytics
 
 Database:
 
-- Run `supabase/mega-part-73-public-landing-pricing-demo.sql`
+- Run `supabase/mega-part-74-seo-sitemap-launch-analytics.sql`
 - Confirm tables:
-  - `public_demo_requests_v2`
-  - `public_pricing_interests_v2`
-  - `public_landing_events_v2`
-  - `public_demo_admin_events_v2`
+  - `launch_seo_pages_v2`
+  - `launch_analytics_events_v2`
+  - `launch_analytics_daily_v2`
+  - `launch_seo_checks_v2`
+  - `launch_seo_admin_events_v2`
 
-Pages:
+Pages/routes:
 
-- `/public-launch`
-- `/pricing`
-- `/demo`
-- `/demo/success`
-- `/admin/demo-funnel`
+- `/seo-readiness`
+- `/sitemap.xml`
+- `/robots.txt`
+- `/api/launch-analytics`
+- `/admin/launch-analytics`
 
 Workflow:
 
-1. Open `/public-launch` without login.
-2. Open `/pricing` without login.
-3. Submit pricing interest.
-4. Open `/demo`.
-5. Submit demo request with consent checkboxes.
-6. Confirm `/demo/success` opens.
-7. Login as admin.
-8. Open `/admin/demo-funnel`.
-9. Update demo lead status.
+1. Open `/seo-readiness`.
+2. Open `/sitemap.xml`.
+3. Open `/robots.txt`.
+4. Confirm `/public-launch`, `/pricing`, `/demo` have metadata.
+5. POST safe analytics event to `/api/launch-analytics`.
+6. Login as admin.
+7. Open `/admin/launch-analytics`.
+8. Confirm events/SEO pages are visible.
 
 Safety:
 
-- No card data collection.
-- No UPI PIN/OTP collection.
-- No password/API token/private key collection.
-- No 100% secure claim.
+- No cookies added.
+- No fingerprinting.
+- No raw secrets collected.
+- No guaranteed ranking claim.
+- No guaranteed traffic claim.
+- No 100% SEO/security claim.
 - No all-vulnerabilities-found claim.
-- No legal compliance certificate claim.
-- Demo request only; manual billing CTA only.

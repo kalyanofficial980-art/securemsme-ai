@@ -1,37 +1,45 @@
 # SecureMSME AI Security Audit Notes
 
-## Mega Part 73: Public Landing Page + Pricing + Demo Funnel
+## Mega Part 74: SEO + Sitemap + Launch Analytics
 
 Added:
 
-- Public landing page
-- Pricing page
-- Demo request funnel
-- Pricing interest capture
-- Demo/admin lead observability
-- Public-safe product messaging
+- SEO config foundation
+- `robots.txt`
+- `sitemap.xml`
+- SEO readiness public page
+- JSON-LD software app schema
+- Privacy-safe launch analytics API
+- Admin launch analytics dashboard
 
-## Safety model
+## Privacy model
 
-The public funnel:
+Launch analytics:
 
-- allows unauthenticated demo requests
-- requires consent to contact
-- requires no-sensitive-data confirmation
-- does not collect card data
-- does not collect UPI PIN/OTP/banking passwords
-- does not collect cloud secrets/private keys
-- avoids 100% security claims
-- avoids all-vulnerabilities-found claims
-- avoids legal compliance certification claims
+- uses no cookies
+- uses no fingerprinting
+- stores safe path/event/campaign hints only
+- sanitizes referrer by removing query fragments
+- does not collect passwords, tokens, payment data or secrets
 
-## Launch notes
+## SEO safety model
 
-Public forms should be monitored for spam.
-Before paid launch, add:
+Public copy avoids:
 
-- captcha or rate limiting
-- email notification provider
-- privacy policy review
-- support response workflow
-- lead export controls
+- guaranteed Google ranking
+- guaranteed traffic
+- 100% SEO score
+- 100% secure claim
+- all-vulnerabilities-found claim
+- legal compliance certification claim
+
+## Before full marketing launch
+
+Add:
+
+- final legal review
+- final privacy policy review
+- captcha/rate limiting for public forms
+- verified custom domain
+- production email setup
+- Search Console/Bing Webmaster verification

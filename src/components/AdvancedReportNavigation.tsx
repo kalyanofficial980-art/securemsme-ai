@@ -14,8 +14,14 @@ type NavItem = {
 const launchCustomerLinks: NavItem[] = [
   {
     label: "Public Launch",
-    description: "Landing, pricing and demo funnel",
+    description: "Landing, pricing, demo funnel and SEO-ready pages",
     href: () => `/public-launch`,
+    primary: true,
+  },
+  {
+    label: "SEO Readiness",
+    description: "Sitemap, robots and launch-safe SEO summary",
+    href: () => `/seo-readiness`,
     primary: true,
   },
   {
@@ -143,6 +149,11 @@ const launchAccountLinks: NavItem[] = [
 
 const internalLinks: NavItem[] = [
   {
+    label: "Launch Analytics",
+    description: "Privacy-safe launch analytics and SEO observability",
+    href: () => `/admin/launch-analytics`,
+  },
+  {
     label: "Demo Funnel Admin",
     description: "Public demo and pricing lead observability",
     href: () => `/admin/demo-funnel`,
@@ -202,16 +213,17 @@ export function AdvancedReportNavigation({
             Simple AI security workflow
           </h2>
           <p className="mt-3 max-w-3xl leading-7 text-slate-600">
-            Customer UI is simplified into public launch funnel, onboarding,
-            scan, AI copilot, repo security, cloud config, report, developer
-            fixes, retest proof, scheduled monitoring, billing and support.
+            Customer UI is simplified into public launch funnel, SEO readiness,
+            onboarding, scan, AI copilot, repo security, cloud config, report,
+            developer fixes, retest proof, scheduled monitoring, billing and
+            support.
           </p>
         </div>
         <Link
-          href="/public-launch"
+          href="/seo-readiness"
           className="rounded-full bg-slate-950 px-6 py-3 text-sm font-black text-white hover:bg-slate-800"
         >
-          Public Launch
+          SEO Readiness
         </Link>
       </div>
 

@@ -1,22 +1,13 @@
 import type { MetadataRoute } from "next";
+import { absoluteUrl, publicSeoPages } from "@/lib/seo-launch-analytics-engine";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
-
-  const routes = [
-    "",
-    "/pricing",
-    "/trust",
-    "/security",
-    "/legal",
-    "/legal/terms",
-    "/legal/privacy",
-    "/legal/refund",
-    "/legal/responsible-disclosure",
-  ];
-
-  return routes.map((route) => ({
-    url: `${baseUrl}${route}`,
-    lastModified: new Date(),
-  }));
+  return publicSeoPages
+    .filter((page) => page.indexable)
+    .map((page) => ({
+      url: absoluteUrl(page.path),
+      lastModified: new Date(),
+      changeFrequency: page.changeFrequency,
+      priority: page.priority,
+    }));
 }

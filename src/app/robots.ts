@@ -1,14 +1,33 @@
 import type { MetadataRoute } from "next";
+import { siteUrl } from "@/lib/seo-launch-analytics-engine";
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
-
   return {
-    rules: {
-      userAgent: "*",
-      allow: ["/", "/pricing", "/trust", "/legal", "/security"],
-      disallow: ["/admin", "/dashboard", "/websites", "/report", "/api"],
-    },
-    sitemap: `${baseUrl}/sitemap.xml`,
+    rules: [
+      {
+        userAgent: "*",
+        allow: [
+          "/",
+          "/public-launch",
+          "/pricing",
+          "/demo",
+          "/trust",
+          "/legal",
+          "/seo-readiness",
+        ],
+        disallow: [
+          "/admin",
+          "/dashboard",
+          "/report",
+          "/api",
+          "/manual-billing",
+          "/scheduled-scans",
+          "/repo-security",
+          "/cloud-config-audit",
+        ],
+      },
+    ],
+    sitemap: `${siteUrl.replace(/\/$/, "")}/sitemap.xml`,
+    host: siteUrl.replace(/\/$/, ""),
   };
 }
