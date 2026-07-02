@@ -8,6 +8,14 @@ type AdvancedReportNavigationProps = {
 
 const extraLinks = [
   {
+    label: "Vulnerability Scanner",
+    description:
+      "Run authorized bug finder with evidence, developer fixes and retest steps",
+    href: (id: string) => `/report/${id}/vulnerability-scanner`,
+    primary: true,
+    customerVisible: true,
+  },
+  {
     label: "Client Portal",
     description: "Create shareable client-safe report access links",
     href: (id: string) => `/report/${id}/client-portal`,
@@ -15,30 +23,21 @@ const extraLinks = [
     customerVisible: true,
   },
   {
-    label: "Agency Dashboard",
-    description:
-      "Manage organization workspaces and client delivery operations",
-    href: () => "/agency-dashboard",
+    label: "Developer Fix Plan",
+    description: "Copy useful fix instructions for your website developer",
+    href: (id: string) => `/report/${id}/fix-roadmap`,
     primary: true,
     customerVisible: true,
   },
   {
-    label: "Organizations",
-    description: "Team members, roles, invites and organization-scoped assets",
-    href: () => "/organizations",
+    label: "Retest Proof",
+    description: "Show before and after evidence after developer fixes",
+    href: (id: string) => `/report/${id}/retest-proof`,
     primary: true,
     customerVisible: true,
   },
   {
-    label: "Email Delivery",
-    description:
-      "Send real provider-backed email alerts and test notifications",
-    href: (id: string) => `/report/${id}/email-delivery`,
-    primary: true,
-    customerVisible: true,
-  },
-  {
-    label: "Continuous Monitoring",
+    label: "Monitoring Alerts",
     description: "Track score drift, risk regression and monitoring events",
     href: (id: string) => `/report/${id}/monitoring`,
     primary: true,
@@ -49,7 +48,7 @@ const extraLinks = [
     description:
       "Remove generic/fake-looking wording with evidence-specific fixes",
     href: (id: string) => `/report/${id}/truth-cleanup`,
-    primary: true,
+    primary: false,
     customerVisible: true,
   },
   {
@@ -57,22 +56,7 @@ const extraLinks = [
     description:
       "Explain score changes, latest scan status and old-vs-new differences",
     href: (id: string) => `/report/${id}/scan-consistency`,
-    primary: true,
-    customerVisible: true,
-  },
-  {
-    label: "International Security Engine",
-    description: "Advanced backend core: jobs, modules, evidence and lifecycle",
-    href: (id: string) => `/report/${id}/security-engine`,
-    primary: true,
-    customerVisible: true,
-  },
-  {
-    label: "Attack Surface Discovery",
-    description:
-      "Advanced crawler: routes, API signals, forms, inputs and JS routes",
-    href: (id: string) => `/report/${id}/attack-surface`,
-    primary: true,
+    primary: false,
     customerVisible: true,
   },
   {
@@ -80,7 +64,7 @@ const extraLinks = [
     description:
       "OpenAPI/Swagger discovery, endpoint inventory and API Top 10 mapping",
     href: (id: string) => `/report/${id}/api-security`,
-    primary: true,
+    primary: false,
     customerVisible: true,
   },
   {
@@ -88,15 +72,7 @@ const extraLinks = [
     description:
       "CSP, CORS, cookies, clickjacking, HSTS and client-side signals",
     href: (id: string) => `/report/${id}/browser-security`,
-    primary: true,
-    customerVisible: true,
-  },
-  {
-    label: "GraphQL Risk Analyzer",
-    description:
-      "GraphQL endpoint, IDE, introspection, mutation and schema signals",
-    href: (id: string) => `/report/${id}/graphql-risk`,
-    primary: true,
+    primary: false,
     customerVisible: true,
   },
 ];
@@ -106,14 +82,14 @@ export function AdvancedReportNavigation({
   variant = "full",
 }: AdvancedReportNavigationProps) {
   const visibleLinks = [
-    ...customerReportLinks.filter((item) => item.customerVisible),
     ...extraLinks,
+    ...customerReportLinks.filter((item) => item.customerVisible),
   ];
 
   if (variant === "compact") {
     return (
       <div className="mt-5 flex flex-wrap gap-3">
-        {visibleLinks.slice(0, 27).map((item) => (
+        {visibleLinks.slice(0, 22).map((item) => (
           <Link
             key={item.label}
             href={item.href(scanId)}
@@ -137,18 +113,20 @@ export function AdvancedReportNavigation({
           <p className="text-sm font-black text-slate-500">
             Website security report
           </p>
-          <h2 className="mt-2 text-3xl font-black">What should you do next?</h2>
+          <h2 className="mt-2 text-3xl font-black">
+            Advanced vulnerability review workflow
+          </h2>
           <p className="mt-3 max-w-3xl leading-7 text-slate-600">
-            For client delivery, create a Client Portal link after Truth
-            Cleanup, Score Explanation, Monitoring and Email Delivery are ready.
+            Run the Vulnerability Scanner first, then share Developer Fix Plan,
+            Retest Proof, Monitoring Alerts and Client Portal with your client.
           </p>
         </div>
 
         <Link
-          href={`/report/${scanId}/security-hub`}
+          href={`/report/${scanId}/vulnerability-scanner`}
           className="rounded-full bg-slate-950 px-6 py-3 text-sm font-black text-white hover:bg-slate-800"
         >
-          Open customer report hub
+          Run Bug Finder
         </Link>
       </div>
 

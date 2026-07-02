@@ -1,54 +1,59 @@
 # SecureMSME AI QA Checklist
 
-Run this before every deployment.
-
-## Automated checks
+Run this before deployment:
 
 ```powershell
-npm.cmd run audit:app
+npm.cmd run test
+npm.cmd run build
 npm.cmd run e2e
-npm.cmd run audit:npm
 ```
 
-## Manual product checks
+## Vulnerability Scanner + Bug Finder QA
 
-- Signup works
-- Login works
-- Dashboard opens after login
-- Add website works
-- Manual scan works
-- Client portal public info page opens: `/client-portal`
-- Report client portal page opens: `/report/<scan-id>/client-portal`
-- Create client portal link works
-- Shareable token link opens: `/client-portal/<token>`
-- Client portal shows score/risk/executive summary
-- Client portal shows client-safe findings
-- Client portal shows safe claims and blocked claims
-- Link view count updates after opening token link
-- Refresh snapshot works
-- Revoke link works
-- Revoked link no longer opens
-- Admin client portal page opens only for admin: `/admin/client-portal`
-- Organization page still works
-- Agency dashboard still works
-- Email delivery page still works
-- Health check returns `status: ok`
+- `/vulnerability-scanner` public info page opens.
+- `/report/<scan-id>/vulnerability-scanner` opens for logged-in scan owner.
+- Scanner blocks if permission checkbox is not accepted.
+- Scanner blocks localhost/private/internal targets.
+- Safe light/standard/deep mode can be selected.
+- Scanner run saves to `vulnerability_scanner_runs`.
+- Bug findings save to `vulnerability_bug_findings`.
+- Findings show:
+  - severity
+  - confidence
+  - false-positive risk
+  - evidence
+  - customer data risk
+  - business impact
+  - developer fix
+  - retest steps
+  - safe claim
+  - blocked claim
+- Lifecycle status can be updated.
+- Admin page `/admin/vulnerability-scanner` opens only for admin.
+- E2E passes.
+- Build passes on Vercel.
 
-## Client portal safety checks
+## Safety checks
 
 Allowed:
 
-- Share safe report snapshot
-- Show score, risk, summary, findings and next actions
-- Track link views
-- Expire/revoke links
-- Show blocked claims clearly
+- authorized public website checks
+- GET/HEAD only
+- security headers
+- cookie flags
+- trust pages
+- public admin/API surface signals
+- HEAD-only sensitive path status checks
+- developer fix guidance
 
 Blocked:
 
-- Do not expose raw scanner payloads
-- Do not expose admin/internal tools
-- Do not claim 100% security
-- Do not claim full pentest certificate
-- Do not claim compliance certification
-- Do not expose private authenticated evidence
+- brute force
+- password guessing
+- login bypass
+- exploit payloads
+- SQLi/XSS exploitation
+- private data extraction
+- form submission
+- destructive testing
+- payment/order mutation

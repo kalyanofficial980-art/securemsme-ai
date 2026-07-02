@@ -1,50 +1,69 @@
 # SecureMSME AI Security Audit Notes
 
-## Mega Part 51 Client Portal + Shareable Report Access Foundation
+## Mega Part 52 Authorized Vulnerability Scanner + Bug Finder
 
 Added:
 
-- `client_portal_links`
-- `client_portal_access_events`
-- Public token RPC `get_client_portal_link`
-- Client-safe snapshot builder
-- Shareable report link creation
-- Link expiry
-- Link revoke
-- Snapshot refresh
-- Public client portal route
-- Report client portal management page
-- Admin client portal observability page
-- Unit tests and E2E coverage
+- `vulnerability_scanner_runs`
+- `vulnerability_bug_findings`
+- `vulnerability_scanner_events`
+- Authorized safe scanner engine
+- Scanner action route
+- Finding lifecycle update
+- Scanner report page
+- Public scanner info page
+- Admin scanner observability page
+- Unit tests
+- E2E coverage
 
-## Security model
+## Scanner capability
 
-- Raw `scans` table is not exposed to public portal users.
-- Public access uses an exact random token.
-- Public RPC returns only safe snapshot fields.
-- Link must be active and not expired.
-- View count and access event are recorded.
-- Authenticated users manage their own links through RLS.
+The scanner checks:
 
-## What this part does
+- security headers
+- CSP weakness
+- HSTS missing
+- clickjacking protection
+- nosniff header
+- server technology exposure
+- CORS wildcard credentials signal
+- cookie flag review
+- public forms/customer-data risk signal
+- login/checkout surface signal
+- external script supply-chain surface
+- privacy/contact page trust gaps
+- public admin/API/docs/GraphQL surface
+- sensitive/debug/backup path status using HEAD-only checks in safe deep mode
 
-- Enables client-safe report sharing.
-- Supports agency client delivery.
-- Provides access events and revoke/expiry controls.
+## Safety boundary
 
-## What this part does not do
+The scanner does not:
 
-- It does not implement password-protected client portal login.
-- It does not implement client comments/approval yet.
-- It does not implement PDF portal downloads yet.
-- It does not expose internal engine evidence to clients.
+- exploit vulnerabilities
+- run attack payloads
+- brute force
+- guess passwords
+- bypass login
+- submit forms
+- mutate data
+- test payments/orders
+- extract private data
+- store sensitive path response bodies
+- run destructive tests
 
-## Next layer
+## Claims policy
 
-Mega Part 52 should add:
+Safe:
 
-- Client Portal Feedback + Approval Workflow
-- Client comments
-- Fix approval status
-- Client acceptance proof
-- Developer/client handoff workflow
+- evidence-based bug/risk finding observed
+- developer fix recommended
+- retest needed
+- customer data risk signal needs review
+
+Blocked:
+
+- data was stolen
+- site is hacked
+- every vulnerability found
+- full pentest completed
+- compliance certification
