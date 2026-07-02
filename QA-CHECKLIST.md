@@ -8,51 +8,48 @@ npm.cmd run build
 npm.cmd run e2e
 ```
 
-## Mega Part 58 QA: Advanced Crawler + Asset Discovery v2
+## Mega Part 59 QA: Authenticated Safe Review v2
 
 Database:
 
-- Run `supabase/mega-part-58-advanced-crawler-asset-discovery-v2.sql`
+- Run `supabase/mega-part-59-authenticated-safe-review-v2.sql`
 - Confirm tables:
-  - `advanced_crawler_runs`
-  - `discovered_assets_v2`
-  - `crawler_link_edges_v2`
-  - `crawler_form_inventory_v2`
-  - `asset_discovery_snapshots_v2`
-  - `advanced_crawler_events`
+  - `authenticated_review_contexts`
+  - `authenticated_safe_review_runs`
+  - `authenticated_page_observations`
+  - `authenticated_role_comparisons`
+  - `authenticated_review_checklist_items`
+  - `authenticated_review_events`
 
 Public:
 
-- `/advanced-crawler` opens.
+- `/authenticated-safe-review` opens.
 
 Logged-in report workflow:
 
-- Open `/report/[scan-id]/advanced-crawler`.
-- Select crawler mode:
-  - Safe Light
-  - Safe Standard
-  - Safe Deep
-- Tick authorization checkbox.
-- Run crawler.
-- Confirm discovered assets appear.
-- Confirm form inventory appears if forms exist.
-- Confirm coverage score appears.
-- Confirm asset risk score appears.
-- Confirm login/admin/API/checkout counters appear.
-- Confirm link graph preview appears.
+- Open `/report/[scan-id]/authenticated-safe-review`.
+- Create authenticated review context.
+- Confirm no passwords/secrets are entered.
+- Authorization checkbox is required.
+- Create safe review run.
+- Add page observation.
+- Add role comparison.
+- Update checklist.
+- Coverage and auth risk scores update.
+- Events appear.
 
 Admin:
 
-- `/admin/advanced-crawler` requires admin.
-- Admin can view crawler runs and assets.
+- `/admin/authenticated-safe-review` requires admin.
+- Admin can view contexts and runs.
 
 Safety:
 
-- Same-origin only.
-- GET-only.
-- No form submission.
-- No POST/PUT/PATCH/DELETE.
+- No password storage.
+- No session cookie storage.
 - No brute force.
 - No login bypass.
 - No exploit payloads.
+- No form mutation.
 - No private data extraction.
+- No payment/order actions.

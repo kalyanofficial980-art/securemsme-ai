@@ -8,6 +8,14 @@ type AdvancedReportNavigationProps = {
 
 const workflowLinks = [
   {
+    label: "Authenticated Safe Review",
+    description:
+      "Review approved login/account areas with safe observations and role comparisons",
+    href: (id: string) => `/report/${id}/authenticated-safe-review`,
+    primary: true,
+    customerVisible: true,
+  },
+  {
     label: "Advanced Crawler",
     description:
       "Discover same-origin assets, forms, login/admin/API/checkout surfaces and asset fingerprints",
@@ -141,7 +149,7 @@ export function AdvancedReportNavigation({
   if (variant === "compact") {
     return (
       <div className="mt-5 flex flex-wrap gap-3">
-        {visibleLinks.slice(0, 34).map((item) => (
+        {visibleLinks.slice(0, 36).map((item) => (
           <Link
             key={item.label}
             href={item.href(scanId)}
@@ -163,23 +171,23 @@ export function AdvancedReportNavigation({
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
         <div>
           <p className="text-sm font-black text-slate-500">
-            Advanced attack-surface workflow
+            Advanced authorized security workflow
           </p>
           <h2 className="mt-2 text-3xl font-black">
-            Discover, orchestrate, prove, correlate, validate and retest
+            Discover public assets, then safely review approved account areas
           </h2>
           <p className="mt-3 max-w-3xl leading-7 text-slate-600">
-            Start with Advanced Crawler to map assets and forms. Then run
-            scanner, evidence warehouse, accuracy foundation and vulnerability
-            correlation.
+            Use Authenticated Safe Review only with client-approved test
+            accounts. It stores scope metadata and manual evidence, not
+            passwords or secrets.
           </p>
         </div>
 
         <Link
-          href={`/report/${scanId}/advanced-crawler`}
+          href={`/report/${scanId}/authenticated-safe-review`}
           className="rounded-full bg-slate-950 px-6 py-3 text-sm font-black text-white hover:bg-slate-800"
         >
-          Discover Assets
+          Auth Review
         </Link>
       </div>
 

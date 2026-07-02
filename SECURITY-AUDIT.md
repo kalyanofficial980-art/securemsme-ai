@@ -1,59 +1,53 @@
 # SecureMSME AI Security Audit Notes
 
-## Mega Part 58: Advanced Crawler + Asset Discovery v2
+## Mega Part 59: Authenticated Safe Review v2
 
 Added:
 
-- Advanced crawler run table
-- Discovered assets table
-- Link edge graph
-- Form inventory
-- Asset discovery snapshots
-- Crawler events
-- Safe same-origin crawler engine
-- Asset classification
-- Form signal extraction
-- Login/admin/API/checkout/customer-data counters
-- Asset fingerprints
+- Authenticated review context
+- Safe review run
+- Manual page observations
+- Role comparison workflow
+- Session/cookie/account checklist
+- Auth risk score
 - Coverage score
-- Asset risk score
-- Admin crawler observability
+- Admin observability
+- Public info page
 
 ## Purpose
 
-This part maps website attack surface safely:
+This part supports authorized login-area review for:
 
-- pages
-- forms
-- login surfaces
-- admin surfaces
-- API/docs surfaces
-- checkout/payment signals
-- customer-data forms
-- robots.txt
-- sitemap.xml
-- internal link graph
+- account pages
+- dashboards
+- profile pages
+- settings
+- checkout/account pages
+- role differences
+- customer-data surfaces
 
 ## Safety boundary
 
-The crawler:
+This part does not:
 
-- uses GET only
-- stays same-origin
-- does not submit forms
-- does not login
-- does not brute force
-- does not run payloads
-- does not mutate data
-- does not extract private data
+- store passwords
+- store session cookies
+- perform brute force
+- bypass login
+- submit forms
+- mutate account state
+- run exploit payloads
+- extract private data
+- perform payment/order actions
 
-## Professional use
+## Correct use
 
-Use crawler results before:
+The client should provide:
 
-- Vulnerability Scanner
-- Evidence Warehouse
-- Accuracy Foundation
-- Advanced Vulnerability Correlation
-- Developer Fix Plan
-- Client Report
+- temporary test account
+- approved roles
+- allowed paths
+- excluded paths
+- written scope
+
+SecureMSME AI stores only metadata and manual observations, not credentials.
