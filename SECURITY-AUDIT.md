@@ -1,45 +1,37 @@
 # SecureMSME AI Security Audit Notes
 
-## Mega Part 69: Scheduled Scans + Email Alerts
+## Mega Part 70: GitHub / Dependency / Secrets Scanner
 
 Added:
 
-- Email alert preferences
-- Scheduled scan targets
-- Scheduled safe check runs
-- Scheduled scan alerts
-- Email alert queue
-- Email alert events
+- Repository security projects
+- Package.json/manual dependency scanner
+- SBOM-lite dependency items
+- Masked secret scanner
+- Repository security alerts
 - Admin observability
 
 ## Safety model
 
-Scheduled scans are safe monitoring checks only. This part does not:
+The scanner:
 
-- perform exploit testing
-- run payloads
-- bypass authentication
-- brute force
-- destructively test
-- send spam
+- masks secret values
+- stores masked evidence only
+- gives safe developer remediation
+- requires authorization confirmation
+- does not clone private repos
+- does not access GitHub APIs yet
+- does not claim complete coverage
 
-## Email delivery
+## Required before external repo integration
 
-Current delivery mode is a queue/foundation:
+Before adding real GitHub integration:
 
-- delivery provider: `manual-queue`
-- delivery status: `provider-not-configured`
-
-A future email provider integration can process queued messages.
-
-## Required before real email sending
-
-Before connecting SendGrid/Resend/Postmark/AWS SES:
-
-- verify unsubscribe flow
-- verify consent
-- rate limit sends
-- validate sender domain
-- add bounce/complaint handling
-- add suppression list
-- add audit logging
+- OAuth app review
+- scoped repo permissions
+- secure token storage
+- webhook signature verification
+- rate limiting
+- audit logging
+- repo allowlist/authorization proof
+- secret suppression and false-positive workflow

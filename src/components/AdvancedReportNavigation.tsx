@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { customerReportLinks } from "@/lib/customer-language";
 
 type AdvancedReportNavigationProps = {
   scanId: string;
@@ -23,6 +22,12 @@ const launchCustomerLinks: NavItem[] = [
     label: "AI Copilot",
     description: "Ask safe questions over reports, fixes and client wording",
     href: (id) => `/report/${id}/ai-copilot`,
+    primary: true,
+  },
+  {
+    label: "Repo Security",
+    description: "Dependency and masked secret review for code-side risk",
+    href: (id) => `/report/${id}/repo-security`,
     primary: true,
   },
   {
@@ -66,6 +71,11 @@ const launchCustomerLinks: NavItem[] = [
 ];
 
 const launchAccountLinks: NavItem[] = [
+  {
+    label: "Repo Security Home",
+    description: "All repository security projects",
+    href: () => `/repo-security`,
+  },
   {
     label: "AI Copilot Home",
     description: "All report copilot sessions",
@@ -149,15 +159,16 @@ export function AdvancedReportNavigation({
             Simple AI security workflow
           </h2>
           <p className="mt-3 max-w-3xl leading-7 text-slate-600">
-            Customer UI is simplified into scan, AI copilot, report, developer
-            fixes, retest proof, scheduled monitoring, billing and support.
+            Customer UI is simplified into scan, AI copilot, repo security,
+            report, developer fixes, retest proof, scheduled monitoring, billing
+            and support.
           </p>
         </div>
         <Link
-          href={`/report/${scanId}/scheduled-scans`}
+          href={`/report/${scanId}/repo-security`}
           className="rounded-full bg-slate-950 px-6 py-3 text-sm font-black text-white hover:bg-slate-800"
         >
-          Scheduled Scans
+          Repo Security
         </Link>
       </div>
 
@@ -195,18 +206,6 @@ export function AdvancedReportNavigation({
         </summary>
         <div className="mt-5 grid gap-4 md:grid-cols-3">
           {internalLinks.map((item) => (
-            <Link
-              key={item.label}
-              href={item.href(scanId)}
-              className="rounded-2xl bg-white p-4 hover:bg-amber-100"
-            >
-              <h3 className="font-black">{item.label}</h3>
-              <p className="mt-2 text-sm leading-6 text-slate-600">
-                {item.description}
-              </p>
-            </Link>
-          ))}
-          {customerReportLinks.slice(0, 3).map((item) => (
             <Link
               key={item.label}
               href={item.href(scanId)}

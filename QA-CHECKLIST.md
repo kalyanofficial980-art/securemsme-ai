@@ -8,43 +8,45 @@ npm.cmd run build
 npm.cmd run e2e
 ```
 
-## Mega Part 69 QA: Scheduled Scans + Email Alerts
+## Mega Part 70 QA: GitHub / Dependency / Secrets Scanner
 
 Database:
 
-- Run `supabase/mega-part-69-scheduled-scans-email-alerts.sql`
+- Run `supabase/mega-part-70-repo-dependency-secrets-scanner.sql`
 - Confirm tables:
-  - `email_alert_preferences_v2`
-  - `scheduled_scan_targets_v2`
-  - `scheduled_scan_runs_v2`
-  - `scheduled_scan_alerts_v2`
-  - `email_alert_queue_v2`
-  - `email_alert_events_v2`
+  - `repo_security_projects_v2`
+  - `repo_dependency_scan_runs_v2`
+  - `repo_dependency_items_v2`
+  - `repo_secret_scan_runs_v2`
+  - `repo_secret_findings_v2`
+  - `repo_security_alerts_v2`
+  - `repo_security_events_v2`
 
 Pages:
 
-- `/scheduled-scans`
-- `/report/[scan-id]/scheduled-scans`
-- `/admin/scheduled-scans`
+- `/repo-security`
+- `/report/[scan-id]/repo-security`
+- `/admin/repo-security`
 
 Workflow:
 
 1. Login.
-2. Open `/scheduled-scans`.
-3. Save email alert preferences.
-4. Create a scheduled scan target with authorization checkbox.
-5. Run safe check now.
-6. Confirm scheduled run appears.
-7. Confirm alert appears if risk threshold is met.
-8. Confirm email queue item appears as `provider-not-configured`.
-9. Admin opens `/admin/scheduled-scans`.
+2. Open `/repo-security`.
+3. Create repository project with authorization confirmation.
+4. Paste package.json dependency data.
+5. Paste safe test env text with fake token-like value.
+6. Run repo security scan.
+7. Confirm dependency run appears.
+8. Confirm secret findings are masked only.
+9. Update secret finding status.
+10. Admin opens `/admin/repo-security`.
 
 Safety:
 
-- No aggressive scanning.
+- No raw secret exposure.
+- No private repo cloning.
 - No exploit payloads.
-- No destructive automation.
-- No unauthorized scheduled targets.
-- No spam sending.
-- Email provider is not connected yet; queue only.
-- Email language must include limitations.
+- No bypass instructions.
+- No claim that all secrets were found.
+- No claim that all vulnerabilities were found.
+- Dependency checks are heuristic until live advisory database integration.
