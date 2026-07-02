@@ -1,70 +1,54 @@
 import Link from "next/link";
 import { Navbar } from "@/components/Navbar";
-
-const trustItems = [
-  "Safe public website checks only",
-  "No exploit attempts",
-  "No brute force, password guessing, or unauthorized access",
-  "Customer reports are private to logged-in account",
-  "Security report disclaimer included",
-  "Admin-only monitoring dashboard protected by Supabase RLS",
-];
+import { legalPages } from "@/components/LegalTemplates";
 
 export default function TrustPage() {
   return (
     <main className="min-h-screen bg-slate-50 text-slate-950">
       <Navbar />
-
-      <section className="mx-auto max-w-5xl px-6 py-16">
-        <p className="text-sm font-bold text-slate-500">Trust center</p>
-        <h1 className="mt-2 text-4xl font-black">How SecureMSME AI works</h1>
-        <p className="mt-4 max-w-3xl text-lg leading-8 text-slate-600">
-          SecureMSME AI gives MSMEs simple public website security visibility.
-          It is designed for safe, non-invasive checks and business-friendly
-          reporting.
-        </p>
-
-        <div className="mt-10 grid gap-5 md:grid-cols-2">
-          {trustItems.map((item) => (
-            <div
-              key={item}
-              className="rounded-3xl border border-slate-200 bg-white p-6"
-            >
-              <p className="font-black">{item}</p>
-            </div>
-          ))}
-        </div>
-
-        <div className="mt-10 rounded-3xl border border-amber-200 bg-amber-50 p-8">
-          <h2 className="text-2xl font-black text-amber-950">
-            Important disclaimer
-          </h2>
-          <p className="mt-3 leading-7 text-amber-900">
-            Reports are based on safe public checks only. They are not a full
-            penetration test, legal audit, compliance certification, or bug
-            bounty report.
+      <section className="mx-auto max-w-6xl px-6 py-16">
+        <div className="rounded-3xl border border-blue-200 bg-blue-50 p-8">
+          <p className="text-sm font-black text-blue-700">Trust Center</p>
+          <h1 className="mt-2 text-4xl font-black text-blue-950">
+            SecureMSME AI Trust Center
+          </h1>
+          <p className="mt-4 max-w-4xl leading-8 text-blue-900">
+            Security, legal, responsible disclosure, acceptable use and support
+            information for safe authorized cybersecurity workflows.
           </p>
         </div>
-
-        <div className="mt-8 flex flex-wrap gap-3">
+        <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+          {legalPages.map((page) => (
+            <Link
+              key={page.key}
+              href={page.href}
+              className="rounded-3xl border border-slate-200 bg-white p-6 hover:bg-slate-50"
+            >
+              <h2 className="text-xl font-black">{page.title}</h2>
+              <p className="mt-3 text-sm leading-6 text-slate-600">
+                View current launch template.
+              </p>
+            </Link>
+          ))}
           <Link
-            href="/legal/privacy"
-            className="rounded-full border border-slate-300 bg-white px-5 py-3 font-bold hover:bg-slate-100"
+            href="/support"
+            className="rounded-3xl border border-slate-950 bg-slate-950 p-6 text-white hover:bg-slate-800"
           >
-            Privacy policy
+            <h2 className="text-xl font-black">Support</h2>
+            <p className="mt-3 text-sm leading-6 text-slate-300">
+              Contact support, sales, billing or security disclosure.
+            </p>
           </Link>
-          <Link
-            href="/legal/terms"
-            className="rounded-full border border-slate-300 bg-white px-5 py-3 font-bold hover:bg-slate-100"
-          >
-            Terms
-          </Link>
-          <Link
-            href="/legal/responsible-disclosure"
-            className="rounded-full border border-slate-300 bg-white px-5 py-3 font-bold hover:bg-slate-100"
-          >
-            Responsible disclosure
-          </Link>
+        </div>
+        <div className="mt-8 rounded-3xl border border-red-200 bg-red-50 p-8">
+          <h2 className="text-2xl font-black text-red-950">
+            Important limitations
+          </h2>
+          <p className="mt-3 leading-7 text-red-900">
+            SecureMSME AI does not guarantee 100% security, does not guarantee
+            all vulnerabilities are found, does not provide legal compliance
+            certification and must be used only with authorization.
+          </p>
         </div>
       </section>
     </main>

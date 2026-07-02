@@ -6,135 +6,85 @@ type AdvancedReportNavigationProps = {
   variant?: "full" | "compact";
 };
 
-const workflowLinks = [
+const launchCustomerLinks = [
   {
-    label: "Billing + AI Triage",
-    description:
-      "Usage limits, safe AI triage and smart remediation priority order",
-    href: (id: string) => `/report/${id}/billing-ai-triage`,
+    label: "Security Scan",
+    description: "Run authorized safe website checks and review security risks",
+    href: (id: string) => `/report/${id}`,
     primary: true,
-    customerVisible: true,
   },
   {
-    label: "Monitoring Pro",
+    label: "Reports",
     description:
-      "Watch retest proof, fix progress, client readiness and regression alerts",
-    href: (id: string) => `/report/${id}/monitoring-pro`,
-    primary: true,
-    customerVisible: true,
-  },
-  {
-    label: "Retest + Client Portal Pro",
-    description:
-      "Create safe retest proof and generate shareable Client Portal Pro links",
-    href: (id: string) => `/report/${id}/retest-client-portal-pro`,
-    primary: true,
-    customerVisible: true,
-  },
-  {
-    label: "Developer Portal",
-    description:
-      "Create developer fix board, track remediation, comments and safe retest requests",
-    href: (id: string) => `/report/${id}/developer-portal`,
-    primary: true,
-    customerVisible: true,
-  },
-  {
-    label: "Client Report v4",
-    description:
-      "Generate executive dashboard, business impact, evidence strength and client-safe report sections",
+      "Client-safe report, executive summary and evidence-backed findings",
     href: (id: string) => `/report/${id}/client-report-v4`,
     primary: true,
-    customerVisible: true,
   },
   {
-    label: "API Security Review",
+    label: "Developer Fixes",
     description:
-      "Discover API docs/specs, inventory endpoints and review auth/mutation/sensitive API risks",
-    href: (id: string) => `/report/${id}/api-security-review`,
+      "Fix tasks, developer actions, comments and remediation workflow",
+    href: (id: string) => `/report/${id}/developer-portal`,
     primary: true,
-    customerVisible: true,
   },
   {
-    label: "Authenticated Safe Review",
-    description:
-      "Review approved login/account areas with safe observations and role comparisons",
-    href: (id: string) => `/report/${id}/authenticated-safe-review`,
+    label: "Retest Proof",
+    description: "Verified-fix proof and client portal after remediation",
+    href: (id: string) => `/report/${id}/retest-client-portal-pro`,
     primary: true,
-    customerVisible: true,
   },
   {
-    label: "Advanced Crawler",
-    description:
-      "Discover same-origin assets, forms, login/admin/API/checkout surfaces and asset fingerprints",
-    href: (id: string) => `/report/${id}/advanced-crawler`,
+    label: "Monitoring",
+    description: "Regression alerts and post-fix monitoring",
+    href: (id: string) => `/report/${id}/monitoring-pro`,
     primary: true,
-    customerVisible: true,
   },
   {
-    label: "Advanced Vulnerability Engine",
-    description:
-      "Correlate findings, evidence, accuracy and workspace bugs into root-cause clusters",
-    href: (id: string) => `/report/${id}/advanced-vulnerability-engine`,
+    label: "AI Triage",
+    description: "Safe remediation priority order and usage-aware triage",
+    href: (id: string) => `/report/${id}/billing-ai-triage`,
     primary: true,
-    customerVisible: true,
-  },
-  {
-    label: "Evidence Warehouse",
-    description:
-      "Sync proof chain evidence from engines, findings and accuracy assessments",
-    href: (id: string) => `/report/${id}/evidence-warehouse`,
-    primary: true,
-    customerVisible: true,
-  },
-  {
-    label: "Scan Orchestrator",
-    description:
-      "Run controlled engine pipeline with coverage, logs, retry and safe execution boundaries",
-    href: (id: string) => `/report/${id}/scan-orchestrator`,
-    primary: true,
-    customerVisible: true,
-  },
-  {
-    label: "Accuracy Foundation",
-    description:
-      "Classify findings, score confidence, control false positives and target 99% confirmed-finding correctness",
-    href: (id: string) => `/report/${id}/accuracy-foundation`,
-    primary: true,
-    customerVisible: true,
   },
 ];
 
-const technicalLinks = [
+const launchAccountLinks = [
+  {
+    label: "Manual Billing",
+    description: "Manual payment approval and plan activation",
+    href: (_id?: string) => `/manual-billing`,
+  },
+  {
+    label: "Legal Acceptance",
+    description: "Terms, privacy, acceptable use and disclaimer acceptance",
+    href: (_id?: string) => `/legal-acceptance`,
+  },
+  {
+    label: "Scan Authorization",
+    description: "Confirm ownership or written permission before scanning",
+    href: (_id?: string) => `/scan-authorization`,
+  },
+  {
+    label: "Trust Center",
+    description: "Legal pages, security policy and responsible disclosure",
+    href: (_id?: string) => `/trust`,
+  },
+];
+
+const internalLinks = [
   {
     label: "Production Launch",
-    description:
-      "Final accuracy benchmark, production checklist and launch readiness",
-    href: () => `/production-launch`,
-    primary: false,
-    customerVisible: false,
+    description: "Internal benchmark and launch readiness dashboard",
+    href: (_id?: string) => `/production-launch`,
   },
   {
     label: "Agency SOC",
-    description: "View multi-client SOC dashboard and risk watchlist",
-    href: () => `/agency-soc`,
-    primary: false,
-    customerVisible: false,
+    description: "Agency multi-client monitoring view",
+    href: (_id?: string) => `/agency-soc`,
   },
   {
-    label: "Billing Dashboard",
-    description: "Manage plan limits and AI triage usage",
-    href: () => `/billing-ai-triage`,
-    primary: false,
-    customerVisible: false,
-  },
-  {
-    label: "Security Review Workspace",
-    description:
-      "Create client workspace with bug lifecycle, developer fixes and retest tracking",
-    href: (id: string) => `/report/${id}/security-review-workspace`,
-    primary: false,
-    customerVisible: true,
+    label: "Advanced Tools",
+    description: "Internal engine and evidence workflows",
+    href: (id: string) => `/report/${id}/evidence-warehouse`,
   },
 ];
 
@@ -142,24 +92,16 @@ export function AdvancedReportNavigation({
   scanId,
   variant = "full",
 }: AdvancedReportNavigationProps) {
-  const visibleLinks = [
-    ...workflowLinks,
-    ...technicalLinks,
-    ...customerReportLinks.filter((item) => item.customerVisible),
-  ];
+  const compactLinks = [...launchCustomerLinks, ...launchAccountLinks];
 
   if (variant === "compact") {
     return (
       <div className="mt-5 flex flex-wrap gap-3">
-        {visibleLinks.slice(0, 47).map((item) => (
+        {compactLinks.map((item) => (
           <Link
             key={item.label}
             href={item.href(scanId)}
-            className={
-              item.primary
-                ? "rounded-full bg-slate-950 px-4 py-2 text-sm font-black text-white hover:bg-slate-800"
-                : "rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-black hover:bg-slate-100"
-            }
+            className="rounded-full bg-slate-950 px-4 py-2 text-sm font-black text-white hover:bg-slate-800"
           >
             {item.label}
           </Link>
@@ -173,49 +115,79 @@ export function AdvancedReportNavigation({
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
         <div>
           <p className="text-sm font-black text-slate-500">
-            Final production workflow
+            Launch-ready customer workflow
           </p>
-          <h2 className="mt-2 text-3xl font-black">
-            Benchmark accuracy and confirm launch readiness
-          </h2>
+          <h2 className="mt-2 text-3xl font-black">Simple security workflow</h2>
           <p className="mt-3 max-w-3xl leading-7 text-slate-600">
-            Use Production Launch after all client, developer, monitoring,
-            billing and triage workflows are complete.
+            Customer UI is simplified into scan, report, developer fixes, retest
+            proof, monitoring, billing and support. Internal engines stay behind
+            advanced/admin routes.
           </p>
         </div>
-
         <Link
-          href="/production-launch"
+          href="/launch-ready"
           className="rounded-full bg-slate-950 px-6 py-3 text-sm font-black text-white hover:bg-slate-800"
         >
-          Production Launch
+          Launch Ready
         </Link>
       </div>
-
       <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {visibleLinks.map((item) => (
+        {launchCustomerLinks.map((item) => (
           <Link
             key={item.label}
             href={item.href(scanId)}
-            className={
-              item.primary
-                ? "rounded-3xl border border-slate-950 bg-slate-950 p-6 text-white hover:bg-slate-800"
-                : "rounded-3xl border border-slate-200 bg-slate-50 p-6 hover:bg-slate-100"
-            }
+            className="rounded-3xl border border-slate-950 bg-slate-950 p-6 text-white hover:bg-slate-800"
           >
             <h3 className="font-black">{item.label}</h3>
-            <p
-              className={
-                item.primary
-                  ? "mt-2 text-sm leading-6 text-slate-300"
-                  : "mt-2 text-sm leading-6 text-slate-600"
-              }
-            >
+            <p className="mt-2 text-sm leading-6 text-slate-300">
+              {item.description}
+            </p>
+          </Link>
+        ))}
+        {launchAccountLinks.map((item) => (
+          <Link
+            key={item.label}
+            href={item.href(scanId)}
+            className="rounded-3xl border border-slate-200 bg-slate-50 p-6 hover:bg-slate-100"
+          >
+            <h3 className="font-black">{item.label}</h3>
+            <p className="mt-2 text-sm leading-6 text-slate-600">
               {item.description}
             </p>
           </Link>
         ))}
       </div>
+      <details className="mt-8 rounded-3xl border border-amber-200 bg-amber-50 p-6">
+        <summary className="cursor-pointer font-black text-amber-950">
+          Advanced/internal tools
+        </summary>
+        <div className="mt-5 grid gap-4 md:grid-cols-3">
+          {internalLinks.map((item) => (
+            <Link
+              key={item.label}
+              href={item.href(scanId)}
+              className="rounded-2xl bg-white p-4 hover:bg-amber-100"
+            >
+              <h3 className="font-black">{item.label}</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-600">
+                {item.description}
+              </p>
+            </Link>
+          ))}
+          {customerReportLinks.slice(0, 3).map((item) => (
+            <Link
+              key={item.label}
+              href={item.href(scanId)}
+              className="rounded-2xl bg-white p-4 hover:bg-amber-100"
+            >
+              <h3 className="font-black">{item.label}</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-600">
+                {item.description}
+              </p>
+            </Link>
+          ))}
+        </div>
+      </details>
     </section>
   );
 }

@@ -8,56 +8,65 @@ npm.cmd run build
 npm.cmd run e2e
 ```
 
-## Mega Part 66 QA: Accuracy Benchmark + Production Launch Hardening
+## Mega Part 67 QA: Launch Ready Cleanup + Manual Payment + Legal
 
 Database:
 
-- Run `supabase/mega-part-66-accuracy-benchmark-production-launch.sql`
+- Run `supabase/mega-part-67-launch-ready-manual-payment-legal.sql`
 - Confirm tables:
-  - `accuracy_benchmark_runs_v2`
-  - `accuracy_benchmark_cases_v2`
-  - `production_launch_checks_v2`
-  - `production_launch_snapshots_v2`
-  - `production_release_notes_v2`
-  - `launch_hardening_events_v2`
+  - `legal_document_versions_v2`
+  - `user_legal_acceptances_v2`
+  - `website_scan_authorizations_v2`
+  - `manual_payment_requests_v2`
+  - `manual_payment_admin_events_v2`
+  - `launch_ready_user_preferences_v2`
+  - `support_requests_v2`
 
-Workflow:
+Public pages:
 
-- Open `/production-launch`.
-- Seed production launch checks.
-- Update each check status and owner note.
-- Run accuracy benchmark.
-- Create production launch snapshot.
-- Confirm launch readiness, security hardening, operations, quality and trust scores.
-- Confirm release notes appear.
-- Confirm blockers are visible.
+- `/legal`
+- `/legal/terms`
+- `/legal/privacy`
+- `/legal/acceptable-use`
+- `/legal/responsible-disclosure`
+- `/legal/refund`
+- `/legal/data-processing`
+- `/legal/cookie`
+- `/legal/security-policy`
+- `/legal/disclaimer`
+- `/trust`
+- `/support`
+
+Logged-in pages:
+
+- `/launch-ready`
+- `/legal-acceptance`
+- `/scan-authorization`
+- `/manual-billing`
 
 Admin:
 
-- `/admin/production-launch` requires admin.
-- Admin can view benchmarks, launch snapshots and production checks.
+- `/admin/manual-payments`
 
-Final local test:
+Workflow:
 
-```powershell
-Remove-Item .next -Recurse -Force -ErrorAction SilentlyContinue
-npx.cmd prettier --write src tests QA-CHECKLIST.md SECURITY-AUDIT.md
-npm.cmd run test
-npm.cmd run build
-npm.cmd run e2e
-```
-
-Final Git:
-
-- Commit Part 66.
-- Push to GitHub.
-- Confirm Vercel deploy passes.
-- Test live `/production-launch`.
+1. Login.
+2. Open `/legal-acceptance`.
+3. Accept required legal documents.
+4. Open `/scan-authorization`.
+5. Confirm target ownership/permission.
+6. Open `/manual-billing`.
+7. Submit payment request with UTR/reference.
+8. Login admin.
+9. Open `/admin/manual-payments`.
+10. Approve or reject request.
+11. Confirm billing profile plan updates on approval.
 
 Safety:
 
+- No card data.
+- No OTP/UPI PIN/password collection.
+- No unauthorized scanning.
 - No 100% secure claim.
-- No all vulnerabilities found claim.
-- No legal compliance certificate claim.
-- Launch blockers must remain visible.
-- Known limitations must remain visible.
+- No all-vulnerabilities-found claim.
+- Legal pages are templates and need professional review before full public paid launch.

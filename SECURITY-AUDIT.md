@@ -1,64 +1,55 @@
 # SecureMSME AI Security Audit Notes
 
-## Mega Part 66: Accuracy Benchmark + Production Launch Hardening
+## Mega Part 67: Launch Ready Cleanup + Manual Payment Approval + Legal Pages
 
 Added:
 
-- Accuracy benchmark runs
-- Benchmark cases
-- Production launch checks
-- Launch readiness snapshots
-- Release notes
-- Launch hardening events
-- Admin launch observability
+- Legal document version registry
+- User legal acceptance records
+- Website scan authorization records
+- Manual payment requests
+- Admin manual payment approval
+- Launch-ready user preferences
+- Support requests
+- Trust center and legal pages
 
-## Purpose
+## Manual payment security
 
-This final part provides:
+Manual payment flow does not collect:
 
-- evidence coverage checks
-- false-positive control checks
-- claim-safety checks
-- developer/retest/monitoring workflow checks
-- production hardening checklist
-- final launch readiness score
-- final release notes and blockers
+- card numbers
+- CVV
+- OTPs
+- UPI PINs
+- bank passwords
+- private payment credentials
 
-## Safety boundary
+Only payment reference/UTR and contact details are collected for admin approval.
 
-This part does not:
+## Legal/authorized-use protection
 
-- claim 100% security
-- claim every vulnerability was found
-- claim legal compliance certification
-- hide launch blockers
-- expose private customer data
-- run exploit payloads
-- perform destructive testing
+Before launch use, the user can accept:
 
-## Correct final launch use
+- Terms and Conditions
+- Privacy Policy
+- Acceptable Use Policy
+- Refund Policy
+- Data Processing Notice
+- Disclaimer
 
-Before production launch:
+Before scanning, user confirms:
 
-1. Run all tests.
-2. Run build.
-3. Run E2E.
-4. Run SQL.
-5. Seed launch checks.
-6. Mark checks with proof.
-7. Run accuracy benchmark.
-8. Create launch snapshot.
-9. Fix blockers.
-10. Deploy only after readiness is acceptable.
+- ownership or written permission
+- safe checks only
+- no unauthorized testing
 
-## Remaining future real-world work
+## Limitations
 
-Before paid public launch, add:
+Legal pages are strong launch templates, not legal advice.
+Before full public paid launch:
 
-- real payment provider integration with webhook validation
-- email domain setup
-- support process
-- legal review
-- incident response plan
-- backups and monitoring policies
-- production secret rotation process
+- get legal review
+- finalize support email/process
+- add real invoice/receipt process
+- finalize privacy/subprocessor list
+- document incident response process
