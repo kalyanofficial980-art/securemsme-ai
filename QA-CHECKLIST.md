@@ -19,19 +19,23 @@ npm.cmd run audit:npm
 - Manual scan works
 - Saved website rescan works
 - Customer report hub opens: `/report/<scan-id>/security-hub`
+- Report truth cleanup public page opens: `/report-truth-cleanup`
+- Report truth cleanup report page opens: `/report/<scan-id>/truth-cleanup`
+- Generate truth cleanup works
+- Truth score is shown
+- Fake-looking risk is shown
+- Generic text count is shown
+- Missing evidence count is shown
+- Cleaned fixes are shown
+- Each cleaned fix has evidence summary
+- Each cleaned fix has why it matters
+- Each cleaned fix has exact developer fix
+- Each cleaned fix has validation steps
+- Each cleaned fix has cannot-claim wording
+- Truth warnings are shown
+- Safe claims and blocked claims are shown
+- Admin truth page opens only for admin: `/admin/report-truth`
 - Scan consistency public page opens: `/scan-consistency`
-- Scan consistency report page opens: `/report/<scan-id>/scan-consistency`
-- Score explanation can be generated
-- Current score is shown
-- Previous score is shown when history exists
-- Score delta is shown
-- Risk transition is shown
-- Latest scan badge is shown
-- Why this score section is shown
-- Why score changed section is shown
-- Can claim / Cannot claim section is shown
-- Consistency warnings are shown for large changes
-- Admin scan consistency page opens only for admin: `/admin/scan-consistency`
 - Access-control public page opens: `/access-control-signal-engine`
 - Authenticated crawler public page opens: `/authenticated-crawler`
 - GraphQL risk public page opens: `/graphql-risk-analyzer`
@@ -50,22 +54,23 @@ npm.cmd run audit:npm
 - Trust page loads
 - Health check returns `status: ok`
 
-## Trust safety checks
+## Truth safety checks
 
 Allowed:
 
-- Explain current scan score
-- Compare latest scan with previous scan
-- Show score delta
-- Show engine version
-- Explain why old and new scores may differ
-- Say latest scan is current baseline
-- Say old scans are history
+- Detect generic old wording
+- Replace generic fixes with specific developer guidance
+- Mark weak evidence as needs-review
+- Add validation steps
+- Add safe customer wording
+- Add cannot-claim guardrails
+- Explain old development reports were weaker
 
 Blocked:
 
-- Do not claim 100% vulnerability detection
-- Do not claim website is fully safe
+- Do not invent vulnerabilities
+- Do not claim exploitability without proof
+- Do not claim 100% secure
 - Do not claim full pentest
-- Do not claim compliance certification
-- Do not hide score inconsistency
+- Do not claim compliance certificate
+- Do not share old generic reports as final customer reports

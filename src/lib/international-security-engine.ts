@@ -1,3 +1,41 @@
+﻿export type EngineEvidenceSeed = {
+  evidenceKey: string;
+  sourceModule: string;
+  affectedAsset: string;
+  assetType: string;
+  proofType: string;
+  severity: string;
+  confidence: string;
+  falsePositiveRisk: string;
+  title: string;
+  observedValue: string;
+  expectedValue: string;
+  evidenceSummary: string;
+  businessImpact: string;
+  developerFix: string;
+  safeClaim: string;
+  blockedClaim: string;
+  standards: Record<string, string[]>;
+  rawMetadata: Record<string, unknown>;
+};
+
+export type VulnerabilitySeed = {
+  vulnerabilityKey: string;
+  title: string;
+  category: string;
+  severity: string;
+  confidence: string;
+  exploitabilityScore: number;
+  businessImpactScore: number;
+  priorityScore: number;
+  affectedAssets: string[];
+  standards: Record<string, string[]>;
+  businessImpact: string;
+  developerFix: string;
+  verificationGuidance: string;
+  safeClaim: string;
+  blockedClaim: string;
+};
 export type EngineIntensity = "light" | "standard" | "deep";
 
 export type SiteType =

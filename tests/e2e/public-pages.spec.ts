@@ -31,6 +31,7 @@ const publicPages = [
     text: "Detect access-control risk signals",
   },
   { path: "/scan-consistency", text: "Explain why security scores change" },
+  { path: "/report-truth-cleanup", text: "Replace fake-looking report text" },
   {
     path: "/international-security-engine",
     text: "Advanced backend foundation",

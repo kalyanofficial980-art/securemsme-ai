@@ -8,6 +8,14 @@ type AdvancedReportNavigationProps = {
 
 const extraLinks = [
   {
+    label: "Truth Cleanup",
+    description:
+      "Remove generic/fake-looking wording with evidence-specific fixes",
+    href: (id: string) => `/report/${id}/truth-cleanup`,
+    primary: true,
+    customerVisible: true,
+  },
+  {
     label: "Score Explanation",
     description:
       "Explain score changes, latest scan status and old-vs-new differences",
@@ -129,7 +137,7 @@ export function AdvancedReportNavigation({
   if (variant === "compact") {
     return (
       <div className="mt-5 flex flex-wrap gap-3">
-        {visibleLinks.slice(0, 21).map((item) => (
+        {visibleLinks.slice(0, 22).map((item) => (
           <Link
             key={item.label}
             href={item.href(scanId)}
@@ -155,9 +163,9 @@ export function AdvancedReportNavigation({
           </p>
           <h2 className="mt-2 text-3xl font-black">What should you do next?</h2>
           <p className="mt-3 max-w-3xl leading-7 text-slate-600">
-            Review score explanation, international engine pipeline, attack
-            surface, API, browser, GraphQL, authenticated crawler,
-            access-control signals, retest proof and developer fixes.
+            Start with Truth Cleanup and Score Explanation before sharing a
+            customer report. Then review API, browser, GraphQL, authenticated
+            and access-control evidence.
           </p>
         </div>
 
