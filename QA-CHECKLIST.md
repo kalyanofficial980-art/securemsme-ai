@@ -8,47 +8,54 @@ npm.cmd run build
 npm.cmd run e2e
 ```
 
-## Mega Part 56 QA: Evidence Warehouse v2 + Proof Chain System
+## Mega Part 57 QA: Advanced Vulnerability Engine v2 + Finding Correlation
 
 Database:
 
-- Run `supabase/mega-part-56-evidence-warehouse-v2.sql`
+- Run `supabase/mega-part-57-advanced-vulnerability-engine-v2.sql`
 - Confirm tables:
-  - `security_evidence_items`
-  - `security_evidence_links`
-  - `security_proof_chains`
-  - `security_evidence_snapshots`
-  - `security_evidence_events`
+  - `advanced_vulnerability_correlation_runs`
+  - `advanced_vulnerability_clusters`
+  - `advanced_vulnerability_fingerprints`
+  - `advanced_vulnerability_cluster_links`
+  - `advanced_vulnerability_correlation_events`
 
 Public:
 
-- `/evidence-warehouse` opens.
+- `/advanced-vulnerability-engine` opens.
 
 Logged-in report workflow:
 
 - Run scan.
-- Run Scan Orchestrator.
 - Run Vulnerability Scanner + Bug Finder.
 - Run Accuracy Foundation.
-- Open `/report/[scan-id]/evidence-warehouse`.
-- Click `Sync evidence warehouse`.
-- Proof chain is created.
-- Evidence items appear.
-- Evidence hashes appear.
-- Root/latest hash appears.
-- Validate evidence item.
-- Completeness score updates.
-- Create pre-report snapshot.
-- Create client-share snapshot.
+- Run Evidence Warehouse sync.
+- Open `/report/[scan-id]/advanced-vulnerability-engine`.
+- Click `Run Advanced Correlation`.
+- Confirm correlation run appears.
+- Confirm clusters appear.
+- Confirm cluster stats:
+  - source items
+  - evidence items
+  - affected URLs
+  - related engines
+  - confidence score
+  - false-positive risk
+- Update cluster status:
+  - Open
+  - Validated
+  - Needs review
+  - Merged
+  - Accepted risk
+  - False positive
 
 Admin:
 
-- `/admin/evidence-warehouse` requires admin.
-- Admin can view proof chains and evidence items.
+- `/admin/advanced-vulnerability-engine` requires admin.
+- Admin can view correlation runs and clusters.
 
 Safety:
 
-- Evidence warehouse stores proof only.
-- It does not perform exploit testing.
-- Sensitive evidence should be redacted before client sharing.
-- Strong client claims should be backed by validated evidence.
+- Correlation engine does not exploit anything.
+- It only correlates existing safe evidence/findings.
+- It must not claim compromise or data theft from correlation alone.

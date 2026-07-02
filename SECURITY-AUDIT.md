@@ -1,55 +1,55 @@
 # SecureMSME AI Security Audit Notes
 
-## Mega Part 56: Evidence Warehouse v2 + Proof Chain System
+## Mega Part 57: Advanced Vulnerability Engine v2 + Finding Correlation
 
 Added:
 
-- Evidence warehouse tables
-- Proof chain table
-- Evidence links table
-- Evidence snapshots
-- Evidence events
-- SHA-256 evidence hashing
-- Previous-hash proof chain
-- Evidence quality scoring
-- Client-safe vs technical sensitivity labels
-- Evidence validation workflow
-- Report-level evidence warehouse page
-- Admin evidence observability
+- Advanced vulnerability correlation runs
+- Vulnerability clusters
+- Finding fingerprints
+- Cluster links
+- Correlation events
+- Defensive correlation engine
+- Root-cause grouping
+- Deduplication
+- Multi-signal confidence boosting
+- Client-safe cluster summaries
+- Developer fix strategy grouping
+- Admin correlation observability
 
 ## Purpose
 
-This part makes reports proof-backed:
+This part upgrades the SaaS from individual scanner findings to correlated vulnerability intelligence.
 
-- engine execution proof
-- vulnerability finding evidence
-- accuracy assessment proof
-- workspace/retest evidence foundation
-- snapshots before client sharing
+It groups:
+
+- scanner findings
+- accuracy assessments
+- evidence warehouse items
+- security review workspace bug items
+
+Into:
+
+- root-cause clusters
+- deduplicated groups
+- developer fix strategies
+- retest strategies
+- client-safe summaries
 
 ## Safety
 
-This part does not add offensive scanning.
-It stores and validates evidence from authorized defensive workflows.
+This part does not add offensive testing.
+It does not run payloads.
+It does not brute force.
+It does not bypass login.
+It does not extract private data.
 
-## Client claim rule
+## Blocked claims
 
-Strong client claims should require:
+Correlation must not claim:
 
-- evidence item exists
-- evidence quality is strong/good
-- validation status supports the claim
-- safe claim exists
-- blocked claim prevents overstatement
-
-## Hash chain
-
-Each evidence item stores:
-
-- evidence hash
-- previous hash
-- chain position
-- raw evidence
-- redacted evidence
-
-This is tamper-evident foundation, not a legal notarization.
+- exploitation occurred
+- customer data was stolen
+- every vulnerability was found
+- a full pentest was completed
+- high-impact findings are confirmed without validation

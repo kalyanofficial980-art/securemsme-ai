@@ -8,6 +8,14 @@ type AdvancedReportNavigationProps = {
 
 const workflowLinks = [
   {
+    label: "Advanced Vulnerability Engine",
+    description:
+      "Correlate findings, evidence, accuracy and workspace bugs into root-cause clusters",
+    href: (id: string) => `/report/${id}/advanced-vulnerability-engine`,
+    primary: true,
+    customerVisible: true,
+  },
+  {
     label: "Evidence Warehouse",
     description:
       "Sync proof chain evidence from engines, findings and accuracy assessments",
@@ -125,7 +133,7 @@ export function AdvancedReportNavigation({
   if (variant === "compact") {
     return (
       <div className="mt-5 flex flex-wrap gap-3">
-        {visibleLinks.slice(0, 30).map((item) => (
+        {visibleLinks.slice(0, 32).map((item) => (
           <Link
             key={item.label}
             href={item.href(scanId)}
@@ -147,23 +155,23 @@ export function AdvancedReportNavigation({
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
         <div>
           <p className="text-sm font-black text-slate-500">
-            Advanced proof-backed workflow
+            Advanced proof-backed vulnerability workflow
           </p>
           <h2 className="mt-2 text-3xl font-black">
-            Orchestrate, prove, validate, fix and retest
+            Orchestrate, prove, correlate, validate, fix and retest
           </h2>
           <p className="mt-3 max-w-3xl leading-7 text-slate-600">
-            Use Scan Orchestrator to run engines, Evidence Warehouse to build
-            proof chain, Accuracy Foundation to validate claims, then Workspace,
-            Retest and Client Portal for delivery.
+            Use Advanced Vulnerability Engine after scanner, accuracy and
+            evidence warehouse. It groups duplicate findings into root-cause
+            clusters and improves developer action plans.
           </p>
         </div>
 
         <Link
-          href={`/report/${scanId}/evidence-warehouse`}
+          href={`/report/${scanId}/advanced-vulnerability-engine`}
           className="rounded-full bg-slate-950 px-6 py-3 text-sm font-black text-white hover:bg-slate-800"
         >
-          Sync Evidence
+          Run Correlation
         </Link>
       </div>
 
