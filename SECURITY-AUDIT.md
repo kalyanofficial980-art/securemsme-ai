@@ -1,49 +1,44 @@
 # SecureMSME AI Security Audit Notes
 
-## Mega Part 46 Background Job Queue + Worker Scheduler
+## Mega Part 48 Alerts + Email Notification Foundation
 
 Added:
 
-- `background_worker_jobs`
-- `background_worker_attempts`
-- `background_worker_events`
-- Queue payload builder
-- Scheduler summary
-- Job locking foundation
-- Manual due job execution
-- Retry/failure tracking
-- Monitoring-evaluation worker handler
-- Customer worker queue page
-- Admin worker queue dashboard
-- Public background worker page
+- `alert_preferences`
+- `security_alert_notifications`
+- `security_alert_delivery_attempts`
+- Alert preference engine
+- Monitoring-event alert generation
+- In-app notification records
+- Email-ready notification queue
+- Development-simulated delivery attempts
+- Customer alerts page
+- Admin alert observability page
+- Public alerts page
 - Unit tests and E2E page coverage
 
 ## What this part does
 
-- Enqueues monitoring evaluation jobs.
-- Picks the next due queued/retry job.
-- Locks job before execution.
-- Saves worker attempt.
-- Executes monitoring evaluation using saved scan snapshots.
-- Creates monitoring run and monitoring event.
-- Saves worker events and result.
-- Supports retry status and cancellation.
+- Converts monitoring events into alerts.
+- Supports severity thresholds and alert types.
+- Stores in-app alert notifications.
+- Queues email-ready notifications.
+- Simulates delivery in development.
+- Tracks delivery attempts.
 
 ## What this part does not do
 
-- It does not add external cron yet.
-- It does not run unsupported job types as real work.
-- It does not run destructive checks.
-- It does not store secrets or sessions.
-- It does not claim full continuous pentest.
+- It does not call a real email provider yet.
+- It does not guarantee inbox delivery.
+- It does not prove compromise or exploitation.
+- It does not replace monitoring, retest proof or manual review.
 
 ## Next layer
 
-Mega Part 47 should add:
+Mega Part 49 should add:
 
-- Cron/API Worker Trigger
-- Secure worker token
-- Due job batch processor
-- Stale lock recovery
-- Automatic monitoring job creation from due monitoring jobs
-- Production scheduler setup guide
+- Real email provider integration
+- Resend/Postmark/SMTP adapter
+- Email templates
+- Provider retries
+- Webhook-ready delivery status

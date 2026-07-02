@@ -8,8 +8,16 @@ type AdvancedReportNavigationProps = {
 
 const extraLinks = [
   {
+    label: "Alerts",
+    description:
+      "In-app alerts and email-ready notifications from monitoring events",
+    href: (id: string) => `/report/${id}/alerts`,
+    primary: true,
+    customerVisible: true,
+  },
+  {
     label: "Worker Queue",
-    description: "Queue, lock, run and retry background monitoring jobs",
+    description: "Background queue, due jobs, attempts and worker events",
     href: (id: string) => `/report/${id}/queue`,
     primary: true,
     customerVisible: true,
@@ -177,12 +185,11 @@ export function AdvancedReportNavigation({
           </p>
           <h2 className="mt-2 text-3xl font-black">What should you do next?</h2>
           <p className="mt-3 max-w-3xl leading-7 text-slate-600">
-            Start with Worker Queue, Continuous Monitoring, Truth Cleanup and
-            Score Explanation before sharing a customer report. Then review API,
-            browser, GraphQL, authenticated and access-control evidence.
+            Start with Alerts, Worker Queue, Continuous Monitoring, Truth
+            Cleanup and Score Explanation. Then review API, browser, GraphQL,
+            authenticated and access-control evidence.
           </p>
         </div>
-
         <Link
           href={`/report/${scanId}/security-hub`}
           className="rounded-full bg-slate-950 px-6 py-3 text-sm font-black text-white hover:bg-slate-800"

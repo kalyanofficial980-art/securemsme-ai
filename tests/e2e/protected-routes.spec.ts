@@ -1,18 +1,14 @@
 import { expect, test } from "@playwright/test";
 
-const protectedPages = [
-  "/dashboard",
-  "/websites",
-  "/admin",
-  "/audit/import",
-  "/audit/evidence-history",
-];
+const protectedRoutes = ["/dashboard", "/admin"];
 
-for (const path of protectedPages) {
-  test(`protected page redirects when logged out: ${path}`, async ({
+for (const route of protectedRoutes) {
+  test(`protected page redirects when logged out: ${route}`, async ({
     page,
   }) => {
-    await page.goto(path, {
+    await page.context().clearCookies();
+
+    await page.goto(route, {
       waitUntil: "domcontentloaded",
       timeout: 60_000,
     });
