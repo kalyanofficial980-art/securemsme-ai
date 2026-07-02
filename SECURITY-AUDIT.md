@@ -1,37 +1,48 @@
 # SecureMSME AI Security Audit Notes
 
-## Mega Part 70: GitHub / Dependency / Secrets Scanner
+## Mega Part 71: Cloud Config Audit for Supabase / Vercel / DNS
 
 Added:
 
-- Repository security projects
-- Package.json/manual dependency scanner
-- SBOM-lite dependency items
-- Masked secret scanner
-- Repository security alerts
+- Cloud config projects
+- Supabase checklist review
+- Vercel checklist review
+- DNS/email security review
+- SPF/DKIM/DMARC signal analysis
+- CAA/MX manual-review signals
+- Cloud remediation tasks
 - Admin observability
 
 ## Safety model
 
-The scanner:
+This part does not collect:
 
-- masks secret values
-- stores masked evidence only
-- gives safe developer remediation
-- requires authorization confirmation
-- does not clone private repos
-- does not access GitHub APIs yet
-- does not claim complete coverage
+- Supabase service role keys
+- Vercel API tokens
+- DNS provider passwords
+- private keys
+- OTPs
+- production secrets
 
-## Required before external repo integration
+## Limitations
 
-Before adding real GitHub integration:
+This is a manual checklist foundation.
+It does not yet:
 
-- OAuth app review
-- scoped repo permissions
-- secure token storage
-- webhook signature verification
-- rate limiting
+- connect to Supabase API
+- connect to Vercel API
+- query live DNS externally
+- issue legal compliance certification
+- guarantee 100% secure cloud configuration
+
+## Before real API integration
+
+Add:
+
+- OAuth/scoped tokens
+- encrypted credential storage
+- token rotation
 - audit logging
-- repo allowlist/authorization proof
-- secret suppression and false-positive workflow
+- least-privilege access
+- provider webhook verification
+- strong admin review

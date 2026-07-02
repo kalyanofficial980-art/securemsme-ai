@@ -8,45 +8,44 @@ npm.cmd run build
 npm.cmd run e2e
 ```
 
-## Mega Part 70 QA: GitHub / Dependency / Secrets Scanner
+## Mega Part 71 QA: Cloud Config Audit for Supabase / Vercel / DNS
 
 Database:
 
-- Run `supabase/mega-part-70-repo-dependency-secrets-scanner.sql`
+- Run `supabase/mega-part-71-cloud-config-audit.sql`
 - Confirm tables:
-  - `repo_security_projects_v2`
-  - `repo_dependency_scan_runs_v2`
-  - `repo_dependency_items_v2`
-  - `repo_secret_scan_runs_v2`
-  - `repo_secret_findings_v2`
-  - `repo_security_alerts_v2`
-  - `repo_security_events_v2`
+  - `cloud_config_projects_v2`
+  - `cloud_config_audit_runs_v2`
+  - `cloud_config_check_items_v2`
+  - `cloud_config_dns_records_v2`
+  - `cloud_config_remediation_tasks_v2`
+  - `cloud_config_admin_events_v2`
 
 Pages:
 
-- `/repo-security`
-- `/report/[scan-id]/repo-security`
-- `/admin/repo-security`
+- `/cloud-config-audit`
+- `/report/[scan-id]/cloud-config-audit`
+- `/admin/cloud-config-audit`
 
 Workflow:
 
 1. Login.
-2. Open `/repo-security`.
-3. Create repository project with authorization confirmation.
-4. Paste package.json dependency data.
-5. Paste safe test env text with fake token-like value.
-6. Run repo security scan.
-7. Confirm dependency run appears.
-8. Confirm secret findings are masked only.
-9. Update secret finding status.
-10. Admin opens `/admin/repo-security`.
+2. Open `/cloud-config-audit`.
+3. Create cloud config project with authorization checkbox.
+4. Run audit with Supabase/Vercel checklist.
+5. Paste DNS text with SPF/DKIM/DMARC signals.
+6. Confirm audit run appears.
+7. Confirm check items appear.
+8. Confirm DNS record findings appear.
+9. Confirm remediation tasks appear.
+10. Admin opens `/admin/cloud-config-audit`.
 
 Safety:
 
-- No raw secret exposure.
-- No private repo cloning.
-- No exploit payloads.
-- No bypass instructions.
-- No claim that all secrets were found.
-- No claim that all vulnerabilities were found.
-- Dependency checks are heuristic until live advisory database integration.
+- Do not paste Supabase service role keys.
+- Do not paste Vercel tokens.
+- Do not paste private keys.
+- Do not paste passwords/OTPs/API secrets.
+- No 100% secure claim.
+- No legal compliance certificate claim.
+- Manual checklist must be reviewed before launch claims.

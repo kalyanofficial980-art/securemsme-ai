@@ -31,6 +31,12 @@ const launchCustomerLinks: NavItem[] = [
     primary: true,
   },
   {
+    label: "Cloud Config",
+    description: "Supabase, Vercel and DNS launch security checklist",
+    href: (id) => `/report/${id}/cloud-config-audit`,
+    primary: true,
+  },
+  {
     label: "Reports",
     description:
       "Client-safe report, executive summary and evidence-backed findings",
@@ -71,6 +77,11 @@ const launchCustomerLinks: NavItem[] = [
 ];
 
 const launchAccountLinks: NavItem[] = [
+  {
+    label: "Cloud Config Home",
+    description: "All cloud config audit projects",
+    href: () => `/cloud-config-audit`,
+  },
   {
     label: "Repo Security Home",
     description: "All repository security projects",
@@ -160,15 +171,15 @@ export function AdvancedReportNavigation({
           </h2>
           <p className="mt-3 max-w-3xl leading-7 text-slate-600">
             Customer UI is simplified into scan, AI copilot, repo security,
-            report, developer fixes, retest proof, scheduled monitoring, billing
-            and support.
+            cloud config, report, developer fixes, retest proof, scheduled
+            monitoring, billing and support.
           </p>
         </div>
         <Link
-          href={`/report/${scanId}/repo-security`}
+          href={`/report/${scanId}/cloud-config-audit`}
           className="rounded-full bg-slate-950 px-6 py-3 text-sm font-black text-white hover:bg-slate-800"
         >
-          Repo Security
+          Cloud Config
         </Link>
       </div>
 
