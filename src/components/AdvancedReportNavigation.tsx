@@ -8,6 +8,14 @@ type AdvancedReportNavigationProps = {
 
 const workflowLinks = [
   {
+    label: "Scan Orchestrator",
+    description:
+      "Run controlled engine pipeline with coverage, logs, retry and safe execution boundaries",
+    href: (id: string) => `/report/${id}/scan-orchestrator`,
+    primary: true,
+    customerVisible: true,
+  },
+  {
     label: "Accuracy Foundation",
     description:
       "Classify findings, score confidence, control false positives and target 99% confirmed-finding correctness",
@@ -109,7 +117,7 @@ export function AdvancedReportNavigation({
   if (variant === "compact") {
     return (
       <div className="mt-5 flex flex-wrap gap-3">
-        {visibleLinks.slice(0, 26).map((item) => (
+        {visibleLinks.slice(0, 28).map((item) => (
           <Link
             key={item.label}
             href={item.href(scanId)}
@@ -131,23 +139,23 @@ export function AdvancedReportNavigation({
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
         <div>
           <p className="text-sm font-black text-slate-500">
-            Advanced client security workflow
+            Advanced engine workflow
           </p>
           <h2 className="mt-2 text-3xl font-black">
-            From scanner finding to verified accurate fix
+            Orchestrate, validate, fix and retest
           </h2>
           <p className="mt-3 max-w-3xl leading-7 text-slate-600">
-            Use Accuracy Foundation before sending strong client claims. It
-            separates Confirmed findings from Potential risks, controls false
-            positives and queues expert review.
+            Start with Scan Orchestrator to run engines in a controlled
+            pipeline. Then use Accuracy Foundation, Security Review Workspace,
+            Developer Fix Plan, Retest Proof and Client Portal.
           </p>
         </div>
 
         <Link
-          href={`/report/${scanId}/accuracy-foundation`}
+          href={`/report/${scanId}/scan-orchestrator`}
           className="rounded-full bg-slate-950 px-6 py-3 text-sm font-black text-white hover:bg-slate-800"
         >
-          Check Accuracy
+          Run Pipeline
         </Link>
       </div>
 

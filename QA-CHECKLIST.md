@@ -8,57 +8,49 @@ npm.cmd run build
 npm.cmd run e2e
 ```
 
-## Mega Part 54 QA: Advanced Finding Taxonomy + 99% Accuracy Foundation
+## Mega Part 55 QA: Scan Orchestrator v2 + Engine Execution Pipeline
 
 Database:
 
-- Run `supabase/mega-part-54-accuracy-foundation.sql`
+- Run `supabase/mega-part-55-scan-orchestrator-v2.sql`
 - Confirm tables:
-  - `finding_taxonomy_rules`
-  - `finding_accuracy_assessments`
-  - `finding_evidence_requirements`
-  - `finding_validation_reviews`
-  - `finding_accuracy_metrics`
+  - `scan_engine_registry`
+  - `scan_orchestrator_jobs`
+  - `scan_orchestrator_engine_runs`
+  - `scan_orchestrator_events`
 
 Public:
 
-- `/accuracy-foundation` opens.
+- `/scan-orchestrator` opens.
 
 Logged-in report workflow:
 
-- Run normal website scan.
-- Run Vulnerability Scanner + Bug Finder.
-- Open `/report/[scan-id]/accuracy-foundation`.
-- Click `Assess scanner findings`.
-- Assessments are created.
-- Findings show:
-  - taxonomy key
-  - category
-  - severity
-  - accuracy status
-  - confidence score
-  - false-positive risk
-  - evidence quality
-  - required evidence met
-  - client-safe claim
-  - blocked claim
+- Open `/report/[scan-id]/scan-orchestrator`
+- Create pipeline:
+  - Safe Light
+  - Safe Standard
+  - Safe Deep
+  - Authenticated Safe
+- Authorization checkbox is required.
+- Engine runs are created.
+- `Run next engine` works.
+- `Run all queued engines` works.
+- Coverage percentage updates.
+- Weighted coverage percentage updates.
+- Engine events appear.
+- Retry warnings button does not break.
 
-Admin workflow:
+Admin:
 
-- `/admin/accuracy` requires admin.
-- Admin can validate assessment:
-  - Confirmed
-  - High Confidence
-  - Potential
-  - Needs Manual Review
-  - False Positive
-  - Accepted Risk
-- Validation creates review record.
-- Accuracy metrics update.
+- `/admin/scan-orchestrator` requires admin.
+- Admin can view recent pipelines and engine runs.
 
-99% rule:
+Safety:
 
-- 99% target is for Confirmed finding correctness only.
-- Do not claim the platform finds 99% of all vulnerabilities.
-- High/Critical findings should be reviewed before strong client wording.
-- AI can assist wording, but not independently confirm findings.
+- Pipeline is authorized-scope only.
+- Engine metadata lists safe methods.
+- Blocked actions are visible.
+- No exploit payloads are executed.
+- No brute force.
+- No login bypass.
+- No destructive testing.

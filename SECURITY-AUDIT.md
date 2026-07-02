@@ -1,59 +1,68 @@
 # SecureMSME AI Security Audit Notes
 
-## Mega Part 54: Advanced Finding Taxonomy + 99% Accuracy Foundation
+## Mega Part 55: Scan Orchestrator v2 + Engine Execution Pipeline
 
 Added:
 
-- Finding taxonomy rules
-- Evidence requirements
-- Accuracy assessments
-- Expert validation reviews
-- Accuracy metrics
-- Report-level accuracy foundation page
-- Admin accuracy validation queue
-- FindingAccuracyBadge component
-- Accuracy engine tests
-- Public accuracy foundation page
+- Engine registry
+- Scan orchestrator jobs
+- Engine run records
+- Orchestrator event log
+- Safe engine planning
+- Scan modes:
+  - Safe Light
+  - Safe Standard
+  - Safe Deep
+  - Authenticated Safe
+- Coverage percentage
+- Weighted coverage percentage
+- Engine status lifecycle
+- Retry warning foundation
+- Admin orchestrator observability
+- Public orchestrator information page
 
-## Professional accuracy model
+## Engine pipeline
 
-The 99% target means:
+Planned engines:
 
-- target 99% correctness for findings marked `Confirmed`
+- Scope Authorization Gate
+- Passive Recon Engine
+- Crawler Discovery Engine
+- Browser Security Engine
+- Vulnerability Scanner + Bug Finder
+- API Security Discovery Engine
+- CMS + Ecommerce Risk Engine
+- Customer Data Risk Engine
+- Authenticated Safe Review Engine
+- Accuracy Foundation Engine
+- Report Builder Engine
+- Monitoring Setup Engine
 
-It does NOT mean:
+## Safety boundary
 
-- find 99% of all possible vulnerabilities
-- guarantee a website is secure
-- replace full manual penetration testing
-- certify compliance
+This part does not add exploit behavior.
+It orchestrates safe authorized security review engines and records execution metadata.
 
-## Accuracy statuses
+Blocked:
 
-- Confirmed
-- High Confidence
-- Potential
-- Needs Manual Review
-- False Positive
-- Accepted Risk
+- unauthorized testing
+- exploit payload execution
+- brute force
+- password guessing
+- login bypass
+- destructive testing
+- form mutation
+- payment/order mutation
+- private data extraction
+- denial-of-service testing
 
-## Evidence gates
+## Professional use
 
-Findings are evaluated using:
+This part makes the SaaS feel like a real security platform:
 
-- taxonomy mapping
-- minimum evidence count
-- required evidence types
-- evidence quality
-- confidence score
-- false-positive risk
-- affected URL
-- developer fix
-- retest steps
-- safe claim
-- blocked claim
-
-## Safety
-
-This part does not add offensive testing.
-It improves finding correctness, false-positive control and client-safe reporting.
+- engine-by-engine execution
+- coverage
+- logs
+- status tracking
+- admin observability
+- controlled pipeline
