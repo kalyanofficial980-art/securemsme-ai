@@ -8,6 +8,14 @@ type AdvancedReportNavigationProps = {
 
 const workflowLinks = [
   {
+    label: "Advanced Crawler",
+    description:
+      "Discover same-origin assets, forms, login/admin/API/checkout surfaces and asset fingerprints",
+    href: (id: string) => `/report/${id}/advanced-crawler`,
+    primary: true,
+    customerVisible: true,
+  },
+  {
     label: "Advanced Vulnerability Engine",
     description:
       "Correlate findings, evidence, accuracy and workspace bugs into root-cause clusters",
@@ -133,7 +141,7 @@ export function AdvancedReportNavigation({
   if (variant === "compact") {
     return (
       <div className="mt-5 flex flex-wrap gap-3">
-        {visibleLinks.slice(0, 32).map((item) => (
+        {visibleLinks.slice(0, 34).map((item) => (
           <Link
             key={item.label}
             href={item.href(scanId)}
@@ -155,23 +163,23 @@ export function AdvancedReportNavigation({
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
         <div>
           <p className="text-sm font-black text-slate-500">
-            Advanced proof-backed vulnerability workflow
+            Advanced attack-surface workflow
           </p>
           <h2 className="mt-2 text-3xl font-black">
-            Orchestrate, prove, correlate, validate, fix and retest
+            Discover, orchestrate, prove, correlate, validate and retest
           </h2>
           <p className="mt-3 max-w-3xl leading-7 text-slate-600">
-            Use Advanced Vulnerability Engine after scanner, accuracy and
-            evidence warehouse. It groups duplicate findings into root-cause
-            clusters and improves developer action plans.
+            Start with Advanced Crawler to map assets and forms. Then run
+            scanner, evidence warehouse, accuracy foundation and vulnerability
+            correlation.
           </p>
         </div>
 
         <Link
-          href={`/report/${scanId}/advanced-vulnerability-engine`}
+          href={`/report/${scanId}/advanced-crawler`}
           className="rounded-full bg-slate-950 px-6 py-3 text-sm font-black text-white hover:bg-slate-800"
         >
-          Run Correlation
+          Discover Assets
         </Link>
       </div>
 

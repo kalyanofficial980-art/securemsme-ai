@@ -8,54 +8,51 @@ npm.cmd run build
 npm.cmd run e2e
 ```
 
-## Mega Part 57 QA: Advanced Vulnerability Engine v2 + Finding Correlation
+## Mega Part 58 QA: Advanced Crawler + Asset Discovery v2
 
 Database:
 
-- Run `supabase/mega-part-57-advanced-vulnerability-engine-v2.sql`
+- Run `supabase/mega-part-58-advanced-crawler-asset-discovery-v2.sql`
 - Confirm tables:
-  - `advanced_vulnerability_correlation_runs`
-  - `advanced_vulnerability_clusters`
-  - `advanced_vulnerability_fingerprints`
-  - `advanced_vulnerability_cluster_links`
-  - `advanced_vulnerability_correlation_events`
+  - `advanced_crawler_runs`
+  - `discovered_assets_v2`
+  - `crawler_link_edges_v2`
+  - `crawler_form_inventory_v2`
+  - `asset_discovery_snapshots_v2`
+  - `advanced_crawler_events`
 
 Public:
 
-- `/advanced-vulnerability-engine` opens.
+- `/advanced-crawler` opens.
 
 Logged-in report workflow:
 
-- Run scan.
-- Run Vulnerability Scanner + Bug Finder.
-- Run Accuracy Foundation.
-- Run Evidence Warehouse sync.
-- Open `/report/[scan-id]/advanced-vulnerability-engine`.
-- Click `Run Advanced Correlation`.
-- Confirm correlation run appears.
-- Confirm clusters appear.
-- Confirm cluster stats:
-  - source items
-  - evidence items
-  - affected URLs
-  - related engines
-  - confidence score
-  - false-positive risk
-- Update cluster status:
-  - Open
-  - Validated
-  - Needs review
-  - Merged
-  - Accepted risk
-  - False positive
+- Open `/report/[scan-id]/advanced-crawler`.
+- Select crawler mode:
+  - Safe Light
+  - Safe Standard
+  - Safe Deep
+- Tick authorization checkbox.
+- Run crawler.
+- Confirm discovered assets appear.
+- Confirm form inventory appears if forms exist.
+- Confirm coverage score appears.
+- Confirm asset risk score appears.
+- Confirm login/admin/API/checkout counters appear.
+- Confirm link graph preview appears.
 
 Admin:
 
-- `/admin/advanced-vulnerability-engine` requires admin.
-- Admin can view correlation runs and clusters.
+- `/admin/advanced-crawler` requires admin.
+- Admin can view crawler runs and assets.
 
 Safety:
 
-- Correlation engine does not exploit anything.
-- It only correlates existing safe evidence/findings.
-- It must not claim compromise or data theft from correlation alone.
+- Same-origin only.
+- GET-only.
+- No form submission.
+- No POST/PUT/PATCH/DELETE.
+- No brute force.
+- No login bypass.
+- No exploit payloads.
+- No private data extraction.

@@ -1,55 +1,59 @@
 # SecureMSME AI Security Audit Notes
 
-## Mega Part 57: Advanced Vulnerability Engine v2 + Finding Correlation
+## Mega Part 58: Advanced Crawler + Asset Discovery v2
 
 Added:
 
-- Advanced vulnerability correlation runs
-- Vulnerability clusters
-- Finding fingerprints
-- Cluster links
-- Correlation events
-- Defensive correlation engine
-- Root-cause grouping
-- Deduplication
-- Multi-signal confidence boosting
-- Client-safe cluster summaries
-- Developer fix strategy grouping
-- Admin correlation observability
+- Advanced crawler run table
+- Discovered assets table
+- Link edge graph
+- Form inventory
+- Asset discovery snapshots
+- Crawler events
+- Safe same-origin crawler engine
+- Asset classification
+- Form signal extraction
+- Login/admin/API/checkout/customer-data counters
+- Asset fingerprints
+- Coverage score
+- Asset risk score
+- Admin crawler observability
 
 ## Purpose
 
-This part upgrades the SaaS from individual scanner findings to correlated vulnerability intelligence.
+This part maps website attack surface safely:
 
-It groups:
+- pages
+- forms
+- login surfaces
+- admin surfaces
+- API/docs surfaces
+- checkout/payment signals
+- customer-data forms
+- robots.txt
+- sitemap.xml
+- internal link graph
 
-- scanner findings
-- accuracy assessments
-- evidence warehouse items
-- security review workspace bug items
+## Safety boundary
 
-Into:
+The crawler:
 
-- root-cause clusters
-- deduplicated groups
-- developer fix strategies
-- retest strategies
-- client-safe summaries
+- uses GET only
+- stays same-origin
+- does not submit forms
+- does not login
+- does not brute force
+- does not run payloads
+- does not mutate data
+- does not extract private data
 
-## Safety
+## Professional use
 
-This part does not add offensive testing.
-It does not run payloads.
-It does not brute force.
-It does not bypass login.
-It does not extract private data.
+Use crawler results before:
 
-## Blocked claims
-
-Correlation must not claim:
-
-- exploitation occurred
-- customer data was stolen
-- every vulnerability was found
-- a full pentest was completed
-- high-impact findings are confirmed without validation
+- Vulnerability Scanner
+- Evidence Warehouse
+- Accuracy Foundation
+- Advanced Vulnerability Correlation
+- Developer Fix Plan
+- Client Report
