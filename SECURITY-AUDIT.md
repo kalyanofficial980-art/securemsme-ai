@@ -1,52 +1,48 @@
 # SecureMSME AI Security Audit Notes
 
-## Mega Part 40 GraphQL Risk Analyzer
+## Mega Part 43 Scan Consistency + Score Explanation Engine
 
 Added:
 
-- `graphql_security_inventories`
-- `graphql_security_findings`
-- GraphQL risk analyzer engine
-- GraphQL endpoint discovery
-- GraphQL IDE/playground exposure signal review
-- Introspection review signals without introspection execution
-- Query/mutation surface signal classification
-- Sensitive schema keyword signal review
-- GraphQL auth-boundary review guidance
-- API Top 10 mapping for GraphQL
-- Metadata-only normalized evidence output
-- Vulnerability lifecycle seeds
-- Customer GraphQL risk page
-- Admin GraphQL risk observability page
-- Public GraphQL risk analyzer page
+- `scan_consistency_reports`
+- Scan consistency engine
+- Score explanation engine
+- Latest scan badge
+- Previous scan comparison
+- Score delta explanation
+- Risk transition tracking
+- Engine version tracking
+- Why score changed section
+- Can claim / Cannot claim trust language
+- Customer-safe score explanation
+- Admin scan consistency observability page
+- Public scan consistency page
 - Unit tests and E2E page coverage
 
 ## What this part does
 
-- Checks likely GraphQL endpoint paths using GET metadata-only observation.
-- Imports endpoint hints from attack surface and API inventory.
-- Detects GraphQL IDE/playground, introspection keyword, mutation keyword and sensitive keyword signals.
-- Maps GraphQL risk signals to OWASP API Top 10.
-- Writes normalized evidence and vulnerability lifecycle seeds.
+- Explains score for a specific scan record.
+- Finds previous scan for the same website when available.
+- Compares current score, previous score and risk levels.
+- Creates customer-safe explanation for score changes.
+- Adds warnings for large score deltas and engine/report-format changes.
+- Helps avoid customer confusion from historical scan differences.
 
 ## What this part does not do
 
-- It does not execute GraphQL queries.
-- It does not execute introspection queries.
-- It does not execute mutations.
-- It does not dump schema.
-- It does not attempt authorization bypass.
-- It does not brute force fields or operations.
-- It does not store private response bodies.
-- It does not run exploit payloads.
+- It does not prove every vulnerability is found.
+- It does not make old and new scores identical.
+- It does not certify compliance.
+- It does not replace pentesting.
+- It does not hide historical scan changes.
 
 ## Next layer
 
-Mega Part 41 should add:
+Mega Part 44 should add:
 
-- Authenticated Session-Safe Crawler Execution
-- Test-account session plan enforcement
-- Allowed/blocked route controls
-- No mutation requests
-- Metadata-only authenticated route inventory
-- Private evidence protection
+- Continuous Monitoring Worker Foundation
+- Scheduled rescan jobs
+- Monitoring history
+- Change detection
+- Score drift alerts
+- Security regression detection

@@ -8,6 +8,14 @@ type AdvancedReportNavigationProps = {
 
 const extraLinks = [
   {
+    label: "Score Explanation",
+    description:
+      "Explain score changes, latest scan status and old-vs-new differences",
+    href: (id: string) => `/report/${id}/scan-consistency`,
+    primary: true,
+    customerVisible: true,
+  },
+  {
     label: "International Security Engine",
     description: "Advanced backend core: jobs, modules, evidence and lifecycle",
     href: (id: string) => `/report/${id}/security-engine`,
@@ -43,6 +51,22 @@ const extraLinks = [
     description:
       "GraphQL endpoint, IDE, introspection, mutation and schema signals",
     href: (id: string) => `/report/${id}/graphql-risk`,
+    primary: true,
+    customerVisible: true,
+  },
+  {
+    label: "Authenticated Safe Crawler",
+    description:
+      "Approved allowed-path route inventory with private evidence protection",
+    href: (id: string) => `/report/${id}/authenticated-crawler`,
+    primary: true,
+    customerVisible: true,
+  },
+  {
+    label: "Access Control Signals",
+    description:
+      "Broken access control, object ID and role-boundary metadata signals",
+    href: (id: string) => `/report/${id}/access-control`,
     primary: true,
     customerVisible: true,
   },
@@ -105,7 +129,7 @@ export function AdvancedReportNavigation({
   if (variant === "compact") {
     return (
       <div className="mt-5 flex flex-wrap gap-3">
-        {visibleLinks.slice(0, 18).map((item) => (
+        {visibleLinks.slice(0, 21).map((item) => (
           <Link
             key={item.label}
             href={item.href(scanId)}
@@ -131,10 +155,9 @@ export function AdvancedReportNavigation({
           </p>
           <h2 className="mt-2 text-3xl font-black">What should you do next?</h2>
           <p className="mt-3 max-w-3xl leading-7 text-slate-600">
-            Review international engine pipeline, attack surface, API security,
-            browser security, GraphQL risk, retest proof, real backend evidence,
-            authenticated scan request, CMS/WordPress review and developer
-            tasks.
+            Review score explanation, international engine pipeline, attack
+            surface, API, browser, GraphQL, authenticated crawler,
+            access-control signals, retest proof and developer fixes.
           </p>
         </div>
 

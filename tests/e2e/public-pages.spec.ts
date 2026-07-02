@@ -23,6 +23,15 @@ const publicPages = [
     text: "Safe foundation for login-protected page review",
   },
   {
+    path: "/authenticated-crawler",
+    text: "Safely inventory login-protected routes",
+  },
+  {
+    path: "/access-control-signal-engine",
+    text: "Detect access-control risk signals",
+  },
+  { path: "/scan-consistency", text: "Explain why security scores change" },
+  {
     path: "/international-security-engine",
     text: "Advanced backend foundation",
   },
