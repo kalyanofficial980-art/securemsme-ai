@@ -1,68 +1,55 @@
 # SecureMSME AI Security Audit Notes
 
-## Mega Part 55: Scan Orchestrator v2 + Engine Execution Pipeline
+## Mega Part 56: Evidence Warehouse v2 + Proof Chain System
 
 Added:
 
-- Engine registry
-- Scan orchestrator jobs
-- Engine run records
-- Orchestrator event log
-- Safe engine planning
-- Scan modes:
-  - Safe Light
-  - Safe Standard
-  - Safe Deep
-  - Authenticated Safe
-- Coverage percentage
-- Weighted coverage percentage
-- Engine status lifecycle
-- Retry warning foundation
-- Admin orchestrator observability
-- Public orchestrator information page
+- Evidence warehouse tables
+- Proof chain table
+- Evidence links table
+- Evidence snapshots
+- Evidence events
+- SHA-256 evidence hashing
+- Previous-hash proof chain
+- Evidence quality scoring
+- Client-safe vs technical sensitivity labels
+- Evidence validation workflow
+- Report-level evidence warehouse page
+- Admin evidence observability
 
-## Engine pipeline
+## Purpose
 
-Planned engines:
+This part makes reports proof-backed:
 
-- Scope Authorization Gate
-- Passive Recon Engine
-- Crawler Discovery Engine
-- Browser Security Engine
-- Vulnerability Scanner + Bug Finder
-- API Security Discovery Engine
-- CMS + Ecommerce Risk Engine
-- Customer Data Risk Engine
-- Authenticated Safe Review Engine
-- Accuracy Foundation Engine
-- Report Builder Engine
-- Monitoring Setup Engine
+- engine execution proof
+- vulnerability finding evidence
+- accuracy assessment proof
+- workspace/retest evidence foundation
+- snapshots before client sharing
 
-## Safety boundary
+## Safety
 
-This part does not add exploit behavior.
-It orchestrates safe authorized security review engines and records execution metadata.
+This part does not add offensive scanning.
+It stores and validates evidence from authorized defensive workflows.
 
-Blocked:
+## Client claim rule
 
-- unauthorized testing
-- exploit payload execution
-- brute force
-- password guessing
-- login bypass
-- destructive testing
-- form mutation
-- payment/order mutation
-- private data extraction
-- denial-of-service testing
+Strong client claims should require:
 
-## Professional use
+- evidence item exists
+- evidence quality is strong/good
+- validation status supports the claim
+- safe claim exists
+- blocked claim prevents overstatement
 
-This part makes the SaaS feel like a real security platform:
+## Hash chain
 
-- engine-by-engine execution
-- coverage
-- logs
-- status tracking
-- admin observability
-- controlled pipeline
+Each evidence item stores:
+
+- evidence hash
+- previous hash
+- chain position
+- raw evidence
+- redacted evidence
+
+This is tamper-evident foundation, not a legal notarization.

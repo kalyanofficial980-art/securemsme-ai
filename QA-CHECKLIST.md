@@ -8,49 +8,47 @@ npm.cmd run build
 npm.cmd run e2e
 ```
 
-## Mega Part 55 QA: Scan Orchestrator v2 + Engine Execution Pipeline
+## Mega Part 56 QA: Evidence Warehouse v2 + Proof Chain System
 
 Database:
 
-- Run `supabase/mega-part-55-scan-orchestrator-v2.sql`
+- Run `supabase/mega-part-56-evidence-warehouse-v2.sql`
 - Confirm tables:
-  - `scan_engine_registry`
-  - `scan_orchestrator_jobs`
-  - `scan_orchestrator_engine_runs`
-  - `scan_orchestrator_events`
+  - `security_evidence_items`
+  - `security_evidence_links`
+  - `security_proof_chains`
+  - `security_evidence_snapshots`
+  - `security_evidence_events`
 
 Public:
 
-- `/scan-orchestrator` opens.
+- `/evidence-warehouse` opens.
 
 Logged-in report workflow:
 
-- Open `/report/[scan-id]/scan-orchestrator`
-- Create pipeline:
-  - Safe Light
-  - Safe Standard
-  - Safe Deep
-  - Authenticated Safe
-- Authorization checkbox is required.
-- Engine runs are created.
-- `Run next engine` works.
-- `Run all queued engines` works.
-- Coverage percentage updates.
-- Weighted coverage percentage updates.
-- Engine events appear.
-- Retry warnings button does not break.
+- Run scan.
+- Run Scan Orchestrator.
+- Run Vulnerability Scanner + Bug Finder.
+- Run Accuracy Foundation.
+- Open `/report/[scan-id]/evidence-warehouse`.
+- Click `Sync evidence warehouse`.
+- Proof chain is created.
+- Evidence items appear.
+- Evidence hashes appear.
+- Root/latest hash appears.
+- Validate evidence item.
+- Completeness score updates.
+- Create pre-report snapshot.
+- Create client-share snapshot.
 
 Admin:
 
-- `/admin/scan-orchestrator` requires admin.
-- Admin can view recent pipelines and engine runs.
+- `/admin/evidence-warehouse` requires admin.
+- Admin can view proof chains and evidence items.
 
 Safety:
 
-- Pipeline is authorized-scope only.
-- Engine metadata lists safe methods.
-- Blocked actions are visible.
-- No exploit payloads are executed.
-- No brute force.
-- No login bypass.
-- No destructive testing.
+- Evidence warehouse stores proof only.
+- It does not perform exploit testing.
+- Sensitive evidence should be redacted before client sharing.
+- Strong client claims should be backed by validated evidence.

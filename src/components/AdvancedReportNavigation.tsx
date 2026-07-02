@@ -8,6 +8,14 @@ type AdvancedReportNavigationProps = {
 
 const workflowLinks = [
   {
+    label: "Evidence Warehouse",
+    description:
+      "Sync proof chain evidence from engines, findings and accuracy assessments",
+    href: (id: string) => `/report/${id}/evidence-warehouse`,
+    primary: true,
+    customerVisible: true,
+  },
+  {
     label: "Scan Orchestrator",
     description:
       "Run controlled engine pipeline with coverage, logs, retry and safe execution boundaries",
@@ -117,7 +125,7 @@ export function AdvancedReportNavigation({
   if (variant === "compact") {
     return (
       <div className="mt-5 flex flex-wrap gap-3">
-        {visibleLinks.slice(0, 28).map((item) => (
+        {visibleLinks.slice(0, 30).map((item) => (
           <Link
             key={item.label}
             href={item.href(scanId)}
@@ -139,23 +147,23 @@ export function AdvancedReportNavigation({
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
         <div>
           <p className="text-sm font-black text-slate-500">
-            Advanced engine workflow
+            Advanced proof-backed workflow
           </p>
           <h2 className="mt-2 text-3xl font-black">
-            Orchestrate, validate, fix and retest
+            Orchestrate, prove, validate, fix and retest
           </h2>
           <p className="mt-3 max-w-3xl leading-7 text-slate-600">
-            Start with Scan Orchestrator to run engines in a controlled
-            pipeline. Then use Accuracy Foundation, Security Review Workspace,
-            Developer Fix Plan, Retest Proof and Client Portal.
+            Use Scan Orchestrator to run engines, Evidence Warehouse to build
+            proof chain, Accuracy Foundation to validate claims, then Workspace,
+            Retest and Client Portal for delivery.
           </p>
         </div>
 
         <Link
-          href={`/report/${scanId}/scan-orchestrator`}
+          href={`/report/${scanId}/evidence-warehouse`}
           className="rounded-full bg-slate-950 px-6 py-3 text-sm font-black text-white hover:bg-slate-800"
         >
-          Run Pipeline
+          Sync Evidence
         </Link>
       </div>
 
