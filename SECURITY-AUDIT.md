@@ -1,44 +1,45 @@
 # SecureMSME AI Security Audit Notes
 
-## Mega Part 68: AI Copilot over Reports
+## Mega Part 69: Scheduled Scans + Email Alerts
 
 Added:
 
-- AI Copilot sessions
-- Copilot source grounding
-- Copilot messages
-- Copilot feedback
+- Email alert preferences
+- Scheduled scan targets
+- Scheduled safe check runs
+- Scheduled scan alerts
+- Email alert queue
+- Email alert events
 - Admin observability
-- Report-level copilot route
-- Account-level copilot route
 
 ## Safety model
 
-The current copilot is a safe rule-based foundation. It answers from stored report, monitoring, developer and triage sources.
+Scheduled scans are safe monitoring checks only. This part does not:
 
-It blocks:
+- perform exploit testing
+- run payloads
+- bypass authentication
+- brute force
+- destructively test
+- send spam
 
-- exploit payload requests
-- bypass instructions
-- brute force guidance
-- credential theft help
-- secret exposure
-- fake certainty claims
+## Email delivery
 
-## Limitations
+Current delivery mode is a queue/foundation:
 
-This is not a general offensive security assistant.
-It does not guarantee:
+- delivery provider: `manual-queue`
+- delivery status: `provider-not-configured`
 
-- 100% security
-- all vulnerabilities found
-- legal compliance certification
-- confirmed exploitation
+A future email provider integration can process queued messages.
 
-Use it for:
+## Required before real email sending
 
-- client-safe explanations
-- developer fix planning
-- executive summaries
-- remediation priority
-- report understanding
+Before connecting SendGrid/Resend/Postmark/AWS SES:
+
+- verify unsubscribe flow
+- verify consent
+- rate limit sends
+- validate sender domain
+- add bounce/complaint handling
+- add suppression list
+- add audit logging

@@ -52,6 +52,12 @@ const launchCustomerLinks: NavItem[] = [
     primary: true,
   },
   {
+    label: "Scheduled Scans",
+    description: "Safe scheduled checks and email alert queue",
+    href: (id) => `/report/${id}/scheduled-scans`,
+    primary: true,
+  },
+  {
     label: "AI Triage",
     description: "Safe remediation priority order and usage-aware triage",
     href: (id) => `/report/${id}/billing-ai-triage`,
@@ -64,6 +70,11 @@ const launchAccountLinks: NavItem[] = [
     label: "AI Copilot Home",
     description: "All report copilot sessions",
     href: () => `/ai-copilot`,
+  },
+  {
+    label: "Scheduled Scans Home",
+    description: "All scheduled scan targets and email alerts",
+    href: () => `/scheduled-scans`,
   },
   {
     label: "Manual Billing",
@@ -139,14 +150,14 @@ export function AdvancedReportNavigation({
           </h2>
           <p className="mt-3 max-w-3xl leading-7 text-slate-600">
             Customer UI is simplified into scan, AI copilot, report, developer
-            fixes, retest proof, monitoring, billing and support.
+            fixes, retest proof, scheduled monitoring, billing and support.
           </p>
         </div>
         <Link
-          href={`/report/${scanId}/ai-copilot`}
+          href={`/report/${scanId}/scheduled-scans`}
           className="rounded-full bg-slate-950 px-6 py-3 text-sm font-black text-white hover:bg-slate-800"
         >
-          Open AI Copilot
+          Scheduled Scans
         </Link>
       </div>
 

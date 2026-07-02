@@ -8,42 +8,43 @@ npm.cmd run build
 npm.cmd run e2e
 ```
 
-## Mega Part 68 QA: AI Copilot over Reports
+## Mega Part 69 QA: Scheduled Scans + Email Alerts
 
 Database:
 
-- Run `supabase/mega-part-68-ai-copilot-reports.sql`
+- Run `supabase/mega-part-69-scheduled-scans-email-alerts.sql`
 - Confirm tables:
-  - `ai_copilot_sessions_v2`
-  - `ai_copilot_sources_v2`
-  - `ai_copilot_messages_v2`
-  - `ai_copilot_feedback_v2`
-  - `ai_copilot_admin_events_v2`
+  - `email_alert_preferences_v2`
+  - `scheduled_scan_targets_v2`
+  - `scheduled_scan_runs_v2`
+  - `scheduled_scan_alerts_v2`
+  - `email_alert_queue_v2`
+  - `email_alert_events_v2`
 
 Pages:
 
-- `/ai-copilot`
-- `/report/[scan-id]/ai-copilot`
-- `/admin/ai-copilot`
+- `/scheduled-scans`
+- `/report/[scan-id]/scheduled-scans`
+- `/admin/scheduled-scans`
 
 Workflow:
 
 1. Login.
-2. Open a real report.
-3. Open `/report/[scan-id]/ai-copilot`.
-4. Start AI Copilot session.
-5. Ask default question: "What should my developer fix first?"
-6. Confirm answer is safe and source-grounded.
-7. Ask unsafe payload question and confirm it is blocked.
-8. Submit feedback.
-9. Admin opens `/admin/ai-copilot` and sees events/feedback.
+2. Open `/scheduled-scans`.
+3. Save email alert preferences.
+4. Create a scheduled scan target with authorization checkbox.
+5. Run safe check now.
+6. Confirm scheduled run appears.
+7. Confirm alert appears if risk threshold is met.
+8. Confirm email queue item appears as `provider-not-configured`.
+9. Admin opens `/admin/scheduled-scans`.
 
 Safety:
 
+- No aggressive scanning.
 - No exploit payloads.
-- No bypass instructions.
-- No brute force guidance.
-- No credential theft help.
-- No 100% secure claims.
-- No all-vulnerabilities-found claims.
-- No legal compliance certification claims.
+- No destructive automation.
+- No unauthorized scheduled targets.
+- No spam sending.
+- Email provider is not connected yet; queue only.
+- Email language must include limitations.
