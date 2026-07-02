@@ -1,48 +1,36 @@
 # SecureMSME AI Security Audit Notes
 
-## Mega Part 62: Developer Portal + Fix Collaboration v2
+## Mega Part 63: Retest + Client Portal Pro
 
 Added:
 
-- Developer fix portals
-- Developer task board
-- Safe developer comments
-- Retest request workflow
-- Fix progress score
-- Developer readiness score
-- Retest readiness score
-- Admin developer collaboration observability
+- Safe retest workflow
+- Verified fix proof items
+- Client Portal Pro share links
+- Client-safe portal sections
+- Admin retest/client portal observability
 
 ## Purpose
 
-This part helps clients and developers execute fixes:
+This part converts developer remediation into client-safe proof:
 
-- convert findings into tasks
-- track status from open to verified-fixed
-- add safe developer comments
-- request safe retests
-- avoid unsafe exploit details in collaboration
+- create retest runs from fixed/retest-requested developer tasks
+- update verification status
+- calculate pass rate, proof strength and client readiness
+- generate a shareable Client Portal Pro link
 
 ## Safety boundary
 
 This part does not allow:
 
-- passwords
-- API tokens
-- session cookies
+- exploit payload sharing
+- destructive testing
+- brute force
+- login bypass attempts
 - private customer data
-- exploit payloads
-- destructive test instructions
-- payment/order mutation steps
+- passwords
+- tokens
+- session cookies
 
-## Correct use
-
-Use after:
-
-- Vulnerability Scanner
-- Security Review Workspace
-- API Security Review
-- Authenticated Safe Review
-- Client Report v4
-
-A task should be marked verified-fixed only after safe retest evidence exists.
+Verified-fixed claims are allowed only for individual items with passed retest proof.
+The portal must not claim 100% security, legal compliance certification, or that all vulnerabilities were found/fixed.

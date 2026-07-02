@@ -8,6 +8,14 @@ type AdvancedReportNavigationProps = {
 
 const workflowLinks = [
   {
+    label: "Retest + Client Portal Pro",
+    description:
+      "Create safe retest proof and generate shareable Client Portal Pro links",
+    href: (id: string) => `/report/${id}/retest-client-portal-pro`,
+    primary: true,
+    customerVisible: true,
+  },
+  {
     label: "Developer Portal",
     description:
       "Create developer fix board, track remediation, comments and safe retest requests",
@@ -102,16 +110,15 @@ const workflowLinks = [
     primary: true,
     customerVisible: true,
   },
+];
+const technicalLinks = [
   {
     label: "Retest Proof",
     description: "Show before and after evidence after developer fixes",
     href: (id: string) => `/report/${id}/retest-proof`,
-    primary: true,
+    primary: false,
     customerVisible: true,
   },
-];
-
-const technicalLinks = [
   {
     label: "Developer Fix Plan",
     description: "Copy useful fix instructions for your website developer",
@@ -146,11 +153,10 @@ export function AdvancedReportNavigation({
     ...technicalLinks,
     ...customerReportLinks.filter((item) => item.customerVisible),
   ];
-
-  if (variant === "compact") {
+  if (variant === "compact")
     return (
       <div className="mt-5 flex flex-wrap gap-3">
-        {visibleLinks.slice(0, 42).map((item) => (
+        {visibleLinks.slice(0, 45).map((item) => (
           <Link
             key={item.label}
             href={item.href(scanId)}
@@ -165,32 +171,28 @@ export function AdvancedReportNavigation({
         ))}
       </div>
     );
-  }
-
   return (
     <section className="rounded-3xl border border-slate-200 bg-white p-8">
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
         <div>
           <p className="text-sm font-black text-slate-500">
-            Developer collaboration workflow
+            Retest and client sharing workflow
           </p>
           <h2 className="mt-2 text-3xl font-black">
-            Convert security evidence into developer fixes and safe retests
+            Verify fixes and share client-safe proof
           </h2>
           <p className="mt-3 max-w-3xl leading-7 text-slate-600">
-            Use Developer Portal after Client Report v4 and Security Review
-            Workspace to execute fixes and track remediation progress.
+            Use Retest + Client Portal Pro after Developer Portal and Client
+            Report v4.
           </p>
         </div>
-
         <Link
-          href={`/report/${scanId}/developer-portal`}
+          href={`/report/${scanId}/retest-client-portal-pro`}
           className="rounded-full bg-slate-950 px-6 py-3 text-sm font-black text-white hover:bg-slate-800"
         >
-          Developer Portal
+          Retest + Portal Pro
         </Link>
       </div>
-
       <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {visibleLinks.map((item) => (
           <Link

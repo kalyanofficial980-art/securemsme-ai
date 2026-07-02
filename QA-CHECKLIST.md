@@ -8,44 +8,42 @@ npm.cmd run build
 npm.cmd run e2e
 ```
 
-## Mega Part 62 QA: Developer Portal + Fix Collaboration v2
+## Mega Part 63 QA: Retest + Client Portal Pro
 
 Database:
 
-- Run `supabase/mega-part-62-developer-portal-fix-collaboration-v2.sql`
+- Run `supabase/mega-part-63-retest-client-portal-pro.sql`
 - Confirm tables:
-  - `developer_fix_portals_v2`
-  - `developer_fix_tasks_v2`
-  - `developer_fix_comments_v2`
-  - `developer_retest_requests_v2`
-  - `developer_portal_events_v2`
+  - `retest_runs_v2`
+  - `retest_items_v2`
+  - `client_portal_pro_links_v2`
+  - `client_portal_pro_sections_v2`
+  - `retest_client_portal_events_v2`
 
 Public:
 
-- `/developer-portal` opens.
+- `/retest-client-portal-pro` opens.
 
-Logged-in report workflow:
+Logged-in workflow:
 
-- Open `/report/[scan-id]/developer-portal`.
-- Create Developer Fix Portal.
-- Sync tasks from findings.
-- Add manual task.
-- Change task status.
-- Add safe developer comment.
-- Mark task as retest-requested.
-- Confirm retest request row is created.
-- Confirm progress scores update.
+- Open `/report/[scan-id]/retest-client-portal-pro`.
+- Create safe retest run.
+- Update one retest item as passed with safe proof note.
+- Generate Client Portal Pro link.
+- Open `/client-portal-pro/[token]`.
+- Confirm executive summary, fix progress, retest proof and limitations are visible.
 
 Admin:
 
-- `/admin/developer-portal` requires admin.
-- Admin can view portals and tasks.
+- `/admin/retest-client-portal-pro` requires admin.
+- Admin can view retest runs and Client Portal Pro links.
 
 Safety:
 
-- No passwords.
-- No tokens.
-- No session cookies.
-- No private customer data.
 - No exploit payloads.
-- No destructive retest steps.
+- No destructive testing.
+- No brute force.
+- No password/token/session exposure.
+- No private customer data.
+- No 100% secure claim.
+- No legal compliance certificate claim.
