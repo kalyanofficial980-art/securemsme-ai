@@ -1,4 +1,4 @@
-﻿import { expect, test } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 const publicPages = [
   { path: "/", text: "SecureMSME AI" },
@@ -33,8 +33,7 @@ const publicPages = [
   { path: "/scan-consistency", text: "Explain why security scores change" },
   { path: "/report-truth-cleanup", text: "Replace fake-looking report text" },
   { path: "/monitoring-worker", text: "Track score drift" },
-  { path: "/background-worker", text: "Background Job Queue" },
-  { path: "/alerts-notifications", text: "Send security alerts" },
+  { path: "/email-provider-integration", text: "Send real monitoring alerts" },
   {
     path: "/international-security-engine",
     text: "Advanced backend foundation",
@@ -68,6 +67,7 @@ for (const publicPage of publicPages) {
       waitUntil: "domcontentloaded",
       timeout: 60_000,
     });
+
     await expect(page.locator("body")).toContainText(publicPage.text);
   });
 }
@@ -75,6 +75,12 @@ for (const publicPage of publicPages) {
 test("health endpoint works", async ({ request }) => {
   const response = await request.get("/api/health");
   expect(response.ok()).toBeTruthy();
+
   const json = await response.json();
   expect(json.status).toBe("ok");
+});
+
+test("email process route is reachable", async ({ request }) => {
+  const response = await request.get("/api/email/process-alerts");
+  expect(response.ok()).toBeTruthy();
 });

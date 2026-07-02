@@ -18,35 +18,38 @@ npm.cmd run audit:npm
 - Add website works
 - Manual scan works
 - Saved website rescan works
-- Alerts public page opens: `/alerts-notifications`
-- Alerts report page opens: `/report/<scan-id>/alerts`
-- Alert preferences can be saved
-- In-app alerts can be enabled
-- Email-ready queue can be enabled
-- Generate alerts from monitoring works
-- Process pending alerts works in development-simulated mode
-- Alert notifications are visible
-- Delivery attempts are visible
-- Admin alerts page opens only for admin: `/admin/alerts`
-- Background worker page opens
-- Monitoring page opens
-- Truth cleanup page opens
-- Score explanation page opens
+- Email provider public page opens: `/email-provider-integration`
+- Email delivery report page opens: `/report/<scan-id>/email-delivery`
+- Email settings save works
+- Test email works when env is configured
+- Missing env shows provider-not-configured or missing-env
+- Pending alert emails process after alerts are generated
+- Delivery runs are saved
+- Provider message ID is saved when sent
+- Provider error is saved when failed
+- Email events are saved
+- Admin email provider page opens only for admin: `/admin/email-provider`
+- Email cron helper route opens: `/api/email/process-alerts`
+- Monitoring public page opens: `/monitoring-worker`
+- Alerts page opens: `/report/<scan-id>/alerts`
+- Report truth cleanup public page opens: `/report-truth-cleanup`
+- Scan consistency public page opens: `/scan-consistency`
 - Health check returns `status: ok`
 
-## Alert safety checks
+## Email safety checks
 
 Allowed:
 
-- Generate alerts from saved monitoring events
-- Store in-app alert notifications
-- Queue email-ready notifications
-- Simulate delivery in development
-- Track delivery attempts
+- Send security alert emails through Resend when configured
+- Track sent/failed/provider-not-configured
+- Store provider message ID
+- Store delivery error
+- Use safe alert wording
 
 Blocked:
 
-- Do not claim real email provider delivery until provider integration exists
-- Do not claim compromise from alert alone
-- Do not claim full continuous pentest coverage
-- Do not expose secrets in alert payloads
+- Do not store RESEND_API_KEY in database
+- Do not claim exploitation or compromise from alert alone
+- Do not claim full pentest coverage
+- Do not claim compliance certificate
+- Do not email low severity alerts if threshold blocks them

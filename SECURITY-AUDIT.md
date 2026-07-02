@@ -1,44 +1,55 @@
 # SecureMSME AI Security Audit Notes
 
-## Mega Part 48 Alerts + Email Notification Foundation
+## Mega Part 49 Real Email Provider Integration
 
 Added:
 
-- `alert_preferences`
-- `security_alert_notifications`
-- `security_alert_delivery_attempts`
-- Alert preference engine
-- Monitoring-event alert generation
-- In-app notification records
-- Email-ready notification queue
-- Development-simulated delivery attempts
-- Customer alerts page
-- Admin alert observability page
-- Public alerts page
-- Unit tests and E2E page coverage
+- `email_provider_settings`
+- `email_provider_delivery_runs`
+- `email_provider_events`
+- Resend HTTP API integration
+- Email provider abstraction
+- Safe security alert email renderer
+- Test email action
+- Pending alert email processor
+- Provider status/message ID/error tracking
+- Admin provider observability page
+- Public provider integration page
+- Cron-ready email processing route
+- Unit tests and E2E coverage
 
 ## What this part does
 
-- Converts monitoring events into alerts.
-- Supports severity thresholds and alert types.
-- Stores in-app alert notifications.
-- Queues email-ready notifications.
-- Simulates delivery in development.
-- Tracks delivery attempts.
+- Sends real emails through Resend when `RESEND_API_KEY` and from email are configured.
+- Keeps provider API key in environment only.
+- Tracks delivery runs and provider message IDs.
+- Tracks failures and provider-not-configured state.
+- Uses safe alert wording and cannot-claim language.
 
 ## What this part does not do
 
-- It does not call a real email provider yet.
-- It does not guarantee inbox delivery.
-- It does not prove compromise or exploitation.
-- It does not replace monitoring, retest proof or manual review.
+- It does not store email provider secrets in database.
+- It does not send emails without configured provider env.
+- It does not claim compromise, exploitation or full pentest coverage.
+- It does not implement service-role batch sending yet.
+- It does not implement billing or plan limits.
+
+## Required env
+
+```env
+EMAIL_PROVIDER=resend
+RESEND_API_KEY=your_resend_api_key
+ALERT_FROM_EMAIL=alerts@yourdomain.com
+NEXT_PUBLIC_SITE_URL=https://your-domain.com
+EMAIL_WORKER_SECRET=long-random-secret
+```
 
 ## Next layer
 
-Mega Part 49 should add:
+Mega Part 50 should add:
 
-- Real email provider integration
-- Resend/Postmark/SMTP adapter
-- Email templates
-- Provider retries
-- Webhook-ready delivery status
+- Organization / Team Accounts
+- Members and roles
+- Invite flow foundation
+- Team-scoped websites/scans
+- Agency dashboard foundation

@@ -8,17 +8,10 @@ type AdvancedReportNavigationProps = {
 
 const extraLinks = [
   {
-    label: "Alerts",
+    label: "Email Delivery",
     description:
-      "In-app alerts and email-ready notifications from monitoring events",
-    href: (id: string) => `/report/${id}/alerts`,
-    primary: true,
-    customerVisible: true,
-  },
-  {
-    label: "Worker Queue",
-    description: "Background queue, due jobs, attempts and worker events",
-    href: (id: string) => `/report/${id}/queue`,
+      "Send real provider-backed email alerts and test notifications",
+    href: (id: string) => `/report/${id}/email-delivery`,
     primary: true,
     customerVisible: true,
   },
@@ -109,24 +102,9 @@ const extraLinks = [
     customerVisible: true,
   },
   {
-    label: "Authorized Security Review",
-    description:
-      "Verified-scope deeper checks with permission and safety controls",
-    href: (id: string) => `/report/${id}/authorized-pentest`,
-    primary: true,
-    customerVisible: true,
-  },
-  {
     label: "Real Security Evidence",
     description: "Real HTTP, TLS, DNS, and controlled service evidence",
     href: (id: string) => `/report/${id}/real-modules`,
-    primary: true,
-    customerVisible: true,
-  },
-  {
-    label: "Real Safe Templates",
-    description: "Real GET/HEAD path checks with safe evidence storage",
-    href: (id: string) => `/report/${id}/real-template-worker`,
     primary: true,
     customerVisible: true,
   },
@@ -135,13 +113,6 @@ const extraLinks = [
     description:
       "WordPress, WooCommerce, plugin, theme, login and XML-RPC signals",
     href: (id: string) => `/report/${id}/cms-wordpress`,
-    primary: true,
-    customerVisible: true,
-  },
-  {
-    label: "Known Technology Risks",
-    description: "CVE-aware technology review with safe upgrade guidance",
-    href: (id: string) => `/report/${id}/known-risks`,
     primary: true,
     customerVisible: true,
   },
@@ -185,11 +156,12 @@ export function AdvancedReportNavigation({
           </p>
           <h2 className="mt-2 text-3xl font-black">What should you do next?</h2>
           <p className="mt-3 max-w-3xl leading-7 text-slate-600">
-            Start with Alerts, Worker Queue, Continuous Monitoring, Truth
-            Cleanup and Score Explanation. Then review API, browser, GraphQL,
-            authenticated and access-control evidence.
+            Set up Email Delivery and Continuous Monitoring for ongoing alerts.
+            Then review Truth Cleanup, score explanation and advanced security
+            evidence.
           </p>
         </div>
+
         <Link
           href={`/report/${scanId}/security-hub`}
           className="rounded-full bg-slate-950 px-6 py-3 text-sm font-black text-white hover:bg-slate-800"
