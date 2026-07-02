@@ -1,45 +1,43 @@
 # SecureMSME AI Security Audit Notes
 
-## Mega Part 74: SEO + Sitemap + Launch Analytics
+## Mega Part 75: Contact Support + Lead Reply Workflow
 
 Added:
 
-- SEO config foundation
-- `robots.txt`
-- `sitemap.xml`
-- SEO readiness public page
-- JSON-LD software app schema
-- Privacy-safe launch analytics API
-- Admin launch analytics dashboard
+- Public contact/support form
+- Support ticket capture
+- No-sensitive-data confirmation
+- Admin support inbox
+- Demo lead reply workflow
+- Safe reply draft generation
+- Manual email queue foundation
+- Support event observability
 
-## Privacy model
+## Safety model
 
-Launch analytics:
+Support form:
 
-- uses no cookies
-- uses no fingerprinting
-- stores safe path/event/campaign hints only
-- sanitizes referrer by removing query fragments
-- does not collect passwords, tokens, payment data or secrets
+- requires contact consent
+- requires no-sensitive-data confirmation
+- sanitizes obvious secret-like message patterns
+- does not request passwords, OTPs, UPI PINs, card data, API tokens or private keys
 
-## SEO safety model
+Reply workflow:
 
-Public copy avoids:
+- creates drafts only
+- queues manual send items only
+- avoids 100% security claims
+- avoids all-vulnerabilities-found claims
+- avoids legal compliance certificate claims
+- avoids guaranteed response-time claims
 
-- guaranteed Google ranking
-- guaranteed traffic
-- 100% SEO score
-- 100% secure claim
-- all-vulnerabilities-found claim
-- legal compliance certification claim
-
-## Before full marketing launch
+## Before production email sending
 
 Add:
 
-- final legal review
-- final privacy policy review
-- captcha/rate limiting for public forms
-- verified custom domain
-- production email setup
-- Search Console/Bing Webmaster verification
+- verified sending domain
+- email provider integration
+- unsubscribe/communication preference handling where relevant
+- rate limiting or captcha for public support form
+- abuse/spam review workflow
+- privacy policy review

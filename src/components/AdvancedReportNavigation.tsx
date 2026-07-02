@@ -25,6 +25,12 @@ const launchCustomerLinks: NavItem[] = [
     primary: true,
   },
   {
+    label: "Contact Support",
+    description: "Support, demo, billing and technical help",
+    href: () => `/contact`,
+    primary: true,
+  },
+  {
     label: "Onboarding",
     description: "Customer setup, first scan funnel and plan recommendation",
     href: () => `/onboarding`,
@@ -149,6 +155,11 @@ const launchAccountLinks: NavItem[] = [
 
 const internalLinks: NavItem[] = [
   {
+    label: "Support Inbox",
+    description: "Support tickets, safe replies and manual email queue",
+    href: () => `/admin/support-inbox`,
+  },
+  {
     label: "Launch Analytics",
     description: "Privacy-safe launch analytics and SEO observability",
     href: () => `/admin/launch-analytics`,
@@ -185,7 +196,6 @@ export function AdvancedReportNavigation({
   variant = "full",
 }: AdvancedReportNavigationProps) {
   const compactLinks = [...launchCustomerLinks, ...launchAccountLinks];
-
   if (variant === "compact") {
     return (
       <div className="mt-5 flex flex-wrap gap-3">
@@ -201,7 +211,6 @@ export function AdvancedReportNavigation({
       </div>
     );
   }
-
   return (
     <section className="rounded-3xl border border-slate-200 bg-white p-8">
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
@@ -214,19 +223,18 @@ export function AdvancedReportNavigation({
           </h2>
           <p className="mt-3 max-w-3xl leading-7 text-slate-600">
             Customer UI is simplified into public launch funnel, SEO readiness,
-            onboarding, scan, AI copilot, repo security, cloud config, report,
-            developer fixes, retest proof, scheduled monitoring, billing and
-            support.
+            contact support, onboarding, scan, AI copilot, repo security, cloud
+            config, report, developer fixes, retest proof, scheduled monitoring,
+            billing and support.
           </p>
         </div>
         <Link
-          href="/seo-readiness"
+          href="/contact"
           className="rounded-full bg-slate-950 px-6 py-3 text-sm font-black text-white hover:bg-slate-800"
         >
-          SEO Readiness
+          Contact Support
         </Link>
       </div>
-
       <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {launchCustomerLinks.map((item) => (
           <Link
@@ -240,7 +248,6 @@ export function AdvancedReportNavigation({
             </p>
           </Link>
         ))}
-
         {launchAccountLinks.map((item) => (
           <Link
             key={item.label}
@@ -254,7 +261,6 @@ export function AdvancedReportNavigation({
           </Link>
         ))}
       </div>
-
       <details className="mt-8 rounded-3xl border border-amber-200 bg-amber-50 p-6">
         <summary className="cursor-pointer font-black text-amber-950">
           Advanced/internal tools
