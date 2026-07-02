@@ -8,6 +8,14 @@ type AdvancedReportNavigationProps = {
 
 const workflowLinks = [
   {
+    label: "Client Report v4",
+    description:
+      "Generate executive dashboard, business impact, evidence strength and client-safe report sections",
+    href: (id: string) => `/report/${id}/client-report-v4`,
+    primary: true,
+    customerVisible: true,
+  },
+  {
     label: "API Security Review",
     description:
       "Discover API docs/specs, inventory endpoints and review auth/mutation/sensitive API risks",
@@ -79,57 +87,35 @@ const workflowLinks = [
     primary: true,
     customerVisible: true,
   },
+];
+
+const technicalLinks = [
   {
     label: "Client Portal",
     description: "Create shareable client-safe report access links",
     href: (id: string) => `/report/${id}/client-portal`,
-    primary: true,
+    primary: false,
     customerVisible: true,
   },
   {
     label: "Developer Fix Plan",
     description: "Copy useful fix instructions for your website developer",
     href: (id: string) => `/report/${id}/fix-roadmap`,
-    primary: true,
+    primary: false,
     customerVisible: true,
   },
   {
     label: "Retest Proof",
     description: "Show before and after evidence after developer fixes",
     href: (id: string) => `/report/${id}/retest-proof`,
-    primary: true,
+    primary: false,
     customerVisible: true,
   },
-  {
-    label: "Monitoring Alerts",
-    description: "Track score drift, risk regression and monitoring events",
-    href: (id: string) => `/report/${id}/monitoring`,
-    primary: true,
-    customerVisible: true,
-  },
-];
-
-const technicalLinks = [
   {
     label: "Truth Cleanup",
     description:
       "Remove generic/fake-looking wording with evidence-specific fixes",
     href: (id: string) => `/report/${id}/truth-cleanup`,
-    primary: false,
-    customerVisible: true,
-  },
-  {
-    label: "Score Explanation",
-    description:
-      "Explain score changes, latest scan status and old-vs-new differences",
-    href: (id: string) => `/report/${id}/scan-consistency`,
-    primary: false,
-    customerVisible: true,
-  },
-  {
-    label: "API Security Scanner",
-    description: "Legacy API discovery and OpenAPI scanner",
-    href: (id: string) => `/report/${id}/api-security`,
     primary: false,
     customerVisible: true,
   },
@@ -156,7 +142,7 @@ export function AdvancedReportNavigation({
   if (variant === "compact") {
     return (
       <div className="mt-5 flex flex-wrap gap-3">
-        {visibleLinks.slice(0, 38).map((item) => (
+        {visibleLinks.slice(0, 40).map((item) => (
           <Link
             key={item.label}
             href={item.href(scanId)}
@@ -178,26 +164,23 @@ export function AdvancedReportNavigation({
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
         <div>
           <p className="text-sm font-black text-slate-500">
-            Advanced API + app security workflow
+            Executive client reporting workflow
           </p>
           <h2 className="mt-2 text-3xl font-black">
-            Discover APIs, review account areas, prove evidence and correlate
-            findings
+            Turn evidence into a client-safe executive security report
           </h2>
           <p className="mt-3 max-w-3xl leading-7 text-slate-600">
-            Use API Security Review for OpenAPI/Swagger/GraphQL docs, endpoint
-            inventory, sensitive API classification and safe developer guidance.
+            Use Client Report v4 after crawler, API review, authenticated
+            review, evidence warehouse and accuracy foundation.
           </p>
         </div>
-
         <Link
-          href={`/report/${scanId}/api-security-review`}
+          href={`/report/${scanId}/client-report-v4`}
           className="rounded-full bg-slate-950 px-6 py-3 text-sm font-black text-white hover:bg-slate-800"
         >
-          API Review
+          Report v4
         </Link>
       </div>
-
       <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {visibleLinks.map((item) => (
           <Link

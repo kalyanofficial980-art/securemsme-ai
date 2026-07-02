@@ -8,50 +8,48 @@ npm.cmd run build
 npm.cmd run e2e
 ```
 
-## Mega Part 60 QA: API Security Review v2
+## Mega Part 61 QA: Client Report v4 + Executive Dashboard
 
 Database:
 
-- Run `supabase/mega-part-60-api-security-review-v2.sql`
+- Run `supabase/mega-part-61-client-report-v4-executive-dashboard.sql`
 - Confirm tables:
-  - `api_security_review_runs_v2`
-  - `api_discovered_specs_v2`
-  - `api_endpoint_inventory_v2`
-  - `api_security_observations_v2`
-  - `api_review_checklist_items_v2`
-  - `api_security_review_events_v2`
+  - `client_report_v4_snapshots`
+  - `client_report_v4_sections`
+  - `executive_security_metrics_v4`
+  - `client_report_v4_events`
 
 Public:
 
-- `/api-security-review` opens.
+- `/client-report-v4` opens.
 
 Logged-in report workflow:
 
-- Open `/report/[scan-id]/api-security-review`.
-- Select Safe Light / Safe Standard / Safe Deep.
-- Tick authorization checkbox.
-- Run API review.
-- Confirm API docs/specs appear if public docs exist.
-- Confirm endpoints appear if OpenAPI JSON/YAML is parsed.
-- Add manual endpoint if API docs are private.
-- Confirm API observations appear.
-- Update checklist.
-- Scores update:
-  - API coverage score
-  - API risk score
+- Open `/report/[scan-id]/client-report-v4`.
+- Generate Client Report v4 snapshot.
+- Confirm executive score appears.
+- Confirm readiness, business risk, technical risk and evidence strength appear.
+- Confirm sections appear:
+  - Executive Summary
+  - Business Impact
+  - Surface Summary
+  - Developer Action Plan
+  - Evidence and Confidence
+  - Limitations
+- Confirm no 100% security wording.
+- Confirm no legal compliance certificate wording.
+- Confirm no private data appears.
 
 Admin:
 
-- `/admin/api-security-review` requires admin.
-- Admin can view API runs and endpoint inventory.
+- `/admin/client-report-v4` requires admin.
+- Admin can view report snapshots.
 
-Safety:
+Recommended before generating:
 
-- GET discovery only.
-- No POST/PUT/PATCH/DELETE execution.
-- No fuzzing.
-- No exploit payloads.
-- No auth bypass.
-- No brute force.
-- No private data extraction.
-- No payment/order mutations.
+- Run Advanced Crawler
+- Run API Security Review
+- Run Authenticated Safe Review when in scope
+- Run Evidence Warehouse
+- Run Accuracy Foundation
+- Run Advanced Vulnerability Engine

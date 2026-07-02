@@ -1,55 +1,45 @@
 # SecureMSME AI Security Audit Notes
 
-## Mega Part 60: API Security Review v2
+## Mega Part 61: Client Report v4 + Executive Security Dashboard
 
 Added:
 
-- API security review runs
-- API spec/docs discovery
-- API endpoint inventory
-- API observations
-- API review checklist
-- API review events
-- Public API security info page
-- Report-level API security review page
-- Admin API security observability
+- Client Report v4 snapshots
+- Executive security metrics
+- Client-safe report sections
+- Report readiness score
+- Executive score
+- Business risk score
+- Evidence strength score
+- Admin report observability
 
 ## Purpose
 
-This part reviews API security safely:
+This part turns evidence into a client-safe executive report:
 
-- OpenAPI/Swagger discovery
-- GraphQL signal review
-- endpoint inventory
-- sensitive endpoint classification
-- mutation endpoint classification
-- auth requirement classification
-- public API docs exposure
-- developer fix guidance
-- client-safe API summary
+- business impact
+- developer action plan
+- confidence distribution
+- evidence strength
+- surface coverage
+- limitations
+- blocked claims
 
 ## Safety boundary
 
-This part does not:
+This part does not claim:
 
-- execute POST/PUT/PATCH/DELETE
-- fuzz endpoints
-- run exploit payloads
-- bypass authentication
-- brute force
-- guess tokens
-- extract private data
-- mutate payment/order/customer data
-- perform denial-of-service testing
+- 100% security
+- all vulnerabilities found
+- legal compliance certification
+- confirmed exploitation without proof
+- replacement of expert pentesters
 
-## Correct use
+It does not expose:
 
-Use this after:
+- private customer data
+- passwords
+- session cookies
+- exploit payloads
 
-- Advanced Crawler
-- Authenticated Safe Review if account APIs are in scope
-- Evidence Warehouse
-- Accuracy Foundation
-- Advanced Vulnerability Engine
-
-Strong claims require evidence and authorized validation.
+Strong claims require Confirmed or High Confidence evidence.
