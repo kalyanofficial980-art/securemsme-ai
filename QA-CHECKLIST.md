@@ -8,65 +8,42 @@ npm.cmd run build
 npm.cmd run e2e
 ```
 
-## Mega Part 67 QA: Launch Ready Cleanup + Manual Payment + Legal
+## Mega Part 68 QA: AI Copilot over Reports
 
 Database:
 
-- Run `supabase/mega-part-67-launch-ready-manual-payment-legal.sql`
+- Run `supabase/mega-part-68-ai-copilot-reports.sql`
 - Confirm tables:
-  - `legal_document_versions_v2`
-  - `user_legal_acceptances_v2`
-  - `website_scan_authorizations_v2`
-  - `manual_payment_requests_v2`
-  - `manual_payment_admin_events_v2`
-  - `launch_ready_user_preferences_v2`
-  - `support_requests_v2`
+  - `ai_copilot_sessions_v2`
+  - `ai_copilot_sources_v2`
+  - `ai_copilot_messages_v2`
+  - `ai_copilot_feedback_v2`
+  - `ai_copilot_admin_events_v2`
 
-Public pages:
+Pages:
 
-- `/legal`
-- `/legal/terms`
-- `/legal/privacy`
-- `/legal/acceptable-use`
-- `/legal/responsible-disclosure`
-- `/legal/refund`
-- `/legal/data-processing`
-- `/legal/cookie`
-- `/legal/security-policy`
-- `/legal/disclaimer`
-- `/trust`
-- `/support`
-
-Logged-in pages:
-
-- `/launch-ready`
-- `/legal-acceptance`
-- `/scan-authorization`
-- `/manual-billing`
-
-Admin:
-
-- `/admin/manual-payments`
+- `/ai-copilot`
+- `/report/[scan-id]/ai-copilot`
+- `/admin/ai-copilot`
 
 Workflow:
 
 1. Login.
-2. Open `/legal-acceptance`.
-3. Accept required legal documents.
-4. Open `/scan-authorization`.
-5. Confirm target ownership/permission.
-6. Open `/manual-billing`.
-7. Submit payment request with UTR/reference.
-8. Login admin.
-9. Open `/admin/manual-payments`.
-10. Approve or reject request.
-11. Confirm billing profile plan updates on approval.
+2. Open a real report.
+3. Open `/report/[scan-id]/ai-copilot`.
+4. Start AI Copilot session.
+5. Ask default question: "What should my developer fix first?"
+6. Confirm answer is safe and source-grounded.
+7. Ask unsafe payload question and confirm it is blocked.
+8. Submit feedback.
+9. Admin opens `/admin/ai-copilot` and sees events/feedback.
 
 Safety:
 
-- No card data.
-- No OTP/UPI PIN/password collection.
-- No unauthorized scanning.
-- No 100% secure claim.
-- No all-vulnerabilities-found claim.
-- Legal pages are templates and need professional review before full public paid launch.
+- No exploit payloads.
+- No bypass instructions.
+- No brute force guidance.
+- No credential theft help.
+- No 100% secure claims.
+- No all-vulnerabilities-found claims.
+- No legal compliance certification claims.

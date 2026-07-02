@@ -1,55 +1,44 @@
 # SecureMSME AI Security Audit Notes
 
-## Mega Part 67: Launch Ready Cleanup + Manual Payment Approval + Legal Pages
+## Mega Part 68: AI Copilot over Reports
 
 Added:
 
-- Legal document version registry
-- User legal acceptance records
-- Website scan authorization records
-- Manual payment requests
-- Admin manual payment approval
-- Launch-ready user preferences
-- Support requests
-- Trust center and legal pages
+- AI Copilot sessions
+- Copilot source grounding
+- Copilot messages
+- Copilot feedback
+- Admin observability
+- Report-level copilot route
+- Account-level copilot route
 
-## Manual payment security
+## Safety model
 
-Manual payment flow does not collect:
+The current copilot is a safe rule-based foundation. It answers from stored report, monitoring, developer and triage sources.
 
-- card numbers
-- CVV
-- OTPs
-- UPI PINs
-- bank passwords
-- private payment credentials
+It blocks:
 
-Only payment reference/UTR and contact details are collected for admin approval.
-
-## Legal/authorized-use protection
-
-Before launch use, the user can accept:
-
-- Terms and Conditions
-- Privacy Policy
-- Acceptable Use Policy
-- Refund Policy
-- Data Processing Notice
-- Disclaimer
-
-Before scanning, user confirms:
-
-- ownership or written permission
-- safe checks only
-- no unauthorized testing
+- exploit payload requests
+- bypass instructions
+- brute force guidance
+- credential theft help
+- secret exposure
+- fake certainty claims
 
 ## Limitations
 
-Legal pages are strong launch templates, not legal advice.
-Before full public paid launch:
+This is not a general offensive security assistant.
+It does not guarantee:
 
-- get legal review
-- finalize support email/process
-- add real invoice/receipt process
-- finalize privacy/subprocessor list
-- document incident response process
+- 100% security
+- all vulnerabilities found
+- legal compliance certification
+- confirmed exploitation
+
+Use it for:
+
+- client-safe explanations
+- developer fix planning
+- executive summaries
+- remediation priority
+- report understanding
