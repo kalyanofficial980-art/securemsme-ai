@@ -1,51 +1,57 @@
 # SecureMSME AI Security Audit Notes
 
-## Mega Part 64: Monitoring Pro + Agency SOC
+## Mega Part 65: Billing + AI Triage + Usage Limits
 
 Added:
 
-- Monitoring Pro targets
-- Passive monitoring runs
-- Regression alerts
-- Agency SOC snapshots
-- Client risk watchlist
-- Monitoring/SOC event timeline
+- Billing plan catalog
+- User billing profiles
+- Usage counters and usage events
+- Rule-based AI triage runs
+- Triage item ranking
+- Billing/admin observability
 
 ## Purpose
 
-This part supports post-delivery security operations:
+This part adds SaaS business controls:
 
-- monitor client readiness
-- monitor fix progress
-- monitor retest proof
-- detect safe regression signals
-- prioritize agency clients by risk
-- track operational response
+- plan limits
+- usage tracking
+- manual billing profile foundation
+- AI triage usage metering
+- safe remediation prioritization
 
-## Safety boundary
+## Payment safety
 
-Monitoring Pro does not run:
+This part does not collect payments.
+It does not store:
 
-- exploit payloads
-- destructive tests
-- brute force
-- login bypass
-- private data extraction
+- card data
+- payment secrets
+- provider webhooks
+- customer financial tokens
 
-It does not claim:
+Payment provider integration must be added separately with secure webhook validation.
 
-- breach detection unless confirmed by evidence
-- complete security coverage
-- legal compliance certification
-- all regressions detected
+## AI triage safety
+
+AI triage is rule-based prioritization only.
+It does not:
+
+- confirm exploitation
+- prove vulnerabilities
+- generate exploit payloads
+- run destructive actions
+- expose private customer data
+- replace manual expert review
 
 ## Correct use
 
 Use after:
 
-- Client Report v4
 - Developer Portal
 - Retest + Client Portal Pro
-- Client Portal Pro link generation
+- Monitoring Pro
+- Security Review Workspace
 
-Agency SOC is an internal prioritization view, not a public compliance certificate.
+Strong claims still require evidence, confidence classification and manual validation.

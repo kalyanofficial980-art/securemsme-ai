@@ -8,6 +8,14 @@ type AdvancedReportNavigationProps = {
 
 const workflowLinks = [
   {
+    label: "Billing + AI Triage",
+    description:
+      "Usage limits, safe AI triage and smart remediation priority order",
+    href: (id: string) => `/report/${id}/billing-ai-triage`,
+    primary: true,
+    customerVisible: true,
+  },
+  {
     label: "Monitoring Pro",
     description:
       "Watch retest proof, fix progress, client readiness and regression alerts",
@@ -95,14 +103,6 @@ const workflowLinks = [
     primary: true,
     customerVisible: true,
   },
-  {
-    label: "Security Review Workspace",
-    description:
-      "Create client workspace with bug lifecycle, developer fixes and retest tracking",
-    href: (id: string) => `/report/${id}/security-review-workspace`,
-    primary: true,
-    customerVisible: true,
-  },
 ];
 
 const technicalLinks = [
@@ -114,24 +114,25 @@ const technicalLinks = [
     customerVisible: false,
   },
   {
+    label: "Billing Dashboard",
+    description: "Manage plan limits and AI triage usage",
+    href: () => `/billing-ai-triage`,
+    primary: false,
+    customerVisible: false,
+  },
+  {
+    label: "Security Review Workspace",
+    description:
+      "Create client workspace with bug lifecycle, developer fixes and retest tracking",
+    href: (id: string) => `/report/${id}/security-review-workspace`,
+    primary: false,
+    customerVisible: true,
+  },
+  {
     label: "Vulnerability Scanner",
     description:
       "Run authorized bug finder with evidence, developer fixes and retest steps",
     href: (id: string) => `/report/${id}/vulnerability-scanner`,
-    primary: false,
-    customerVisible: true,
-  },
-  {
-    label: "Client Portal",
-    description: "Create shareable client-safe report access links",
-    href: (id: string) => `/report/${id}/client-portal`,
-    primary: false,
-    customerVisible: true,
-  },
-  {
-    label: "Retest Proof",
-    description: "Show before and after evidence after developer fixes",
-    href: (id: string) => `/report/${id}/retest-proof`,
     primary: false,
     customerVisible: true,
   },
@@ -150,7 +151,7 @@ export function AdvancedReportNavigation({
   if (variant === "compact") {
     return (
       <div className="mt-5 flex flex-wrap gap-3">
-        {visibleLinks.slice(0, 45).map((item) => (
+        {visibleLinks.slice(0, 46).map((item) => (
           <Link
             key={item.label}
             href={item.href(scanId)}
@@ -172,22 +173,22 @@ export function AdvancedReportNavigation({
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
         <div>
           <p className="text-sm font-black text-slate-500">
-            Monitoring and agency SOC workflow
+            Billing, usage and AI triage workflow
           </p>
           <h2 className="mt-2 text-3xl font-black">
-            Watch fixes, retests and client readiness after delivery
+            Control usage and prioritize remediation safely
           </h2>
           <p className="mt-3 max-w-3xl leading-7 text-slate-600">
-            Use Monitoring Pro after Retest + Client Portal Pro to detect
-            regressions, readiness drops and operational priorities.
+            Use Billing + AI Triage after monitoring and retest workflows to
+            decide the next safest remediation order within plan limits.
           </p>
         </div>
 
         <Link
-          href={`/report/${scanId}/monitoring-pro`}
+          href={`/report/${scanId}/billing-ai-triage`}
           className="rounded-full bg-slate-950 px-6 py-3 text-sm font-black text-white hover:bg-slate-800"
         >
-          Monitoring Pro
+          Billing + AI Triage
         </Link>
       </div>
 

@@ -8,46 +8,45 @@ npm.cmd run build
 npm.cmd run e2e
 ```
 
-## Mega Part 64 QA: Monitoring Pro + Agency SOC
+## Mega Part 65 QA: Billing + AI Triage + Usage Limits
 
 Database:
 
-- Run `supabase/mega-part-64-monitoring-pro-agency-soc.sql`
+- Run `supabase/mega-part-65-billing-ai-triage-usage-limits.sql`
 - Confirm tables:
-  - `monitoring_pro_targets_v2`
-  - `monitoring_pro_runs_v2`
-  - `monitoring_regression_alerts_v2`
-  - `agency_soc_snapshots_v2`
-  - `agency_soc_client_risks_v2`
-  - `monitoring_soc_events_v2`
+  - `billing_plan_catalog_v2`
+  - `user_billing_profiles_v2`
+  - `usage_counters_v2`
+  - `usage_events_v2`
+  - `ai_triage_runs_v2`
+  - `ai_triage_items_v2`
+  - `billing_ai_triage_events_v2`
 
-Public:
+Public/account:
 
-- `/monitoring-pro` opens.
+- `/billing-ai-triage` opens.
+- Login and create billing profile.
+- Change manual plan.
+- Confirm usage bars show current limits.
 
-Logged-in workflow:
+Report workflow:
 
-- Open `/report/[scan-id]/monitoring-pro`.
-- Create Monitoring Pro target.
-- Run Monitoring Pro.
-- Confirm health, regression, risk and client readiness scores.
-- Confirm alerts appear when sources indicate regression/gaps.
-- Update alert status.
-- Open `/agency-soc`.
-- Create Agency SOC snapshot.
-- Confirm client risk watchlist appears.
+- Open `/report/[scan-id]/billing-ai-triage`.
+- Run AI triage.
+- Confirm triage score, business impact, efficiency and confidence score.
+- Confirm prioritized remediation order.
+- Confirm usage counter increases for AI triage.
 
 Admin:
 
-- `/admin/monitoring-pro` requires admin.
-- Admin can see monitoring targets and alerts.
+- `/admin/billing-ai-triage` requires admin.
+- Admin can view billing profiles, usage events and triage runs.
 
 Safety:
 
-- Passive-safe only.
-- No exploit payloads.
-- No destructive testing.
-- No brute force.
+- No real payment provider secrets.
+- No exploit payload ranking.
+- No destructive automation.
 - No private customer data.
-- No breach claim without confirmed evidence.
+- No fake vulnerability certainty.
 - No 100% security claim.
