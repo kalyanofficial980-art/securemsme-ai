@@ -19,18 +19,21 @@ npm.cmd run audit:npm
 - Manual scan works
 - Saved website rescan works
 - Customer report hub opens: `/report/<scan-id>/security-hub`
+- International security engine public page opens: `/international-security-engine`
+- International security engine report page opens: `/report/<scan-id>/security-engine`
+- International security engine can create a job
+- Engine job saves selected modules
+- Engine job saves blocked modules
+- Engine job saves coverage matrix
+- Engine job saves standards summary
+- Engine job saves normalized evidence
+- Engine job saves vulnerability lifecycle seeds
+- Engine events are visible
+- Admin engine observability page opens only for admin: `/admin/security-engine`
+- Authenticated scan public page opens: `/authenticated-scan`
+- Authenticated scan report page opens: `/report/<scan-id>/authenticated-scan`
 - Retest proof public page opens: `/retest-proof`
 - Retest proof report page opens: `/report/<scan-id>/retest-proof`
-- Retest proof shows previous scan selector
-- Retest proof requires a previous scan for same website
-- Retest proof generates before/after comparison
-- Retest proof shows score change
-- Retest proof shows fixed items
-- Retest proof shows improved items
-- Retest proof shows still-open items
-- Retest proof shows new issues
-- Retest proof shows can/cannot claim boundary
-- Retest proof saves history in `retest_proof_reports`
 - CMS/WordPress scanner public page opens: `/cms-wordpress-scanner`
 - CMS/WordPress report page opens: `/report/<scan-id>/cms-wordpress`
 - Real safe templates public page opens: `/real-safe-templates`
@@ -52,19 +55,29 @@ npm.cmd run audit:npm
 - Robots and sitemap work
 - Health check returns `status: ok`
 
-## Retest proof safety checks
+## International security engine safety checks
 
 Allowed:
 
-- Compare previously stored evidence
-- Compare score before/after
-- Mark observed fixed/improved/still-open/new items
-- Generate developer next actions
-- Generate customer-safe proof statements
+- Job planning
+- Module selection
+- Coverage calculation
+- Normalized evidence creation
+- Vulnerability lifecycle seed creation
+- Standards mapping
+- Public-safe module planning
+- Verified-scope module planning after permission
 
 Blocked:
 
-- Claiming every vulnerability was fixed
-- Claiming website is 100% secure
-- Claiming full pentest coverage
-- Claiming no vulnerabilities remain
+- Unauthorized scanning
+- Brute force
+- Password guessing
+- Login bypass
+- MFA bypass
+- Data extraction
+- Payment/order mutation
+- Destructive exploit execution
+- DoS testing
+- Malware payloads
+- Private data storage
