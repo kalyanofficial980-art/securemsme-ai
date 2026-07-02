@@ -1,49 +1,45 @@
 # SecureMSME AI Security Audit Notes
 
-## Mega Part 44 Report Truth Cleanup + Evidence-Specific Fix Engine
+## Mega Part 45 Continuous Monitoring Worker Foundation
 
 Added:
 
-- `report_truth_reviews`
-- `report_truth_fix_items`
-- Report truth cleanup engine
-- Generic wording detection
-- Repeated fix detection
-- Missing evidence detection
-- Evidence-specific developer fixes
-- Validation steps for each issue
-- Safe customer wording
-- Cannot-claim guardrails
-- Truth score and fake-looking risk score
-- Customer truth cleanup page
-- Admin report truth observability page
-- Public report truth cleanup page
+- `monitoring_jobs`
+- `monitoring_runs`
+- `monitoring_events`
+- Monitoring policy builder
+- Score drift detection
+- Risk increase detection
+- Regression event generation
+- Latest baseline tracking
+- Customer monitoring page
+- Admin monitoring observability page
+- Public monitoring worker page
 - Unit tests and E2E page coverage
 
 ## What this part does
 
-- Detects fake-looking generic report wording.
-- Converts old generic report items into evidence-specific fix items.
-- Marks weak evidence as needs-review.
-- Adds exact developer fix and validation steps where known.
-- Adds safe claims and blocked claims.
-- Helps prevent sharing old development reports as final customer reports.
+- Creates monitoring jobs for saved scan snapshots.
+- Compares latest scan with previous baseline.
+- Detects score drop and risk increase.
+- Saves monitoring run and event.
+- Prepares architecture for future background worker queue.
 
 ## What this part does not do
 
-- It does not invent vulnerabilities.
-- It does not prove exploitability.
-- It does not guarantee all vulnerabilities were found.
-- It does not replace a full pentest.
-- It does not certify compliance.
-- It does not automatically mutate old scan records.
+- It does not run automatic cron yet.
+- It does not run destructive checks.
+- It does not claim full continuous pentesting.
+- It does not claim exploitability or compromise.
+- It does not replace retest proof or manual review.
 
 ## Next layer
 
-Mega Part 45 should add:
+Mega Part 46 should add:
 
-- Continuous Monitoring Worker Foundation
-- Scheduled rescan jobs
-- Score drift tracking
-- Security regression detection
-- Monitoring history
+- Background Job Queue + Worker Scheduler
+- Due monitoring job picker
+- Server route for safe worker execution
+- Job locking
+- Retry/failure handling
+- Queue dashboard

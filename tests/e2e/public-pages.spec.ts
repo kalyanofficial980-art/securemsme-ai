@@ -32,6 +32,7 @@ const publicPages = [
   },
   { path: "/scan-consistency", text: "Explain why security scores change" },
   { path: "/report-truth-cleanup", text: "Replace fake-looking report text" },
+  { path: "/monitoring-worker", text: "Track score drift" },
   {
     path: "/international-security-engine",
     text: "Advanced backend foundation",
@@ -65,7 +66,6 @@ for (const publicPage of publicPages) {
       waitUntil: "domcontentloaded",
       timeout: 60_000,
     });
-
     await expect(page.locator("body")).toContainText(publicPage.text);
   });
 }
