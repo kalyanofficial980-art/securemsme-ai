@@ -1,34 +1,37 @@
 # SecureMSME AI Security Audit Notes
 
-## Mega Part 72: Customer Onboarding Wizard + First Scan Funnel
+## Mega Part 73: Public Landing Page + Pricing + Demo Funnel
 
 Added:
 
-- Customer business profile onboarding
-- First scan setup funnel
-- Website authorization confirmation
-- Plan recommendation engine
-- Onboarding progress steps
-- Admin onboarding observability
+- Public landing page
+- Pricing page
+- Demo request funnel
+- Pricing interest capture
+- Demo/admin lead observability
+- Public-safe product messaging
 
 ## Safety model
 
-The onboarding flow:
+The public funnel:
 
-- requires ownership or written permission for website testing
+- allows unauthenticated demo requests
+- requires consent to contact
+- requires no-sensitive-data confirmation
 - does not collect card data
-- does not collect banking credentials
-- does not claim all vulnerabilities will be found
-- does not claim legal compliance certification
-- does not run aggressive scans automatically
+- does not collect UPI PIN/OTP/banking passwords
+- does not collect cloud secrets/private keys
+- avoids 100% security claims
+- avoids all-vulnerabilities-found claims
+- avoids legal compliance certification claims
 
 ## Launch notes
 
-This part improves conversion and customer clarity.
-Customers should still complete:
+Public forms should be monitored for spam.
+Before paid launch, add:
 
-- legal acceptance
-- scan authorization
-- manual billing if paid
-- first safe scan
-- report review
+- captcha or rate limiting
+- email notification provider
+- privacy policy review
+- support response workflow
+- lead export controls

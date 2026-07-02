@@ -13,6 +13,12 @@ type NavItem = {
 
 const launchCustomerLinks: NavItem[] = [
   {
+    label: "Public Launch",
+    description: "Landing, pricing and demo funnel",
+    href: () => `/public-launch`,
+    primary: true,
+  },
+  {
     label: "Onboarding",
     description: "Customer setup, first scan funnel and plan recommendation",
     href: () => `/onboarding`,
@@ -84,6 +90,16 @@ const launchCustomerLinks: NavItem[] = [
 
 const launchAccountLinks: NavItem[] = [
   {
+    label: "Pricing",
+    description: "Plans and manual billing CTA",
+    href: () => `/pricing`,
+  },
+  {
+    label: "Demo Request",
+    description: "Public demo request funnel",
+    href: () => `/demo`,
+  },
+  {
     label: "Cloud Config Home",
     description: "All cloud config audit projects",
     href: () => `/cloud-config-audit`,
@@ -126,6 +142,11 @@ const launchAccountLinks: NavItem[] = [
 ];
 
 const internalLinks: NavItem[] = [
+  {
+    label: "Demo Funnel Admin",
+    description: "Public demo and pricing lead observability",
+    href: () => `/admin/demo-funnel`,
+  },
   {
     label: "Customer Onboarding Admin",
     description: "Internal onboarding funnel observability",
@@ -181,16 +202,16 @@ export function AdvancedReportNavigation({
             Simple AI security workflow
           </h2>
           <p className="mt-3 max-w-3xl leading-7 text-slate-600">
-            Customer UI is simplified into onboarding, scan, AI copilot, repo
-            security, cloud config, report, developer fixes, retest proof,
-            scheduled monitoring, billing and support.
+            Customer UI is simplified into public launch funnel, onboarding,
+            scan, AI copilot, repo security, cloud config, report, developer
+            fixes, retest proof, scheduled monitoring, billing and support.
           </p>
         </div>
         <Link
-          href="/onboarding"
+          href="/public-launch"
           className="rounded-full bg-slate-950 px-6 py-3 text-sm font-black text-white hover:bg-slate-800"
         >
-          Start Onboarding
+          Public Launch
         </Link>
       </div>
 

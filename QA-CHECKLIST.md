@@ -8,42 +8,43 @@ npm.cmd run build
 npm.cmd run e2e
 ```
 
-## Mega Part 72 QA: Customer Onboarding Wizard + First Scan Funnel
+## Mega Part 73 QA: Public Landing Page + Pricing + Demo Funnel
 
 Database:
 
-- Run `supabase/mega-part-72-customer-onboarding-first-scan.sql`
+- Run `supabase/mega-part-73-public-landing-pricing-demo.sql`
 - Confirm tables:
-  - `customer_onboarding_profiles_v2`
-  - `customer_onboarding_steps_v2`
-  - `customer_first_scan_funnels_v2`
-  - `customer_plan_recommendations_v2`
-  - `customer_onboarding_admin_events_v2`
+  - `public_demo_requests_v2`
+  - `public_pricing_interests_v2`
+  - `public_landing_events_v2`
+  - `public_demo_admin_events_v2`
 
 Pages:
 
-- `/onboarding`
-- `/onboarding/first-scan`
-- `/onboarding/success`
-- `/admin/onboarding`
+- `/public-launch`
+- `/pricing`
+- `/demo`
+- `/demo/success`
+- `/admin/demo-funnel`
 
 Workflow:
 
-1. Login.
-2. Open `/onboarding`.
-3. Save business profile.
-4. Confirm plan recommendation appears.
-5. Open `/onboarding/first-scan`.
-6. Enter website URL.
-7. Confirm ownership/written permission.
-8. Prepare first scan funnel.
-9. Open `/onboarding/success`.
-10. Open `/admin/onboarding`.
+1. Open `/public-launch` without login.
+2. Open `/pricing` without login.
+3. Submit pricing interest.
+4. Open `/demo`.
+5. Submit demo request with consent checkboxes.
+6. Confirm `/demo/success` opens.
+7. Login as admin.
+8. Open `/admin/demo-funnel`.
+9. Update demo lead status.
 
 Safety:
 
-- Website authorization required.
-- No aggressive scan automation.
-- No payment/card/UPI PIN/OTP collection.
-- No guarantee that all vulnerabilities are found.
-- No compliance certification claim.
+- No card data collection.
+- No UPI PIN/OTP collection.
+- No password/API token/private key collection.
+- No 100% secure claim.
+- No all-vulnerabilities-found claim.
+- No legal compliance certificate claim.
+- Demo request only; manual billing CTA only.
