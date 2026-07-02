@@ -35,6 +35,7 @@ const publicPages = [
     path: "/browser-security-analyzer",
     text: "Review browser-side security controls",
   },
+  { path: "/graphql-risk-analyzer", text: "Review GraphQL risk signals" },
   { path: "/audit-framework", text: "Inbuilt advanced security audit" },
   {
     path: "/vulnerability-intelligence",

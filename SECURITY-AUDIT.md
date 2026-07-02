@@ -1,55 +1,52 @@
 # SecureMSME AI Security Audit Notes
 
-## Mega Part 39 Advanced Browser Security Analyzer v2
+## Mega Part 40 GraphQL Risk Analyzer
 
 Added:
 
-- `browser_security_inventories`
-- `browser_security_findings`
-- Advanced browser security analyzer engine
-- CSP missing/weakness analysis
-- CORS misconfiguration signal analyzer
-- Cookie/session security flag review
-- Clickjacking header review
-- HSTS review
-- Referrer-Policy review
-- Permissions-Policy review
-- X-Content-Type-Options nosniff review
-- Mixed content signal detection
-- External script supply-chain surface review
-- Browser security score
-- Normalized evidence output
+- `graphql_security_inventories`
+- `graphql_security_findings`
+- GraphQL risk analyzer engine
+- GraphQL endpoint discovery
+- GraphQL IDE/playground exposure signal review
+- Introspection review signals without introspection execution
+- Query/mutation surface signal classification
+- Sensitive schema keyword signal review
+- GraphQL auth-boundary review guidance
+- API Top 10 mapping for GraphQL
+- Metadata-only normalized evidence output
 - Vulnerability lifecycle seeds
-- Customer browser security page
-- Admin browser security observability page
-- Public browser security analyzer page
+- Customer GraphQL risk page
+- Admin GraphQL risk observability page
+- Public GraphQL risk analyzer page
 - Unit tests and E2E page coverage
 
 ## What this part does
 
-- Performs GET-only browser security observation.
-- Reviews security headers and cookie attributes.
-- Parses HTML in memory only for mixed content and script metadata.
-- Does not store private response body content.
-- Writes browser security evidence and lifecycle seeds.
+- Checks likely GraphQL endpoint paths using GET metadata-only observation.
+- Imports endpoint hints from attack surface and API inventory.
+- Detects GraphQL IDE/playground, introspection keyword, mutation keyword and sensitive keyword signals.
+- Maps GraphQL risk signals to OWASP API Top 10.
+- Writes normalized evidence and vulnerability lifecycle seeds.
 
 ## What this part does not do
 
-- It does not exploit XSS.
-- It does not perform CORS exploitation.
-- It does not attempt clickjacking exploitation.
-- It does not steal sessions.
-- It does not submit forms.
-- It does not run browser exploit payloads.
-- It does not mutate website data.
+- It does not execute GraphQL queries.
+- It does not execute introspection queries.
+- It does not execute mutations.
+- It does not dump schema.
+- It does not attempt authorization bypass.
+- It does not brute force fields or operations.
+- It does not store private response bodies.
+- It does not run exploit payloads.
 
 ## Next layer
 
-Mega Part 40 should add:
+Mega Part 41 should add:
 
-- GraphQL Risk Analyzer
-- GraphQL surface discovery
-- Introspection signal review using safe rules
-- GraphQL endpoint inventory
-- Query/mutation classification from docs/signals
-- API Top 10 mapping for GraphQL
+- Authenticated Session-Safe Crawler Execution
+- Test-account session plan enforcement
+- Allowed/blocked route controls
+- No mutation requests
+- Metadata-only authenticated route inventory
+- Private evidence protection

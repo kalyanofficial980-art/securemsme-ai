@@ -19,21 +19,22 @@ npm.cmd run audit:npm
 - Manual scan works
 - Saved website rescan works
 - Customer report hub opens: `/report/<scan-id>/security-hub`
+- GraphQL risk public page opens: `/graphql-risk-analyzer`
+- GraphQL risk report page opens: `/report/<scan-id>/graphql-risk`
+- GraphQL risk page is locked if website is not verified
+- GraphQL risk run requires authorization checkbox
+- GraphQL risk score is visible
+- GraphQL endpoint observations are saved
+- GraphQL IDE/playground signals are saved
+- GraphQL introspection review signals are saved
+- GraphQL sensitive keyword signals are saved
+- GraphQL mutation signals are saved
+- GraphQL findings are stored
+- GraphQL analyzer creates normalized evidence
+- GraphQL analyzer creates vulnerability lifecycle seeds
+- Admin GraphQL page opens only for admin: `/admin/graphql-risk`
 - Browser security public page opens: `/browser-security-analyzer`
 - Browser security report page opens: `/report/<scan-id>/browser-security`
-- Browser security page is locked if website is not verified
-- Browser security run requires authorization checkbox
-- Browser security score is visible
-- CSP findings are saved
-- CORS findings are saved
-- Cookie/session flag findings are saved
-- Clickjacking findings are saved
-- Mixed content findings are saved
-- External script findings are saved
-- Browser security findings are stored
-- Browser security creates normalized evidence
-- Browser security creates vulnerability lifecycle seeds
-- Admin browser security page opens only for admin: `/admin/browser-security`
 - API scanner public page opens: `/api-security-scanner`
 - API scanner report page opens: `/report/<scan-id>/api-security`
 - Attack surface public page opens: `/attack-surface-discovery`
@@ -51,25 +52,28 @@ npm.cmd run audit:npm
 - Trust page loads
 - Health check returns `status: ok`
 
-## Browser security safety checks
+## GraphQL safety checks
 
 Allowed:
 
-- GET-only page observation
-- Header review
-- Cookie attribute review
-- CSP/CORS/clickjacking/HSTS/referrer/permissions policy review
-- Mixed content signal detection
-- External script metadata review
+- GET/HEAD metadata-only GraphQL discovery
+- GraphQL endpoint candidate review
+- IDE/playground signal review
+- Introspection keyword/signal review without executing introspection
+- Mutation keyword/signal review without executing mutations
+- Sensitive schema keyword metadata review
+- API Top 10 mapping
 - Normalized evidence output
 
 Blocked:
 
 - Unverified targets
 - Localhost/private/internal targets
-- Form submission
-- POST/PUT/PATCH/DELETE
+- GraphQL query execution
+- Introspection query execution
+- Mutation execution
+- Schema dumping
+- Brute force
 - Exploit payloads
-- Private body storage
+- Private response body storage
 - Credential/session storage
-- Destructive testing

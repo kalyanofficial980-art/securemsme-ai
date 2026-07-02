@@ -39,6 +39,14 @@ const extraLinks = [
     customerVisible: true,
   },
   {
+    label: "GraphQL Risk Analyzer",
+    description:
+      "GraphQL endpoint, IDE, introspection, mutation and schema signals",
+    href: (id: string) => `/report/${id}/graphql-risk`,
+    primary: true,
+    customerVisible: true,
+  },
+  {
     label: "Authenticated Scan Request",
     description:
       "Request safe review for login-protected pages with a test account",
@@ -97,7 +105,7 @@ export function AdvancedReportNavigation({
   if (variant === "compact") {
     return (
       <div className="mt-5 flex flex-wrap gap-3">
-        {visibleLinks.slice(0, 17).map((item) => (
+        {visibleLinks.slice(0, 18).map((item) => (
           <Link
             key={item.label}
             href={item.href(scanId)}
@@ -123,8 +131,8 @@ export function AdvancedReportNavigation({
           </p>
           <h2 className="mt-2 text-3xl font-black">What should you do next?</h2>
           <p className="mt-3 max-w-3xl leading-7 text-slate-600">
-            Review international engine pipeline, attack surface discovery, API
-            security, browser security, retest proof, real backend evidence,
+            Review international engine pipeline, attack surface, API security,
+            browser security, GraphQL risk, retest proof, real backend evidence,
             authenticated scan request, CMS/WordPress review and developer
             tasks.
           </p>
