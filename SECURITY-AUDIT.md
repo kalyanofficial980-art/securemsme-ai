@@ -1,45 +1,49 @@
 # SecureMSME AI Security Audit Notes
 
-## Mega Part 45 Continuous Monitoring Worker Foundation
+## Mega Part 46 Background Job Queue + Worker Scheduler
 
 Added:
 
-- `monitoring_jobs`
-- `monitoring_runs`
-- `monitoring_events`
-- Monitoring policy builder
-- Score drift detection
-- Risk increase detection
-- Regression event generation
-- Latest baseline tracking
-- Customer monitoring page
-- Admin monitoring observability page
-- Public monitoring worker page
+- `background_worker_jobs`
+- `background_worker_attempts`
+- `background_worker_events`
+- Queue payload builder
+- Scheduler summary
+- Job locking foundation
+- Manual due job execution
+- Retry/failure tracking
+- Monitoring-evaluation worker handler
+- Customer worker queue page
+- Admin worker queue dashboard
+- Public background worker page
 - Unit tests and E2E page coverage
 
 ## What this part does
 
-- Creates monitoring jobs for saved scan snapshots.
-- Compares latest scan with previous baseline.
-- Detects score drop and risk increase.
-- Saves monitoring run and event.
-- Prepares architecture for future background worker queue.
+- Enqueues monitoring evaluation jobs.
+- Picks the next due queued/retry job.
+- Locks job before execution.
+- Saves worker attempt.
+- Executes monitoring evaluation using saved scan snapshots.
+- Creates monitoring run and monitoring event.
+- Saves worker events and result.
+- Supports retry status and cancellation.
 
 ## What this part does not do
 
-- It does not run automatic cron yet.
+- It does not add external cron yet.
+- It does not run unsupported job types as real work.
 - It does not run destructive checks.
-- It does not claim full continuous pentesting.
-- It does not claim exploitability or compromise.
-- It does not replace retest proof or manual review.
+- It does not store secrets or sessions.
+- It does not claim full continuous pentest.
 
 ## Next layer
 
-Mega Part 46 should add:
+Mega Part 47 should add:
 
-- Background Job Queue + Worker Scheduler
-- Due monitoring job picker
-- Server route for safe worker execution
-- Job locking
-- Retry/failure handling
-- Queue dashboard
+- Cron/API Worker Trigger
+- Secure worker token
+- Due job batch processor
+- Stale lock recovery
+- Automatic monitoring job creation from due monitoring jobs
+- Production scheduler setup guide
