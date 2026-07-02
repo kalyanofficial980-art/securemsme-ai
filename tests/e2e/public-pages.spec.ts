@@ -26,6 +26,7 @@ const publicPages = [
     path: "/international-security-engine",
     text: "Advanced backend foundation",
   },
+  { path: "/attack-surface-discovery", text: "Discover the website surface" },
   { path: "/audit-framework", text: "Inbuilt advanced security audit" },
   {
     path: "/vulnerability-intelligence",
@@ -45,6 +46,7 @@ for (const publicPage of publicPages) {
       waitUntil: "domcontentloaded",
       timeout: 60_000,
     });
+
     await expect(page.locator("body")).toContainText(publicPage.text);
   });
 }
@@ -52,6 +54,7 @@ for (const publicPage of publicPages) {
 test("health endpoint works", async ({ request }) => {
   const response = await request.get("/api/health");
   expect(response.ok()).toBeTruthy();
+
   const json = await response.json();
   expect(json.status).toBe("ok");
 });

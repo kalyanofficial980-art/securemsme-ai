@@ -1,80 +1,54 @@
 # SecureMSME AI Security Audit Notes
 
-## Mega Part 36 International Security Engine Core
+## Mega Part 37 Advanced Crawler + Attack Surface Discovery Engine
 
 Added:
 
-- `international_scan_jobs`
-- `international_scan_job_modules`
-- `international_scan_job_events`
-- `normalized_security_evidence`
-- `vulnerability_instances`
-- Universal module registry v2
-- Website/application classification
-- Module selection engine
-- Scope-based module blocking
-- Coverage matrix
-- Standards summary
-- Normalized evidence seed generation
-- Vulnerability lifecycle seed generation
-- Customer security engine status page
-- Admin engine observability page
-- Public international security engine page
+- `attack_surface_inventories`
+- `attack_surface_items`
+- Advanced crawler engine
+- Same-origin route discovery
+- JavaScript/SPA route extraction
+- API endpoint signal discovery
+- Form and input inventory
+- URL parameter inventory
+- Script and external link inventory
+- Blocked route policy
+- Normalized evidence output
+- Vulnerability lifecycle seeds
+- Customer attack surface page
+- Admin attack surface observability page
+- Public attack surface discovery page
 - Unit tests and E2E page coverage
-
-## International standards mapping
-
-The engine stores mapping fields for:
-
-- OWASP WSTG
-- OWASP ASVS
-- OWASP API Top 10
-- NIST SSDF
 
 ## What this part does
 
-- Creates a real backend SaaS engine core.
-- Plans jobs and modules.
-- Stores coverage and blocked-module transparency.
-- Creates normalized evidence records.
-- Creates vulnerability lifecycle seed records.
-- Provides future worker/queue/retry ready structure.
+- Executes a safe crawler only after verified scope and permission.
+- Uses GET only for page fetches.
+- Does not submit forms.
+- Does not use POST/PUT/PATCH/DELETE.
+- Does not store private page bodies.
+- Stores attack surface metadata and risk signals.
+- Writes normalized evidence and vulnerability lifecycle seeds into Part 36 tables.
 
-## What this part does not do yet
+## What this part does not do
 
-- It does not run a background worker.
-- It does not execute advanced crawling.
-- It does not execute API endpoint testing.
-- It does not perform authenticated crawling.
-- It does not submit forms or mutate data.
-- It does not run exploit payloads.
-
-## Safety boundary
-
-Still not allowed:
-
-- Unauthorized scanning
-- Password guessing
-- Brute force
-- Login bypass
-- MFA bypass
-- Privilege escalation
-- Payment/order mutation
-- Destructive testing
-- Private data scraping
-- DoS testing
-- Malware payloads
-- Claiming all vulnerabilities found
+- It does not exploit vulnerabilities.
+- It does not test injection payloads.
+- It does not test authentication bypass.
+- It does not brute force.
+- It does not mutate data.
+- It does not complete checkout or payment.
+- It does not store credentials, cookies, sessions, or private data.
 
 ## Next layer
 
-Mega Part 37 should add:
+Mega Part 38 should add:
 
-- Advanced worker-ready crawler engine
-- Route inventory
-- Same-origin crawl policy
-- JavaScript/SPA route extraction
-- Form/input/parameter surface inventory
-- No form submission
-- No mutation requests
-- Normalized evidence output into this Part 36 evidence warehouse
+- API Discovery + OpenAPI Security Scanner
+- Parse OpenAPI/Swagger documents safely
+- REST endpoint inventory
+- API method risk classification
+- Auth boundary metadata
+- Rate-limit signal checks
+- Sensitive response metadata guard

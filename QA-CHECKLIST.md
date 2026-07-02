@@ -19,65 +19,56 @@ npm.cmd run audit:npm
 - Manual scan works
 - Saved website rescan works
 - Customer report hub opens: `/report/<scan-id>/security-hub`
+- Attack surface public page opens: `/attack-surface-discovery`
+- Attack surface report page opens: `/report/<scan-id>/attack-surface`
+- Attack surface page is locked if website is not verified
+- Attack surface run requires authorization checkbox
+- Attack surface inventory saves route count
+- Attack surface inventory saves API endpoint count
+- Attack surface inventory saves form/input count
+- Attack surface inventory saves parameter count
+- Attack surface inventory saves JS route count
+- Attack surface inventory saves blocked route count
+- Attack surface items are visible
+- Normalized evidence is created for attack surface discovery
+- Vulnerability lifecycle seeds are created for API/form/risk signals
+- Admin attack surface page opens only for admin: `/admin/attack-surface`
 - International security engine public page opens: `/international-security-engine`
 - International security engine report page opens: `/report/<scan-id>/security-engine`
-- International security engine can create a job
-- Engine job saves selected modules
-- Engine job saves blocked modules
-- Engine job saves coverage matrix
-- Engine job saves standards summary
-- Engine job saves normalized evidence
-- Engine job saves vulnerability lifecycle seeds
-- Engine events are visible
-- Admin engine observability page opens only for admin: `/admin/security-engine`
 - Authenticated scan public page opens: `/authenticated-scan`
-- Authenticated scan report page opens: `/report/<scan-id>/authenticated-scan`
 - Retest proof public page opens: `/retest-proof`
-- Retest proof report page opens: `/report/<scan-id>/retest-proof`
 - CMS/WordPress scanner public page opens: `/cms-wordpress-scanner`
-- CMS/WordPress report page opens: `/report/<scan-id>/cms-wordpress`
-- Real safe templates public page opens: `/real-safe-templates`
-- Real safe template report page opens: `/report/<scan-id>/real-template-worker`
 - Real security checks public page opens: `/real-security-checks`
-- Real modules report page opens: `/report/<scan-id>/real-modules`
-- Authorized security review public page opens: `/authorized-pentest`
 - Known technology risks page opens: `/report/<scan-id>/known-risks`
-- Customer value page opens: `/report/<scan-id>/customer-value`
-- Evidence confidence page opens: `/report/<scan-id>/evidence-calibration`
-- Developer instructions page opens: `/report/<scan-id>/fix-roadmap`
-- Ownership verification public page loads: `/ownership-verification`
-- Website verification page opens: `/websites/<website-id>/verify`
 - PDF download works
 - Printable report works
-- Admin page opens only for admin
 - Legal pages load
 - Trust page loads
-- Robots and sitemap work
 - Health check returns `status: ok`
 
-## International security engine safety checks
+## Advanced crawler safety checks
 
 Allowed:
 
-- Job planning
-- Module selection
-- Coverage calculation
-- Normalized evidence creation
-- Vulnerability lifecycle seed creation
-- Standards mapping
-- Public-safe module planning
-- Verified-scope module planning after permission
+- Same-origin GET/HEAD crawling
+- Link discovery
+- JavaScript route extraction
+- API path signal discovery
+- Form/input inventory without submission
+- URL parameter inventory
+- Script inventory
+- Metadata-only evidence
 
 Blocked:
 
-- Unauthorized scanning
+- Unverified targets
+- Localhost/private/internal targets
+- Cross-origin crawling
+- Form submission
+- POST/PUT/PATCH/DELETE
+- Login attempt
 - Brute force
-- Password guessing
-- Login bypass
-- MFA bypass
-- Data extraction
+- Exploit payloads
 - Payment/order mutation
-- Destructive exploit execution
-- DoS testing
-- Malware payloads
-- Private data storage
+- Private body storage
+- Credential/session storage

@@ -15,6 +15,14 @@ const extraLinks = [
     customerVisible: true,
   },
   {
+    label: "Attack Surface Discovery",
+    description:
+      "Advanced crawler: routes, API signals, forms, inputs and JS routes",
+    href: (id: string) => `/report/${id}/attack-surface`,
+    primary: true,
+    customerVisible: true,
+  },
+  {
     label: "Authenticated Scan Request",
     description:
       "Request safe review for login-protected pages with a test account",
@@ -73,7 +81,7 @@ export function AdvancedReportNavigation({
   if (variant === "compact") {
     return (
       <div className="mt-5 flex flex-wrap gap-3">
-        {visibleLinks.slice(0, 14).map((item) => (
+        {visibleLinks.slice(0, 15).map((item) => (
           <Link
             key={item.label}
             href={item.href(scanId)}
@@ -99,12 +107,13 @@ export function AdvancedReportNavigation({
           </p>
           <h2 className="mt-2 text-3xl font-black">What should you do next?</h2>
           <p className="mt-3 max-w-3xl leading-7 text-slate-600">
-            Review your security score, international engine pipeline, retest
-            proof, real backend evidence, authenticated scan request,
+            Review international engine pipeline, attack surface discovery,
+            retest proof, real backend evidence, authenticated scan request,
             CMS/WordPress review, known technology risks, fix plan, and
             developer tasks.
           </p>
         </div>
+
         <Link
           href={`/report/${scanId}/security-hub`}
           className="rounded-full bg-slate-950 px-6 py-3 text-sm font-black text-white hover:bg-slate-800"
