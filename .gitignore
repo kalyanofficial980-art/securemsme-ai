@@ -50,3 +50,4 @@ code-review-copy/
 securemsme-code-review.zip
 before-hardening-v2-*.patch
 *_backup.patch
+.env*.local
