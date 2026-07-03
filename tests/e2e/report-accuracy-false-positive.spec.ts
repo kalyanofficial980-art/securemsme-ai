@@ -95,7 +95,19 @@ test.describe("report accuracy and false-positive control", () => {
 
       const bodyText = await page.locator("body").innerText({ timeout: 20_000 }).catch(() => "");
 
-      expect(bodyText).not.toMatch(/always vulnerable|never safe|guaranteed hack|definitely breached|100% secure|100% unsafe/i);
+      const forbiddenAbsoluteClaims =
+        /always vulnerable|never safe|guaranteed hack|definitely breached|100% unsafe/i;
+
+      expect(bodyText).not.toMatch(forbiddenAbsoluteClaims);
+
+      const hasUnsafeAbsolutePhrase = /100% secure/i.test(bodyText);
+      const isBlockedClaimGuidance =
+        /do not say the website is 100% secure|blocked report claims|safe report limitations/i.test(bodyText);
+
+      expect(
+        !hasUnsafeAbsolutePhrase || isBlockedClaimGuidance,
+        "The phrase 100% secure is allowed only when clearly shown as blocked guidance."
+      ).toBeTruthy();
 
       expect(bodyText).toMatch(/risk|evidence|security|report|confidence|review|remediation|safe|accuracy/i);
     }
