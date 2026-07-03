@@ -20,6 +20,7 @@ function readEnvLocal(name: string) {
 
 const email = readEnvLocal("E2E_EMAIL");
 const password = readEnvLocal("E2E_PASSWORD");
+const authReady = readEnvLocal("E2E_AUTH_READY") === "true";
 
 async function fillAuthForm(page: Page) {
   const emailInput = page.locator('input[type="email"], input[name="email"]').first();
@@ -52,14 +53,19 @@ test.describe("real auth journey", () => {
   });
 
   test("test user can login and reach dashboard", async ({ page }) => {
-    test.skip(!email || !password, "Set E2E_EMAIL and E2E_PASSWORD in .env.local");
+    test.skip(
+      !authReady || !email || !password,
+      "Real auth E2E disabled until E2E_AUTH_READY=true and valid Supabase E2E user exists."
+    );
 
     await page.goto("/login");
 
     await fillAuthForm(page);
     await submitAuth(page);
 
-    const loginError = page.getByText(/invalid login credentials|email not confirmed|unable to login|login failed|invalid/i);
+    const loginError = page.getByText(
+      /invalid login credentials|email not confirmed|unable to login|login failed|invalid/i
+    );
 
     await Promise.race([
       page.waitForURL(/dashboard|onboarding|websites|organizations/, { timeout: 25000 }),

@@ -85,6 +85,7 @@ if (!res.ok) {
 upsertEnvValues({
   E2E_EMAIL: email,
   E2E_PASSWORD: password,
+  E2E_AUTH_READY: "true",
 });
 
 console.log("Created confirmed E2E Supabase user:");
