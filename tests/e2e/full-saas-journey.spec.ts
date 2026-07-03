@@ -28,8 +28,36 @@ async function login(page: Page) {
   console.log("STEP: login");
 
   await page.goto("/login", { waitUntil: "domcontentloaded", timeout: 30_000 });
+  await page.waitForLoadState("domcontentloaded", { timeout: 15_000 }).catch(() => {});
 
-  await page.locator('input[type="email"], input[name="email"]').first().fill(email!);
+  if (/dashboard|onboarding|websites|organizations/.test(page.url())) {
+    console.log("Already logged in:", page.url());
+    return;
+  }
+
+  const emailInput = page.locator('input[type="email"], input[name="email"]').first();
+
+  const emailVisible = await emailInput.isVisible({ timeout: 15_000 }).catch(() => false);
+
+  if (!emailVisible) {
+    await page.waitForURL(/dashboard|onboarding|websites|organizations/, { timeout: 5_000 }).catch(() => {});
+
+    if (/dashboard|onboarding|websites|organizations/.test(page.url())) {
+      console.log("Already logged in after wait:", page.url());
+      return;
+    }
+
+    const bodyText = await page.locator("body").innerText({ timeout: 5_000 }).catch(() => "");
+
+    if (/dashboard|websites|organizations|logout|log out/i.test(bodyText)) {
+      console.log("Already logged in by body shell:", page.url());
+      return;
+    }
+
+    throw new Error("Login email input not visible. URL=" + page.url() + " BODY=" + bodyText.slice(0, 400));
+  }
+
+  await emailInput.fill(email!);
   await page.locator('input[type="password"], input[name="password"]').first().fill(password!);
   await page.getByRole("button", { name: /login|log in|sign in|continue|submit/i }).first().click();
 
