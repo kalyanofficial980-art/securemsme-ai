@@ -1,0 +1,820 @@
+﻿
+src\lib\advanced-crawler-asset-discovery-v2.test.ts:9:  normalizeTargetUrl,
+src\lib\advanced-crawler-asset-discovery-v2.test.ts:15:    const base = 
+normalizeTargetUrl("example.com");
+src\lib\advanced-crawler-asset-discovery-v2.test.ts:22:    
+expect(classifyAsset(new URL("https://example.com/admin"))).toBe("admin");
+src\lib\advanced-crawler-asset-discovery-v2.test.ts:23:    
+expect(classifyAsset(new URL("https://example.com/api/docs"))).toBe("api");
+src\lib\advanced-crawler-asset-discovery-v2.test.ts:24:    
+expect(classifyAsset(new URL("https://example.com/checkout"))).toBe(
+src\lib\advanced-crawler-asset-discovery-v2.test.ts:30:    const base = new 
+URL("https://example.com");
+src\lib\advanced-crawler-asset-discovery-v2.test.ts:48:    const origin = new 
+URL("https://example.com");
+src\lib\advanced-crawler-asset-discovery-v2.test.ts:50:      url: new 
+URL("https://example.com/login"),
+src\lib\advanced-crawler-asset-discovery-v2.test.ts:66:    const origin = new 
+URL("https://example.com");
+src\lib\advanced-crawler-asset-discovery-v2.test.ts:78:      targetUrl: 
+origin.toString(),
+src\lib\advanced-crawler-asset-discovery-v2.ts:95:  targetUrl: string;
+src\lib\advanced-crawler-asset-discovery-v2.ts:161:export function 
+normalizeTargetUrl(input: string) {
+src\lib\advanced-crawler-asset-discovery-v2.ts:166:  const url = new 
+URL(withProtocol);
+src\lib\advanced-crawler-asset-discovery-v2.ts:173:    const url = new 
+URL(input, baseUrl);
+src\lib\advanced-crawler-asset-discovery-v2.ts:190:  const copy = new 
+URL(url.toString());
+src\lib\advanced-crawler-asset-discovery-v2.ts:507:async function 
+safeFetch(url: URL) {
+src\lib\advanced-crawler-asset-discovery-v2.ts:512:    const response = await 
+fetch(url.toString(), {
+src\lib\advanced-crawler-asset-discovery-v2.ts:559:    new URL("/robots.txt", 
+origin).toString(),
+src\lib\advanced-crawler-asset-discovery-v2.ts:560:    new URL("/sitemap.xml", 
+origin).toString(),
+src\lib\advanced-crawler-asset-discovery-v2.ts:561:    new URL("/privacy", 
+origin).toString(),
+src\lib\advanced-crawler-asset-discovery-v2.ts:562:    new URL("/contact", 
+origin).toString(),
+src\lib\advanced-crawler-asset-discovery-v2.ts:596:  targetUrl: string;
+src\lib\advanced-crawler-asset-discovery-v2.ts:607:  const target = 
+normalizeTargetUrl(input.targetUrl);
+src\lib\advanced-crawler-asset-discovery-v2.ts:608:  const origin = new 
+URL(target.origin);
+src\lib\advanced-crawler-asset-discovery-v2.ts:668:    const fetchResult = 
+await safeFetch(item.url);
+src\lib\advanced-crawler-asset-discovery-v2.ts:819:    targetUrl: 
+target.toString(),
+src\lib\advanced-crawler-asset-discovery-v2.ts:848:  targetUrl: string,
+src\lib\advanced-crawler-asset-discovery-v2.ts:857:    targetUrl,
+src\lib\advanced-crawler-asset-discovery-v2.ts:974:  targetUrl: string;
+src\lib\advanced-crawler-asset-discovery-v2.ts:977:    targetUrl: 
+input.targetUrl,
+src\lib\advanced-crawler-engine.test.ts:7:      targetUrl: 
+"https://example.com",
+src\lib\advanced-crawler-engine.test.ts:18:      targetUrl: 
+"http://localhost:3000",
+src\lib\advanced-crawler-engine.test.ts:31:      targetUrl: "http://127.0.0.1",
+src\lib\advanced-crawler-engine.ts:52:  targetUrl: string;
+src\lib\advanced-crawler-engine.ts:164:function normalizeTargetUrl(input: 
+string) {
+src\lib\advanced-crawler-engine.ts:169:  const url = new URL(withProtocol);
+src\lib\advanced-crawler-engine.ts:242:    const url = new URL(value, base);
+src\lib\advanced-crawler-engine.ts:395:    const response = await 
+fetch(url.toString(), {
+src\lib\advanced-crawler-engine.ts:476:    targetUrl: url.toString(),
+src\lib\advanced-crawler-engine.ts:528:  targetUrl: string;
+src\lib\advanced-crawler-engine.ts:546:      affectedAsset: input.targetUrl,
+src\lib\advanced-crawler-engine.ts:673:  targetUrl: string;
+src\lib\advanced-crawler-engine.ts:679:  const target = 
+normalizeTargetUrl(input.targetUrl);
+src\lib\advanced-crawler-engine.ts:934:    targetUrl: target.toString(),
+src\lib\advanced-crawler-engine.ts:943:    targetUrl: target.toString(),
+src\lib\advanced-vulnerability-engine-v2.ts:106:    const url = new URL(value);
+src\lib\alert-notification-engine.test.ts:47:      websiteUrl: 
+"https://example.com",
+src\lib\alert-notification-engine.ts:5:  websiteUrl: string;
+src\lib\alert-notification-engine.ts:55:    websiteUrl: input.websiteUrl,
+src\lib\alert-notification-engine.ts:96:  websiteUrl: string;
+src\lib\alert-notification-engine.ts:120:    const message = 
+`${event.details}\n\nWebsite: ${input.websiteUrl}\nAction: Review monitoring 
+page and run Truth Cleanup/Retest if needed.`;
+src\lib\alert-notification-engine.ts:123:      websiteUrl: input.websiteUrl,
+src\lib\api-security-review-v2.test.ts:20:        new 
+URL("https://example.com/api"),
+src\lib\api-security-review-v2.test.ts:21:        new 
+URL("https://example.com/docs"),
+src\lib\api-security-review-v2.test.ts:26:        new 
+URL("https://example.com/api"),
+src\lib\api-security-review-v2.test.ts:27:        new 
+URL("https://other.com/docs"),
+src\lib\api-security-review-v2.ts:97:  targetUrl: string;
+src\lib\api-security-review-v2.ts:236:  const url = new URL(withProtocol);
+src\lib\api-security-review-v2.ts:273:async function safeFetch(url: URL) {
+src\lib\api-security-review-v2.ts:278:    const response = await 
+fetch(url.toString(), {
+src\lib\api-security-review-v2.ts:516:    ? new URL(
+src\lib\api-security-review-v2.ts:825:  targetUrl: string;
+src\lib\api-security-review-v2.ts:831:  const target = 
+normalizeApiTarget(input.targetUrl);
+src\lib\api-security-review-v2.ts:832:  const origin = new URL(target.origin);
+src\lib\api-security-review-v2.ts:846:    candidates.set(new URL(path, 
+origin).toString(), new URL(path, origin));
+src\lib\api-security-review-v2.ts:861:    const response = await safeFetch(url);
+src\lib\api-security-review-v2.ts:920:    targetUrl: target.toString(),
+src\lib\api-security-review-v2.ts:949:  targetUrl: string,
+src\lib\api-security-review-v2.ts:956:    targetUrl,
+src\lib\api-security-review-v2.ts:1049:  const origin = input.origin ? new 
+URL(input.origin) : null;
+src\lib\api-security-scanner.test.ts:7:      targetUrl: "https://example.com",
+src\lib\api-security-scanner.test.ts:18:      targetUrl: 
+"http://localhost:3000",
+src\lib\api-security-scanner.test.ts:31:      targetUrl: "http://127.0.0.1",
+src\lib\api-security-scanner.ts:46:  targetUrl: string;
+src\lib\api-security-scanner.ts:118:function normalizeTargetUrl(input: string) {
+src\lib\api-security-scanner.ts:123:  const url = new URL(withProtocol);
+src\lib\api-security-scanner.ts:202:  const url = new URL(base.toString());
+src\lib\api-security-scanner.ts:220:      ? new URL(rawPath)
+src\lib\api-security-scanner.ts:221:      : new URL(rawPath, base);
+src\lib\api-security-scanner.ts:235:    const response = await 
+fetch(url.toString(), {
+src\lib\api-security-scanner.ts:657:    targetUrl: url.toString(),
+src\lib\api-security-scanner.ts:684:  targetUrl: string;
+src\lib\api-security-scanner.ts:717:      affectedAsset: input.targetUrl,
+src\lib\api-security-scanner.ts:853:  targetUrl: string;
+src\lib\api-security-scanner.ts:860:  const target = 
+normalizeTargetUrl(input.targetUrl);
+src\lib\api-security-scanner.ts:977:    targetUrl: target.toString(),
+src\lib\api-security-scanner.ts:985:    targetUrl: target.toString(),
+src\lib\authenticated-scan-foundation.test.ts:11:      targetUrl: 
+"https://example.com",
+src\lib\authenticated-scan-foundation.test.ts:22:      targetUrl: 
+"https://example.com",
+src\lib\authenticated-scan-foundation.ts:21:  targetUrl: string;
+src\lib\authenticated-scan-foundation.ts:127:  const url = new 
+URL(withProtocol);
+src\lib\authenticated-scan-foundation.ts:137:  targetUrl: string;
+src\lib\authenticated-scan-foundation.ts:146:  const targetUrl = 
+normalizeUrl(input.targetUrl);
+src\lib\authenticated-scan-foundation.ts:147:  const loginUrl = 
+normalizeUrl(input.loginUrl || input.targetUrl);
+src\lib\authenticated-scan-foundation.ts:164:    targetUrl,
+src\lib\authenticated-scan-foundation.ts:176:      targetUrl,
+src\lib\authenticated-session-crawler.test.ts:7:      targetUrl: 
+"https://example.com",
+src\lib\authenticated-session-crawler.test.ts:19:      targetUrl: 
+"https://example.com",
+src\lib\authenticated-session-crawler.test.ts:33:      targetUrl: 
+"http://127.0.0.1",
+src\lib\authenticated-session-crawler.ts:45:  targetUrl: string;
+src\lib\authenticated-session-crawler.ts:156:function normalizeTargetUrl(input: 
+string) {
+src\lib\authenticated-session-crawler.ts:161:  const url = new 
+URL(withProtocol);
+src\lib\authenticated-session-crawler.ts:313:    const url = new URL(value, 
+base);
+src\lib\authenticated-session-crawler.ts:324:  const url = new 
+URL(base.toString());
+src\lib\authenticated-session-crawler.ts:416:    const response = await 
+fetch(input.url.toString(), {
+src\lib\authenticated-session-crawler.ts:492:    targetUrl: target.toString(),
+src\lib\authenticated-session-crawler.ts:549:  targetUrl: string;
+src\lib\authenticated-session-crawler.ts:557:      affectedAsset: 
+input.targetUrl,
+src\lib\authenticated-session-crawler.ts:693:  targetUrl: string;
+src\lib\authenticated-session-crawler.ts:703:  const target = 
+normalizeTargetUrl(input.targetUrl);
+src\lib\authenticated-session-crawler.ts:912:    targetUrl: target.toString(),
+src\lib\authenticated-session-crawler.ts:920:    targetUrl: target.toString(),
+src\lib\authorized-pentest-engine.test.ts:11:      targetUrl: 
+"https://example.com",
+src\lib\authorized-pentest-engine.test.ts:22:      targetUrl: 
+"https://example.com",
+src\lib\authorized-pentest-engine.ts:34:  targetUrl: string;
+src\lib\authorized-pentest-engine.ts:241:  targetUrl: string;
+src\lib\authorized-pentest-engine.ts:283:    targetUrl: input.targetUrl,
+src\lib\authorized-vulnerability-scanner.test.ts:7:      targetUrl: 
+"https://example.com",
+src\lib\authorized-vulnerability-scanner.test.ts:17:      targetUrl: 
+"http://127.0.0.1",
+src\lib\authorized-vulnerability-scanner.ts:33:  targetUrl: string;
+src\lib\authorized-vulnerability-scanner.ts:87:  const url = new 
+URL(withProtocol);
+src\lib\authorized-vulnerability-scanner.ts:141:async function safeFetch(url: 
+URL, method: "GET" | "HEAD" = "GET") {
+src\lib\authorized-vulnerability-scanner.ts:146:    const response = await 
+fetch(url.toString(), {
+src\lib\authorized-vulnerability-scanner.ts:222:  const next = new 
+URL(base.toString());
+src\lib\authorized-vulnerability-scanner.ts:243:  targetUrl: string,
+src\lib\authorized-vulnerability-scanner.ts:258:    affectedUrl: targetUrl,
+src\lib\authorized-vulnerability-scanner.ts:276:  targetUrl: string,
+src\lib\authorized-vulnerability-scanner.ts:284:        targetUrl,
+src\lib\authorized-vulnerability-scanner.ts:307:        affectedUrl: targetUrl,
+src\lib\authorized-vulnerability-scanner.ts:330:    
+targetUrl.startsWith("https://")
+src\lib\authorized-vulnerability-scanner.ts:335:        targetUrl,
+src\lib\authorized-vulnerability-scanner.ts:355:        targetUrl,
+src\lib\authorized-vulnerability-scanner.ts:370:        targetUrl,
+src\lib\authorized-vulnerability-scanner.ts:389:      affectedUrl: targetUrl,
+src\lib\authorized-vulnerability-scanner.ts:427:      affectedUrl: targetUrl,
+src\lib\authorized-vulnerability-scanner.ts:456:  targetUrl: string,
+src\lib\authorized-vulnerability-scanner.ts:477:      affectedUrl: targetUrl,
+src\lib\authorized-vulnerability-scanner.ts:609:    const result = await 
+safeFetch(pathUrl(base, path), "GET");
+src\lib\authorized-vulnerability-scanner.ts:717:    const result = await 
+safeFetch(pathUrl(base, path), method);
+src\lib\authorized-vulnerability-scanner.ts:797:  targetUrl: string;
+src\lib\authorized-vulnerability-scanner.ts:803:  const target = 
+normalizeUrl(input.targetUrl);
+src\lib\authorized-vulnerability-scanner.ts:809:      targetUrl: 
+target.toString(),
+src\lib\authorized-vulnerability-scanner.ts:838:      targetUrl: 
+target.toString(),
+src\lib\authorized-vulnerability-scanner.ts:864:  const root = await 
+safeFetch(target, "GET");
+src\lib\authorized-vulnerability-scanner.ts:903:    targetUrl: 
+target.toString(),
+src\lib\background-job-queue.test.ts:86:      websiteUrl: "https://example.com",
+src\lib\background-job-queue.ts:133:  websiteUrl: string;
+src\lib\background-job-queue.ts:141:    websiteUrl: input.websiteUrl,
+src\lib\background-job-queue.ts:221:    websiteUrl: 
+input.currentScan.website_url,
+src\lib\broken-access-control-engine.test.ts:7:      targetUrl: 
+"https://example.com",
+src\lib\broken-access-control-engine.test.ts:19:      targetUrl: 
+"https://example.com",
+src\lib\broken-access-control-engine.test.ts:31:      targetUrl: 
+"http://127.0.0.1",
+src\lib\broken-access-control-engine.ts:67:  targetUrl: string;
+src\lib\broken-access-control-engine.ts:204:function normalizeTargetUrl(input: 
+string) {
+src\lib\broken-access-control-engine.ts:209:  const url = new URL(withProtocol);
+src\lib\broken-access-control-engine.ts:289:  const url = new 
+URL(base.toString());
+src\lib\broken-access-control-engine.ts:297:    const url = new URL(raw, base);
+src\lib\broken-access-control-engine.ts:450:    const response = await 
+fetch(input.url.toString(), {
+src\lib\broken-access-control-engine.ts:735:  targetUrl: string;
+src\lib\broken-access-control-engine.ts:744:      affectedAsset: 
+input.targetUrl,
+src\lib\broken-access-control-engine.ts:887:    targetUrl: target.toString(),
+src\lib\broken-access-control-engine.ts:896:    targetUrl: target.toString(),
+src\lib\broken-access-control-engine.ts:942:  targetUrl: string;
+src\lib\broken-access-control-engine.ts:957:  const target = 
+normalizeTargetUrl(input.targetUrl);
+src\lib\broken-access-control-engine.ts:1121:    targetUrl: target.toString(),
+src\lib\broken-access-control-engine.ts:1130:    targetUrl: target.toString(),
+src\lib\browser-security-analyzer.test.ts:7:      targetUrl: 
+"https://example.com",
+src\lib\browser-security-analyzer.test.ts:18:      targetUrl: 
+"http://localhost:3000",
+src\lib\browser-security-analyzer.test.ts:29:      targetUrl: 
+"http://127.0.0.1",
+src\lib\browser-security-analyzer.ts:50:  targetUrl: string;
+src\lib\browser-security-analyzer.ts:106:function normalizeTargetUrl(input: 
+string) {
+src\lib\browser-security-analyzer.ts:111:  const url = new URL(withProtocol);
+src\lib\browser-security-analyzer.ts:199:    const url = raw.startsWith("http") 
+? new URL(raw) : new URL(raw, base);
+src\lib\browser-security-analyzer.ts:213:    const response = await 
+fetch(url.toString(), {
+src\lib\browser-security-analyzer.ts:279:    const url = src ? new URL(src, 
+base) : null;
+src\lib\browser-security-analyzer.ts:783:  targetUrl: string;
+src\lib\browser-security-analyzer.ts:791:      affectedAsset: input.targetUrl,
+src\lib\browser-security-analyzer.ts:959:    targetUrl: url.toString(),
+src\lib\browser-security-analyzer.ts:967:    targetUrl: url.toString(),
+src\lib\browser-security-analyzer.ts:997:  targetUrl: string;
+src\lib\browser-security-analyzer.ts:1004:  const target = 
+normalizeTargetUrl(input.targetUrl);
+src\lib\browser-security-analyzer.ts:1069:    targetUrl: target.toString(),
+src\lib\browser-security-analyzer.ts:1107:    targetUrl: target.toString(),
+src\lib\client-portal-engine.ts:19:  websiteUrl: string;
+src\lib\client-portal-engine.ts:212:    websiteUrl: scan.website_url,
+src\lib\client-report-v4-engine.test.ts:26:        targetUrl: 
+"https://example.com",
+src\lib\client-report-v4-engine.test.ts:34:      targetUrl: 
+"https://example.com",
+src\lib\client-report-v4-engine.test.ts:49:      targetUrl: 
+"https://example.com",
+src\lib\client-report-v4-engine.test.ts:64:      targetUrl: 
+"https://example.com",
+src\lib\client-report-v4-engine.ts:18:  targetUrl: string;
+src\lib\client-report-v4-engine.ts:345:      targetUrl: input.targetUrl,
+src\lib\cms-wordpress-scanner.test.ts:17:      targetUrl: 
+"http://localhost:3000",
+src\lib\cms-wordpress-scanner.test.ts:27:      targetUrl: "http://192.168.1.1",
+src\lib\cms-wordpress-scanner.ts:38:  targetUrl: string;
+src\lib\cms-wordpress-scanner.ts:113:function normalizeTargetUrl(input: string) 
+{
+src\lib\cms-wordpress-scanner.ts:118:  const url = new URL(withProtocol);
+src\lib\cms-wordpress-scanner.ts:159:  const url = new URL(baseUrl.toString());
+src\lib\cms-wordpress-scanner.ts:202:    const response = await 
+fetch(url.toString(), {
+src\lib\cms-wordpress-scanner.ts:377:    targetUrl: url.toString(),
+src\lib\cms-wordpress-scanner.ts:422:  targetUrl: string;
+src\lib\cms-wordpress-scanner.ts:426:  const url = 
+normalizeTargetUrl(input.targetUrl);
+src\lib\cms-wordpress-scanner.ts:843:    targetUrl: url.toString(),
+src\lib\continuous-monitoring-engine.test.ts:17:      websiteUrl: 
+"https://example.com",
+src\lib\continuous-monitoring-engine.test.ts:48:      websiteUrl: 
+"https://example.com",
+src\lib\continuous-monitoring-engine.ts:93:  websiteUrl: string;
+src\lib\continuous-monitoring-engine.ts:272:    websiteUrl: 
+input.current.website_url,
+src\lib\cron-worker-processor.ts:180:    websiteUrl: job.website_url,
+src\lib\customer-onboarding-engine.test.ts:5:  normalizeWebsiteUrl,
+src\lib\customer-onboarding-engine.test.ts:59:    
+expect(normalizeWebsiteUrl("example.com")).toBe("https://example.com");
+src\lib\customer-onboarding-engine.ts:253:export function 
+normalizeWebsiteUrl(value: string) {
+src\lib\customer-onboarding-engine.ts:261:  websiteUrl: string,
+src\lib\customer-onboarding-engine.ts:264:  return `First scan funnel is ready 
+for ${websiteUrl}. Authorization status: ${ownershipStatus}. Use only safe, 
+authorized checks.`;
+src\lib\customer-value.ts:28:  websiteUrl: string;
+src\lib\customer-value.ts:462:    websiteUrl: input.currentScan.website_url || 
+"Website",
+src\lib\cve-intelligence.test.ts:35:      websiteUrl: "https://example.com",
+src\lib\cve-intelligence.ts:54:  websiteUrl: string;
+src\lib\cve-intelligence.ts:443:  websiteUrl: string;
+src\lib\cve-intelligence.ts:514:    websiteUrl: input.websiteUrl,
+src\lib\email-provider.test.ts:10:      websiteUrl: "https://example.com",
+src\lib\email-provider.ts:14:  websiteUrl: string;
+src\lib\email-provider.ts:66:  const safeWebsite = escapeHtml(alert.websiteUrl);
+src\lib\email-provider.ts:71:  const subject = `[${alert.severity}] SecureMSME 
+AI alert for ${alert.websiteUrl}`;
+src\lib\email-provider.ts:107:    `Website: ${alert.websiteUrl}`,
+src\lib\email-provider.ts:153:    const response = await 
+fetch("https://api.resend.com/emails", {
+src\lib\evidence-warehouse-v2.ts:208:  targetUrl: string;
+src\lib\evidence-warehouse-v2.ts:229:    affectedUrl: input.targetUrl,
+src\lib\graphql-risk-analyzer.test.ts:7:      targetUrl: "https://example.com",
+src\lib\graphql-risk-analyzer.test.ts:18:      targetUrl: 
+"http://localhost:3000",
+src\lib\graphql-risk-analyzer.test.ts:29:      targetUrl: "http://127.0.0.1",
+src\lib\graphql-risk-analyzer.ts:51:  targetUrl: string;
+src\lib\graphql-risk-analyzer.ts:147:function normalizeTargetUrl(input: string) 
+{
+src\lib\graphql-risk-analyzer.ts:152:  const url = new URL(withProtocol);
+src\lib\graphql-risk-analyzer.ts:242:    const url = raw.startsWith("http") ? 
+new URL(raw) : new URL(raw, base);
+src\lib\graphql-risk-analyzer.ts:252:  const url = new URL(base.toString());
+src\lib\graphql-risk-analyzer.ts:264:    const response = await 
+fetch(url.toString(), {
+src\lib\graphql-risk-analyzer.ts:650:  targetUrl: string;
+src\lib\graphql-risk-analyzer.ts:659:      affectedAsset: input.targetUrl,
+src\lib\graphql-risk-analyzer.ts:818:    targetUrl: url.toString(),
+src\lib\graphql-risk-analyzer.ts:827:    targetUrl: url.toString(),
+src\lib\graphql-risk-analyzer.ts:884:  targetUrl: string;
+src\lib\graphql-risk-analyzer.ts:891:  const target = 
+normalizeTargetUrl(input.targetUrl);
+src\lib\graphql-risk-analyzer.ts:962:    targetUrl: target.toString(),
+src\lib\graphql-risk-analyzer.ts:978:      authUnknown(new 
+URL(observation.url), "", observation.statusCode),
+src\lib\graphql-risk-analyzer.ts:996:    targetUrl: target.toString(),
+src\lib\inbuilt-advanced-audit.ts:70:  const url = new URL(withProtocol);
+src\lib\inbuilt-advanced-audit.ts:77:  const baseUrl = new URL(base);
+src\lib\inbuilt-advanced-audit.ts:93:async function safeFetch(url: string): 
+Promise<FetchResult> {
+src\lib\inbuilt-advanced-audit.ts:98:    const response = await fetch(url, {
+src\lib\inbuilt-advanced-audit.ts:211:  const urlObject = new URL(url);
+src\lib\inbuilt-advanced-audit.ts:783:export async function 
+runInbuiltAdvancedAudit(websiteUrl: string) {
+src\lib\inbuilt-advanced-audit.ts:784:  const scannedUrl = 
+normalizeUrl(websiteUrl);
+src\lib\inbuilt-advanced-audit.ts:788:      safeFetch(scannedUrl),
+src\lib\inbuilt-advanced-audit.ts:789:      safeFetch(sameOriginUrl(scannedUrl, 
+"/robots.txt")),
+src\lib\inbuilt-advanced-audit.ts:790:      safeFetch(sameOriginUrl(scannedUrl, 
+"/sitemap.xml")),
+src\lib\inbuilt-advanced-audit.ts:791:      safeFetch(sameOriginUrl(scannedUrl, 
+"/.well-known/security.txt")),
+src\lib\inbuilt-advanced-audit.ts:792:      safeFetch(sameOriginUrl(scannedUrl, 
+"/privacy")),
+src\lib\inbuilt-advanced-audit.ts:793:      safeFetch(sameOriginUrl(scannedUrl, 
+"/terms")),
+src\lib\inbuilt-advanced-audit.ts:794:      safeFetch(sameOriginUrl(scannedUrl, 
+"/contact")),
+src\lib\international-security-engine.test.ts:18:      targetUrl: 
+"https://example.com",
+src\lib\international-security-engine.test.ts:28:      targetUrl: 
+"https://example.com",
+src\lib\international-security-engine.test.ts:40:      targetUrl: 
+"https://example.com",
+src\lib\international-security-engine.test.ts:44:      targetUrl: 
+"https://example.com",
+src\lib\international-security-engine.ts:291:  const url = new 
+URL(withProtocol);
+src\lib\international-security-engine.ts:306:  targetUrl: string;
+src\lib\international-security-engine.ts:311:    `${input.targetUrl} 
+${reportText(input.report)} ${(input.hints || []).join(" ")}`.toLowerCase();
+src\lib\international-security-engine.ts:508:  targetUrl: string;
+src\lib\international-security-engine.ts:515:  const targetUrl = 
+normalizeUrl(input.targetUrl);
+src\lib\international-security-engine.ts:520:    targetUrl,
+src\lib\international-security-engine.ts:550:      affectedAsset: targetUrl,
+src\lib\international-security-engine.ts:591:            affectedAssets: 
+[targetUrl],
+src\lib\international-security-engine.ts:614:    targetUrl,
+src\lib\launch-ready-legal-payment-engine.test.ts:54:      targetUrl: 
+"example.com",
+src\lib\launch-ready-legal-payment-engine.test.ts:60:    
+expect(result.targetUrl).toBe("https://example.com");
+src\lib\launch-ready-legal-payment-engine.ts:182:  targetUrl: string;
+src\lib\launch-ready-legal-payment-engine.ts:187:  const targetUrl = 
+normalizeUrl(input.targetUrl);
+src\lib\launch-ready-legal-payment-engine.ts:190:  if (!targetUrl) 
+errors.push("Target URL is required.");
+src\lib\launch-ready-legal-payment-engine.ts:196:  if (targetUrl && 
+!/^https?:\/\/[a-z0-9.-]+\.[a-z]{2,}/i.test(targetUrl))
+src\lib\launch-ready-legal-payment-engine.ts:201:    targetUrl,
+src\lib\monitoring-pro-agency-soc-engine.test.ts:25:      targetUrl: 
+"https://example.com",
+src\lib\monitoring-pro-agency-soc-engine.test.ts:40:        targetUrl: 
+"https://example.com",
+src\lib\monitoring-pro-agency-soc-engine.test.ts:52:      targetUrl: 
+"https://example.com",
+src\lib\monitoring-pro-agency-soc-engine.test.ts:69:        targetUrl: 
+"https://a.com",
+src\lib\monitoring-pro-agency-soc-engine.test.ts:77:        targetUrl: 
+"https://b.com",
+src\lib\monitoring-pro-agency-soc-engine.test.ts:95:        targetUrl: 
+"https://x.com",
+src\lib\monitoring-pro-agency-soc-engine.ts:23:  targetUrl: string;
+src\lib\monitoring-pro-agency-soc-engine.ts:82:  targetUrl: string;
+src\lib\monitoring-pro-agency-soc-engine.ts:175:  const monitoringSummary = 
+`Monitoring Pro is watching report readiness, developer fix progress, retest 
+pass rate and client portal readiness for ${input.targetUrl}.`;
+src\lib\monitoring-pro-agency-soc-engine.ts:217:      affectedArea: 
+input.targetUrl,
+src\lib\monitoring-pro-agency-soc-engine.ts:240:      affectedArea: 
+input.targetUrl,
+src\lib\monitoring-pro-agency-soc-engine.ts:259:      affectedArea: 
+input.targetUrl,
+src\lib\monitoring-pro-agency-soc-engine.ts:281:      affectedArea: 
+input.targetUrl,
+src\lib\ownership-verification.test.ts:6:  normalizeWebsiteUrl,
+src\lib\ownership-verification.test.ts:11:    
+expect(normalizeWebsiteUrl("example.com")).toBe("https://example.com");
+src\lib\ownership-verification.ts:20:export function normalizeWebsiteUrl(input: 
+string) {
+src\lib\ownership-verification.ts:31:  const url = new URL(withProtocol);
+src\lib\ownership-verification.ts:37:export function getHostname(websiteUrl: 
+string) {
+src\lib\ownership-verification.ts:38:  return new 
+URL(normalizeWebsiteUrl(websiteUrl)).hostname;
+src\lib\ownership-verification.ts:41:export function 
+getVerificationInstructions(websiteUrl: string, token: string) {
+src\lib\ownership-verification.ts:42:  const normalizedUrl = 
+normalizeWebsiteUrl(websiteUrl);
+src\lib\ownership-verification.ts:43:  const url = new URL(normalizedUrl);
+src\lib\ownership-verification.ts:71:    const response = await fetch(url, {
+src\lib\ownership-verification.ts:103:  websiteUrl: string,
+src\lib\ownership-verification.ts:106:  const instructions = 
+getVerificationInstructions(websiteUrl, token);
+src\lib\ownership-verification.ts:139:  websiteUrl: string,
+src\lib\ownership-verification.ts:142:  const instructions = 
+getVerificationInstructions(websiteUrl, token);
+src\lib\ownership-verification.ts:158:  websiteUrl: string,
+src\lib\ownership-verification.ts:161:  const instructions = 
+getVerificationInstructions(websiteUrl, token);
+src\lib\ownership-verification.ts:182:  websiteUrl: string;
+src\lib\ownership-verification.ts:187:    return verifyDnsTxt(input.websiteUrl, 
+input.token);
+src\lib\ownership-verification.ts:191:    return 
+verifyHtmlFile(input.websiteUrl, input.token);
+src\lib\ownership-verification.ts:194:  return verifyMetaTag(input.websiteUrl, 
+input.token);
+src\lib\passive-audit-connector.test.ts:10:      websiteUrl: "example.com",
+src\lib\passive-audit-connector.ts:76:function normalizeWebsiteUrl(input: 
+string) {
+src\lib\passive-audit-connector.ts:87:  const url = new URL(withProtocol);
+src\lib\passive-audit-connector.ts:278:  websiteUrl: string;
+src\lib\passive-audit-connector.ts:282:  const normalizedUrl = 
+normalizeWebsiteUrl(input.websiteUrl);
+src\lib\passive-audit-connector.ts:348:export function 
+getPassiveToolCommand(websiteUrl: string) {
+src\lib\passive-audit-connector.ts:349:  const target = 
+normalizeWebsiteUrl(websiteUrl);
+src\lib\passive-zap-worker.test.ts:19:      websiteUrl: "https://example.com",
+src\lib\passive-zap-worker.test.ts:40:      websiteUrl: "https://example.com",
+src\lib\passive-zap-worker.ts:45:  websiteUrl: string;
+src\lib\passive-zap-worker.ts:146:  return new URL(withProtocol);
+src\lib\passive-zap-worker.ts:256:  websiteUrl: string,
+src\lib\passive-zap-worker.ts:258:  const origin = safeUrl(websiteUrl).origin;
+src\lib\passive-zap-worker.ts:272:        return new URL(candidate, 
+origin).toString();
+src\lib\passive-zap-worker.ts:280:        return new URL(url).origin === origin;
+src\lib\passive-zap-worker.ts:290:  websiteUrl: string;
+src\lib\passive-zap-worker.ts:297:    input.websiteUrl,
+src\lib\passive-zap-worker.ts:301:    
+links.push(safeUrl(input.websiteUrl).origin);
+src\lib\passive-zap-worker.ts:565:  websiteUrl: string;
+src\lib\passive-zap-worker.ts:573:    websiteUrl: input.websiteUrl,
+src\lib\passive-zap-worker.ts:583:    websiteUrl: input.websiteUrl,
+src\lib\public-launch-funnel-engine.test.ts:5:  normalizePublicWebsiteUrl,
+src\lib\public-launch-funnel-engine.test.ts:12:    
+expect(normalizePublicWebsiteUrl("example.com")).toBe(
+src\lib\public-launch-funnel-engine.test.ts:27:      websiteUrl: "agency.com",
+src\lib\public-launch-funnel-engine.ts:7:  websiteUrl: string;
+src\lib\public-launch-funnel-engine.ts:119:export function 
+normalizePublicWebsiteUrl(value: string) {
+src\lib\public-launch-funnel-engine.ts:135:  if (input.websiteUrl.trim()) score 
++= 15;
+src\lib\public-launch-funnel-engine.ts:175:    
+normalizePublicWebsiteUrl(input.websiteUrl) || "website not provided";
+src\lib\real-safe-template-worker.test.ts:20:      targetUrl: 
+"http://localhost:3000",
+src\lib\real-safe-template-worker.test.ts:30:      targetUrl: 
+"http://192.168.1.1",
+src\lib\real-safe-template-worker.ts:60:  targetUrl: string;
+src\lib\real-safe-template-worker.ts:128:function normalizeTargetUrl(input: 
+string) {
+src\lib\real-safe-template-worker.ts:133:  const url = new URL(withProtocol);
+src\lib\real-safe-template-worker.ts:174:  const url = new 
+URL(baseUrl.toString());
+src\lib\real-safe-template-worker.ts:362:    const response = await 
+fetch(url.toString(), {
+src\lib\real-safe-template-worker.ts:580:    targetUrl: url.toString(),
+src\lib\real-safe-template-worker.ts:597:  targetUrl: string;
+src\lib\real-safe-template-worker.ts:601:  const url = 
+normalizeTargetUrl(input.targetUrl);
+src\lib\real-safe-template-worker.ts:640:    targetUrl: url.toString(),
+src\lib\real-security-modules.test.ts:7:      targetUrl: 
+"http://localhost:3000",
+src\lib\real-security-modules.test.ts:17:      targetUrl: "http://192.168.1.1",
+src\lib\real-security-modules.ts:40:  targetUrl: string;
+src\lib\real-security-modules.ts:110:function normalizeTargetUrl(input: string) 
+{
+src\lib\real-security-modules.ts:115:  const url = new URL(withProtocol);
+src\lib\real-security-modules.ts:210:    const response = await fetch(target, {
+src\lib\real-security-modules.ts:675:  targetUrl: string;
+src\lib\real-security-modules.ts:679:  const url = 
+normalizeTargetUrl(input.targetUrl);
+src\lib\real-security-modules.ts:727:      targetUrl: url.toString(),
+src\lib\real-security-modules.ts:808:    targetUrl: url.toString(),
+src\lib\report-truth-cleanup-engine.ts:45:  websiteUrl: string;
+src\lib\report-truth-cleanup-engine.ts:350:  websiteUrl: string,
+src\lib\report-truth-cleanup-engine.ts:690:function buildTruthFix(issue: 
+RawIssue, websiteUrl: string): TruthFixItem {
+src\lib\report-truth-cleanup-engine.ts:691:  const template = 
+exactFixTemplate(issue, websiteUrl);
+src\lib\report-truth-cleanup-engine.ts:824:    websiteUrl: scan.website_url,
+src\lib\report-types.ts:108:    const url = new URL(scan.website_url);
+src\lib\retest-client-portal-pro-engine.test.ts:44:      targetUrl: 
+"https://example.com",
+src\lib\retest-client-portal-pro-engine.ts:191:  targetUrl: string;
+src\lib\retest-client-portal-pro-engine.ts:221:      body: `Developer fix 
+progress is ${input.fixProgressScore}/100 for ${input.targetUrl}.`,
+src\lib\retest-proof-engine.test.ts:7:      websiteUrl: "https://example.com",
+src\lib\retest-proof-engine.test.ts:10:        websiteUrl: 
+"https://example.com",
+src\lib\retest-proof-engine.test.ts:24:        websiteUrl: 
+"https://example.com",
+src\lib\retest-proof-engine.test.ts:39:      websiteUrl: "https://example.com",
+src\lib\retest-proof-engine.test.ts:42:        websiteUrl: 
+"https://example.com",
+src\lib\retest-proof-engine.test.ts:50:        websiteUrl: 
+"https://example.com",
+src\lib\retest-proof-engine.test.ts:64:      websiteUrl: "https://example.com",
+src\lib\retest-proof-engine.test.ts:67:        websiteUrl: 
+"https://example.com",
+src\lib\retest-proof-engine.test.ts:73:        websiteUrl: 
+"https://example.com",
+src\lib\retest-proof-engine.ts:28:  websiteUrl: string;
+src\lib\retest-proof-engine.ts:60:  websiteUrl: string;
+src\lib\retest-proof-engine.ts:361:  websiteUrl: string;
+src\lib\retest-proof-engine.ts:472:    websiteUrl: input.websiteUrl,
+src\lib\safe-template-engine.test.ts:17:      websiteUrl: "https://example.com",
+src\lib\safe-template-engine.test.ts:37:      websiteUrl: "https://example.com",
+src\lib\safe-template-engine.ts:51:  websiteUrl: string;
+src\lib\safe-template-engine.ts:520:  websiteUrl: string;
+src\lib\safe-template-engine.ts:571:    websiteUrl: input.websiteUrl,
+src\lib\scan-consistency-engine.ts:24:  websiteUrl: string;
+src\lib\scan-consistency-engine.ts:529:    websiteUrl: 
+input.current.website_url,
+src\lib\scan-orchestrator-v2.ts:373:  targetUrl: string,
+src\lib\scan-orchestrator-v2.ts:406:    safeSummary: `${engine.engineName} 
+completed safe review for ${targetUrl}.`,
+src\lib\scan-orchestrator-v2.ts:409:      targetUrl,
+src\lib\scan-orchestrator-v2.ts:423:  targetUrl: string;
+src\lib\scan-orchestrator-v2.ts:425:  return `Pipeline planned 
+${input.totalEngines} engine(s) in ${input.mode} mode for ${input.targetUrl}. 
+Engines use safe authorized methods and blocked-action controls.`;
+src\lib\scanner.ts:105:  const url = new URL(withProtocol);
+src\lib\scanner.ts:219:    return await fetch(url, {
+src\lib\scanner.ts:234:  let currentUrl = new URL(url);
+src\lib\scanner.ts:254:    const nextUrl = new URL(location, currentUrl);
+src\lib\scanner.ts:263:  const testUrl = new URL(path, baseUrl.origin);
+src\lib\scanner.ts:277:  const testUrl = new URL(path, baseUrl.origin);
+src\lib\scanner.ts:292:  const httpUrl = new URL(url.toString());
+src\lib\scheduled-scans-email-alerts-engine.test.ts:12:      targetUrl: 
+"example.com",
+src\lib\scheduled-scans-email-alerts-engine.test.ts:28:      targetUrl: 
+"example.com",
+src\lib\scheduled-scans-email-alerts-engine.test.ts:59:      targetUrl: 
+"https://example.com",
+src\lib\scheduled-scans-email-alerts-engine.ts:6:  targetUrl: string;
+src\lib\scheduled-scans-email-alerts-engine.ts:45:  targetUrl: string;
+src\lib\scheduled-scans-email-alerts-engine.ts:62:export function 
+normalizeTargetUrl(url: string) {
+src\lib\scheduled-scans-email-alerts-engine.ts:98:  const normalizedUrl = 
+normalizeTargetUrl(input.targetUrl);
+src\lib\scheduled-scans-email-alerts-engine.ts:183:  const subject = 
+`[SecureMSME AI] ${input.riskLevel} alert for ${input.targetUrl}`;
+src\lib\scheduled-scans-email-alerts-engine.ts:185:    `Security monitoring 
+update for ${input.targetUrl}`,
+src\lib\seo-launch-analytics-engine.ts:115:    const url = new URL(value);
+src\lib\support-lead-reply-engine.test.ts:6:  normalizeSupportWebsiteUrl,
+src\lib\support-lead-reply-engine.test.ts:18:    
+expect(normalizeSupportWebsiteUrl("example.com")).toBe(
+src\lib\support-lead-reply-engine.test.ts:28:      websiteUrl: "securemsme.ai",
+src\lib\support-lead-reply-engine.test.ts:50:      websiteUrl: "example.com",
+src\lib\support-lead-reply-engine.test.ts:63:        websiteUrl: "example.com",
+src\lib\support-lead-reply-engine.ts:18:  websiteUrl: string;
+src\lib\support-lead-reply-engine.ts:31:  websiteUrl?: string;
+src\lib\support-lead-reply-engine.ts:47:export function 
+normalizeSupportWebsiteUrl(value: string) {
+src\lib\support-lead-reply-engine.ts:59:  if (input.websiteUrl.trim()) score += 
+10;
+src\lib\support-lead-reply-engine.ts:88:    
+normalizeSupportWebsiteUrl(input.websiteUrl) || "no website provided";
+src\lib\support-lead-reply-engine.ts:105:  const website = 
+normalizeSupportWebsiteUrl(input.websiteUrl || "");
+src\lib\tool-runner.test.ts:22:      websiteUrl: "https://example.com",
+src\lib\tool-runner.test.ts:43:      websiteUrl: "https://example.com",
+src\lib\tool-runner.ts:48:  websiteUrl: string;
+src\lib\tool-runner.ts:383:  websiteUrl: string;
+src\lib\tool-runner.ts:451:    websiteUrl: input.websiteUrl,
+src\lib\vulnerability-intelligence.ts:109:  const url = new URL(withProtocol);
+src\lib\vulnerability-intelligence.ts:116:  const baseUrl = new URL(base);
+src\lib\vulnerability-intelligence.ts:132:async function safeFetch(
+src\lib\vulnerability-intelligence.ts:140:    const response = await fetch(url, 
+{
+src\lib\vulnerability-intelligence.ts:508:  const origin = new 
+URL(home.url).origin;
+src\lib\vulnerability-intelligence.ts:513:        return new URL(match[1], 
+origin).toString();
+src\lib\vulnerability-intelligence.ts:522:  return new URL(url).hostname;
+src\lib\vulnerability-intelligence.ts:526:  websiteUrl: string,
+src\lib\vulnerability-intelligence.ts:528:  const scannedUrl = 
+normalizeUrl(websiteUrl);
+src\lib\vulnerability-intelligence.ts:531:  const home = await 
+safeFetch(scannedUrl);
+src\lib\vulnerability-intelligence.ts:535:      const probe = await safeFetch(
+src\lib\vulnerability-intelligence.ts:700:      return new URL(script).hostname 
+!== hostname;
+src\lib\websites.ts:1:export function normalizeWebsiteUrl(input: string) {
+src\lib\websites.ts:13:  const url = new URL(withProtocol);
+src\lib\websites.ts:26:    const url = new URL(normalizeWebsiteUrl(input));
+src\components\AccessControlPanel.tsx:91:  targetUrl,
+src\components\AccessControlPanel.tsx:101:  targetUrl: string;
+src\components\AccessControlPanel.tsx:148:            <p className="break-all 
+font-black">{targetUrl}</p>
+src\components\AdvancedCrawlerPanel.tsx:125:  targetUrl,
+src\components\AdvancedCrawlerPanel.tsx:135:  targetUrl: string;
+src\components\AdvancedCrawlerPanel.tsx:160:          {targetUrl}
+src\components\AdvancedVulnerabilityEnginePanel.tsx:98:  targetUrl,
+src\components\AdvancedVulnerabilityEnginePanel.tsx:106:  targetUrl: string;
+src\components\AdvancedVulnerabilityEnginePanel.tsx:129:          {targetUrl}
+src\components\AiCopilotReportsPanel.tsx:53:  targetUrl,
+src\components\AiCopilotReportsPanel.tsx:61:  targetUrl?: string;
+src\components\AiCopilotReportsPanel.tsx:82:          {targetUrl ||
+src\components\AlertsPanel.tsx:68:  websiteUrl,
+src\components\AlertsPanel.tsx:76:  websiteUrl: string;
+src\components\AlertsPanel.tsx:121:          <p className="break-all 
+font-black">{websiteUrl}</p>
+src\components\ApiSecurityPanel.tsx:70:  targetUrl,
+src\components\ApiSecurityPanel.tsx:77:  targetUrl: string;
+src\components\ApiSecurityPanel.tsx:122:          <p className="break-all 
+font-black">{targetUrl}</p>
+src\components\ApiSecurityReviewPanel.tsx:147:  targetUrl,
+src\components\ApiSecurityReviewPanel.tsx:158:  targetUrl: string;
+src\components\ApiSecurityReviewPanel.tsx:184:          {targetUrl}
+src\components\AttackSurfacePanel.tsx:62:  targetUrl,
+src\components\AttackSurfacePanel.tsx:69:  targetUrl: string;
+src\components\AttackSurfacePanel.tsx:112:          <p className="break-all 
+font-black">{targetUrl}</p>
+src\components\AuthenticatedCrawlerPanel.tsx:79:  targetUrl,
+src\components\AuthenticatedCrawlerPanel.tsx:88:  targetUrl: string;
+src\components\AuthenticatedCrawlerPanel.tsx:135:            <p 
+className="break-all font-black">{targetUrl}</p>
+src\components\AuthenticatedSafeReviewPanel.tsx:146:  targetUrl,
+src\components\AuthenticatedSafeReviewPanel.tsx:158:  targetUrl: string;
+src\components\AuthenticatedSafeReviewPanel.tsx:185:          {targetUrl}
+src\components\AuthenticatedSafeReviewPanel.tsx:199:        <input 
+type="hidden" name="targetUrl" value={targetUrl} />
+src\components\AuthenticatedScanPanel.tsx:36:  targetUrl,
+src\components\AuthenticatedScanPanel.tsx:42:  targetUrl: string;
+src\components\AuthenticatedScanPanel.tsx:85:          <p className="break-all 
+font-black">{targetUrl}</p>
+src\components\AuthenticatedScanPanel.tsx:108:              
+defaultValue={targetUrl}
+src\components\BackgroundQueuePanel.tsx:71:  websiteUrl,
+src\components\BackgroundQueuePanel.tsx:79:  websiteUrl: string;
+src\components\BackgroundQueuePanel.tsx:120:          <p className="break-all 
+font-black">{websiteUrl}</p>
+src\components\BillingAiTriagePanel.tsx:162:  targetUrl,
+src\components\BillingAiTriagePanel.tsx:174:  targetUrl?: string;
+src\components\BillingAiTriagePanel.tsx:199:          {targetUrl || 
+"Account-level billing and triage"}
+src\components\BrowserSecurityPanel.tsx:62:  targetUrl,
+src\components\BrowserSecurityPanel.tsx:69:  targetUrl: string;
+src\components\BrowserSecurityPanel.tsx:112:          <p className="break-all 
+font-black">{targetUrl}</p>
+src\components\ClientPortalPanel.tsx:44:  websiteUrl,
+src\components\ClientPortalPanel.tsx:52:  websiteUrl: string;
+src\components\ClientPortalPanel.tsx:88:          <p className="break-all 
+font-black">{websiteUrl}</p>
+src\components\ClientPortalPanel.tsx:109:                
+defaultValue={`Security report for ${websiteUrl}`}
+src\components\ClientReportV4Panel.tsx:97:  targetUrl,
+src\components\ClientReportV4Panel.tsx:106:  targetUrl: string;
+src\components\ClientReportV4Panel.tsx:128:          {targetUrl}
+src\components\CmsWordPressPanel.tsx:86:  targetUrl,
+src\components\CmsWordPressPanel.tsx:93:  targetUrl: string;
+src\components\CmsWordPressPanel.tsx:146:          <p className="break-all 
+font-black">{targetUrl}</p>
+src\components\ContactSupportPanel.tsx:48:                name="websiteUrl"
+src\components\CustomerOnboardingPanel.tsx:252:                    
+name="websiteUrl"
+src\components\CustomerReportHub.tsx:11:  websiteUrl: string;
+src\components\CustomerReportHub.tsx:37:  websiteUrl,
+src\components\CustomerReportHub.tsx:53:            <h1 className="break-all 
+text-4xl font-black">{websiteUrl}</h1>
+src\components\DeepScanButton.tsx:22:      const response = await 
+fetch(`/api/websites/${websiteId}/deep-scan`, {
+src\components\DeveloperFixRoadmap.tsx:14:  websiteUrl: string;
+src\components\DeveloperFixRoadmap.tsx:53:  websiteUrl,
+src\components\DeveloperFixRoadmap.tsx:70:        <h1 className="mt-2 break-all 
+text-4xl font-black">{websiteUrl}</h1>
+src\components\DeveloperPortalPanel.tsx:141:  targetUrl,
+src\components\DeveloperPortalPanel.tsx:151:  targetUrl: string;
+src\components\DeveloperPortalPanel.tsx:174:          {targetUrl}
+src\components\EmailProviderPanel.tsx:71:  websiteUrl,
+src\components\EmailProviderPanel.tsx:80:  websiteUrl: string;
+src\components\EvidenceWarehousePanel.tsx:118:  targetUrl,
+src\components\EvidenceWarehousePanel.tsx:126:  targetUrl: string;
+src\components\EvidenceWarehousePanel.tsx:149:          {targetUrl}
+src\components\FinalLaunchOpsPanel.tsx:183:                name="websiteUrl"
+src\components\GraphqlRiskPanel.tsx:70:  targetUrl,
+src\components\GraphqlRiskPanel.tsx:77:  targetUrl: string;
+src\components\GraphqlRiskPanel.tsx:122:          <p className="break-all 
+font-black">{targetUrl}</p>
+src\components\InternationalSecurityEnginePanel.tsx:116:  targetUrl,
+src\components\InternationalSecurityEnginePanel.tsx:126:  targetUrl: string;
+src\components\InternationalSecurityEnginePanel.tsx:174:          <p 
+className="break-all font-black">{targetUrl}</p>
+src\components\MonitoringPanel.tsx:99:  websiteUrl,
+src\components\MonitoringPanel.tsx:108:  websiteUrl: string;
+src\components\MonitoringPanel.tsx:148:          <p className="break-all 
+font-black">{websiteUrl}</p>
+src\components\MonitoringProPanel.tsx:108:  targetUrl,
+src\components\MonitoringProPanel.tsx:117:  targetUrl: string;
+src\components\MonitoringProPanel.tsx:139:          {targetUrl}
+src\components\PassiveAuditImportForm.tsx:8:  const [websiteUrl, setWebsiteUrl] 
+= useState("");
+src\components\PassiveAuditImportForm.tsx:19:    if (!websiteUrl.trim()) {
+src\components\PassiveAuditImportForm.tsx:24:    const response = await 
+fetch("/api/audit/tool-command", {
+src\components\PassiveAuditImportForm.tsx:29:      body: JSON.stringify({ 
+websiteUrl }),
+src\components\PassiveAuditImportForm.tsx:49:      const response = await 
+fetch("/api/audit/import-passive", {
+src\components\PassiveAuditImportForm.tsx:55:          websiteUrl,
+src\components\PassiveAuditImportForm.tsx:96:          value={websiteUrl}
+src\components\PassiveAuditImportForm.tsx:97:          onChange={(event) => 
+setWebsiteUrl(event.target.value)}
+src\components\PassiveWorkerPanel.tsx:112:            {report.websiteUrl}
+src\components\PublicLandingPricingDemoPanel.tsx:174:                
+name="websiteUrl"
+src\components\RealModulesPanel.tsx:64:  targetUrl,
+src\components\RealModulesPanel.tsx:71:  targetUrl: string;
+src\components\RealModulesPanel.tsx:116:          <p className="break-all 
+font-black">{targetUrl}</p>
+src\components\RealTemplateWorkerPanel.tsx:81:  targetUrl,
+src\components\RealTemplateWorkerPanel.tsx:88:  targetUrl: string;
+src\components\RealTemplateWorkerPanel.tsx:135:          <p 
+className="break-all font-black">{targetUrl}</p>
+src\components\ReportTruthCleanupPanel.tsx:83:  websiteUrl,
+src\components\ReportTruthCleanupPanel.tsx:91:  websiteUrl: string;
+src\components\ReportTruthCleanupPanel.tsx:130:          <p 
+className="break-all font-black">{websiteUrl}</p>
+src\components\RescanButton.tsx:22:      const response = await 
+fetch(`/api/websites/${websiteId}/rescan`, {
+src\components\RetestClientPortalProPanel.tsx:96:  targetUrl,
+src\components\RetestClientPortalProPanel.tsx:105:  targetUrl: string;
+src\components\RetestClientPortalProPanel.tsx:126:          {targetUrl}
+src\components\SafeTemplatePanel.tsx:111:            Website: 
+{report.websiteUrl}
+src\components\ScanConsistencyPanel.tsx:96:  websiteUrl,
+src\components\ScanConsistencyPanel.tsx:104:  websiteUrl: string;
+src\components\ScanConsistencyPanel.tsx:143:            <p className="break-all 
+font-black">{websiteUrl}</p>
+src\components\ScanForm.tsx:35:  const [websiteUrl, setWebsiteUrl] = 
+useState("");
+src\components\ScanForm.tsx:48:      const response = await fetch("/api/scan", {
+src\components\ScanForm.tsx:54:          websiteUrl: websiteId ? undefined : 
+websiteUrl,
+src\components\ScanForm.tsx:115:              <option value="">Enter new URL 
+manually</option>
+src\components\ScanForm.tsx:128:              value={websiteUrl}
+src\components\ScanForm.tsx:129:              onChange={(event) => 
+setWebsiteUrl(event.target.value)}
+src\components\ScanOrchestratorPanel.tsx:90:  targetUrl,
+src\components\ScanOrchestratorPanel.tsx:98:  targetUrl: string;
+src\components\ScanOrchestratorPanel.tsx:119:          {targetUrl}
+src\components\ScheduledScansPanel.tsx:148:                  name="targetUrl"
+src\components\ToolRunnerPanel.tsx:105:            <span 
+className="break-all">{report.websiteUrl}</span>
+src\components\VulnerabilityScannerPanel.tsx:62:  websiteUrl,
+src\components\VulnerabilityScannerPanel.tsx:68:  websiteUrl: string;
+src\components\VulnerabilityScannerPanel.tsx:89:          Target: {websiteUrl}
+
+
