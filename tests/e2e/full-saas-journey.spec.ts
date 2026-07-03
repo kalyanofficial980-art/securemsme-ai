@@ -21,6 +21,7 @@ function readEnvLocal(name: string) {
 const email = readEnvLocal("E2E_EMAIL");
 const password = readEnvLocal("E2E_PASSWORD");
 const authReady = readEnvLocal("E2E_AUTH_READY") === "true";
+const fullSaasReady = readEnvLocal("E2E_FULL_SAAS_READY") === "true";
 
 async function login(page: Page) {
   await page.goto("/login");
@@ -114,8 +115,8 @@ async function openReportIfAvailable(page: Page) {
 test.describe("full SaaS journey", () => {
   test("login add website scan report", async ({ page }) => {
     test.skip(
-      !authReady || !email || !password,
-      "Full SaaS journey disabled until E2E_AUTH_READY=true and valid Supabase E2E user exists."
+      !fullSaasReady || !email || !password,
+      "Full SaaS journey disabled until E2E_FULL_SAAS_READY=true."
     );
 
     await login(page);
