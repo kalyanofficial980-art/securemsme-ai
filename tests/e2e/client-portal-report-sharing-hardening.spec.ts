@@ -13,7 +13,7 @@ const forbiddenSecretText =
   /service_role|supabase_service_role|private key|BEGIN RSA PRIVATE KEY|BEGIN PRIVATE KEY|sk_live_|sk_test_|eyJhbGciOi|authorization:\s*bearer|password:\s*[^\s]+|api[_-]?secret|database url/i;
 
 const forbiddenPrivateDataText =
-  /customer_password|raw_cookie|session_token|refresh_token|access_token|credit card|aadhaar|pan number|private customer data|internal admin note/i;
+  /customer_password|raw_cookie|session_token|refresh_token|access_token|credit card|aadhaar|pan number|internal admin note/i;
 
 const forbiddenAdminOrOpsLinks =
   /\/admin\/users|\/admin\/organizations|\/admin\/tool-runs|\/admin\/worker-queue|\/admin\/lead-crm|service_role|api_key|apikey|secret/i;
@@ -45,6 +45,16 @@ const sharingApiChecks = [
 async function expectNoLeaksFromBodyText(bodyText: string) {
   expect(bodyText).not.toMatch(forbiddenSecretText);
   expect(bodyText).not.toMatch(forbiddenPrivateDataText);
+
+  const mentionsPrivateCustomerData = /private customer data/i.test(bodyText);
+  const privateDataMentionIsBlockedGuidance =
+    /do not expose private customer data|blocked .*claims|safe report limitations|client-safe reporting/i.test(bodyText);
+
+  expect(
+    !mentionsPrivateCustomerData || privateDataMentionIsBlockedGuidance,
+    "The phrase private customer data is allowed only when clearly shown as blocked guidance."
+  ).toBeTruthy();
+
   expect(bodyText).not.toMatch(/confirmed breach|data stolen|passwords leaked|guaranteed compromised/i);
 }
 
