@@ -11,195 +11,161 @@ type NavItem = {
   primary?: boolean;
 };
 
-const launchCustomerLinks: NavItem[] = [
+const customerLinks: NavItem[] = [
   {
-    label: "Public Launch",
-    description: "Landing, pricing, demo funnel and SEO-ready pages",
+    label: "Launch",
+    description: "Public product page",
     href: () => `/public-launch`,
     primary: true,
   },
   {
-    label: "SEO Readiness",
-    description: "Sitemap, robots and launch-safe SEO summary",
-    href: () => `/seo-readiness`,
+    label: "Pricing",
+    description: "Plans and manual billing",
+    href: () => `/pricing`,
     primary: true,
   },
   {
-    label: "Contact Support",
-    description: "Support, demo, billing and technical help",
+    label: "Demo",
+    description: "Request product demo",
+    href: () => `/demo`,
+    primary: true,
+  },
+  {
+    label: "Support",
+    description: "Contact support",
     href: () => `/contact`,
     primary: true,
   },
   {
+    label: "Beta",
+    description: "Beta customer mode",
+    href: () => `/beta`,
+    primary: true,
+  },
+  {
     label: "Onboarding",
-    description: "Customer setup, first scan funnel and plan recommendation",
+    description: "Guided first scan setup",
     href: () => `/onboarding`,
     primary: true,
   },
+];
+
+const productLinks: NavItem[] = [
   {
-    label: "Security Scan",
-    description: "Run authorized safe website checks and review security risks",
+    label: "Scan",
+    description: "Security scan report",
     href: (id) => `/report/${id}`,
-    primary: true,
   },
   {
     label: "AI Copilot",
-    description: "Ask safe questions over reports, fixes and client wording",
+    description: "Ask questions over reports",
     href: (id) => `/report/${id}/ai-copilot`,
-    primary: true,
   },
   {
     label: "Repo Security",
-    description: "Dependency and masked secret review for code-side risk",
+    description: "Dependency and secret review",
     href: (id) => `/report/${id}/repo-security`,
-    primary: true,
   },
   {
     label: "Cloud Config",
-    description: "Supabase, Vercel and DNS launch security checklist",
+    description: "Supabase, Vercel and DNS checklist",
     href: (id) => `/report/${id}/cloud-config-audit`,
-    primary: true,
   },
   {
-    label: "Reports",
-    description:
-      "Client-safe report, executive summary and evidence-backed findings",
+    label: "Client Report",
+    description: "Client-ready report",
     href: (id) => `/report/${id}/client-report-v4`,
-    primary: true,
   },
   {
     label: "Developer Fixes",
-    description:
-      "Fix tasks, developer actions, comments and remediation workflow",
+    description: "Fix workflow",
     href: (id) => `/report/${id}/developer-portal`,
-    primary: true,
   },
   {
-    label: "Retest Proof",
-    description: "Verified-fix proof and client portal after remediation",
+    label: "Retest",
+    description: "Fix verification proof",
     href: (id) => `/report/${id}/retest-client-portal-pro`,
-    primary: true,
   },
   {
     label: "Monitoring",
-    description: "Regression alerts and post-fix monitoring",
+    description: "Scheduled monitoring",
     href: (id) => `/report/${id}/monitoring-pro`,
-    primary: true,
-  },
-  {
-    label: "Scheduled Scans",
-    description: "Safe scheduled checks and email alert queue",
-    href: (id) => `/report/${id}/scheduled-scans`,
-    primary: true,
-  },
-  {
-    label: "AI Triage",
-    description: "Safe remediation priority order and usage-aware triage",
-    href: (id) => `/report/${id}/billing-ai-triage`,
-    primary: true,
   },
 ];
 
-const launchAccountLinks: NavItem[] = [
+const adminLinks: NavItem[] = [
   {
-    label: "Pricing",
-    description: "Plans and manual billing CTA",
-    href: () => `/pricing`,
+    label: "Final Launch Ops",
+    description: "Checklist, beta and manual queue",
+    href: () => `/admin/launch-ops`,
   },
   {
-    label: "Demo Request",
-    description: "Public demo request funnel",
-    href: () => `/demo`,
+    label: "Lead CRM",
+    description: "Demo/support leads and export",
+    href: () => `/admin/lead-crm`,
   },
-  {
-    label: "Cloud Config Home",
-    description: "All cloud config audit projects",
-    href: () => `/cloud-config-audit`,
-  },
-  {
-    label: "Repo Security Home",
-    description: "All repository security projects",
-    href: () => `/repo-security`,
-  },
-  {
-    label: "AI Copilot Home",
-    description: "All report copilot sessions",
-    href: () => `/ai-copilot`,
-  },
-  {
-    label: "Scheduled Scans Home",
-    description: "All scheduled scan targets and email alerts",
-    href: () => `/scheduled-scans`,
-  },
-  {
-    label: "Manual Billing",
-    description: "Manual payment approval and plan activation",
-    href: () => `/manual-billing`,
-  },
-  {
-    label: "Legal Acceptance",
-    description: "Terms, privacy, acceptable use and disclaimer acceptance",
-    href: () => `/legal-acceptance`,
-  },
-  {
-    label: "Scan Authorization",
-    description: "Confirm ownership or written permission before scanning",
-    href: () => `/scan-authorization`,
-  },
-  {
-    label: "Trust Center",
-    description: "Legal pages, security policy and responsible disclosure",
-    href: () => `/trust`,
-  },
-];
-
-const internalLinks: NavItem[] = [
   {
     label: "Support Inbox",
-    description: "Support tickets, safe replies and manual email queue",
+    description: "Tickets and reply drafts",
     href: () => `/admin/support-inbox`,
   },
   {
+    label: "Abuse Protection",
+    description: "Public form monitoring",
+    href: () => `/admin/abuse-protection`,
+  },
+  {
     label: "Launch Analytics",
-    description: "Privacy-safe launch analytics and SEO observability",
+    description: "SEO and event analytics",
     href: () => `/admin/launch-analytics`,
   },
   {
-    label: "Demo Funnel Admin",
-    description: "Public demo and pricing lead observability",
+    label: "Demo Funnel",
+    description: "Demo request management",
     href: () => `/admin/demo-funnel`,
   },
-  {
-    label: "Customer Onboarding Admin",
-    description: "Internal onboarding funnel observability",
-    href: () => `/admin/onboarding`,
-  },
-  {
-    label: "Production Launch",
-    description: "Internal benchmark and launch readiness dashboard",
-    href: () => `/production-launch`,
-  },
-  {
-    label: "Agency SOC",
-    description: "Agency multi-client monitoring view",
-    href: () => `/agency-soc`,
-  },
-  {
-    label: "Advanced Tools",
-    description: "Internal engine and evidence workflows",
-    href: (id) => `/report/${id}/evidence-warehouse`,
-  },
 ];
+
+function NavCard({
+  item,
+  scanId,
+  dark = false,
+}: {
+  item: NavItem;
+  scanId: string;
+  dark?: boolean;
+}) {
+  return (
+    <Link
+      href={item.href(scanId)}
+      className={
+        dark
+          ? "rounded-3xl border border-slate-950 bg-slate-950 p-5 text-white hover:bg-slate-800"
+          : "rounded-3xl border border-slate-200 bg-slate-50 p-5 hover:bg-slate-100"
+      }
+    >
+      <h3 className="font-black">{item.label}</h3>
+      <p
+        className={
+          dark
+            ? "mt-2 text-sm leading-6 text-slate-300"
+            : "mt-2 text-sm leading-6 text-slate-600"
+        }
+      >
+        {item.description}
+      </p>
+    </Link>
+  );
+}
 
 export function AdvancedReportNavigation({
   scanId,
   variant = "full",
 }: AdvancedReportNavigationProps) {
-  const compactLinks = [...launchCustomerLinks, ...launchAccountLinks];
   if (variant === "compact") {
     return (
       <div className="mt-5 flex flex-wrap gap-3">
-        {compactLinks.map((item) => (
+        {[...customerLinks, ...productLinks].map((item) => (
           <Link
             key={item.label}
             href={item.href(scanId)}
@@ -211,75 +177,59 @@ export function AdvancedReportNavigation({
       </div>
     );
   }
+
   return (
-    <section className="rounded-3xl border border-slate-200 bg-white p-8">
+    <section className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
         <div>
-          <p className="text-sm font-black text-slate-500">
-            Launch-ready customer workflow
+          <p className="text-sm font-black uppercase tracking-wide text-slate-500">
+            Workspace
           </p>
-          <h2 className="mt-2 text-3xl font-black">
-            Simple AI security workflow
-          </h2>
+          <h2 className="mt-2 text-3xl font-black">SecureMSME AI navigation</h2>
           <p className="mt-3 max-w-3xl leading-7 text-slate-600">
-            Customer UI is simplified into public launch funnel, SEO readiness,
-            contact support, onboarding, scan, AI copilot, repo security, cloud
-            config, report, developer fixes, retest proof, scheduled monitoring,
-            billing and support.
+            Customer journey, security workflow and admin operations in one
+            clean structure.
           </p>
         </div>
         <Link
-          href="/contact"
+          href="/admin/launch-ops"
           className="rounded-full bg-slate-950 px-6 py-3 text-sm font-black text-white hover:bg-slate-800"
         >
-          Contact Support
+          Launch ops
         </Link>
       </div>
-      <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {launchCustomerLinks.map((item) => (
-          <Link
-            key={item.label}
-            href={item.href(scanId)}
-            className="rounded-3xl border border-slate-950 bg-slate-950 p-6 text-white hover:bg-slate-800"
-          >
-            <h3 className="font-black">{item.label}</h3>
-            <p className="mt-2 text-sm leading-6 text-slate-300">
-              {item.description}
-            </p>
-          </Link>
-        ))}
-        {launchAccountLinks.map((item) => (
-          <Link
-            key={item.label}
-            href={item.href(scanId)}
-            className="rounded-3xl border border-slate-200 bg-slate-50 p-6 hover:bg-slate-100"
-          >
-            <h3 className="font-black">{item.label}</h3>
-            <p className="mt-2 text-sm leading-6 text-slate-600">
-              {item.description}
-            </p>
-          </Link>
-        ))}
-      </div>
-      <details className="mt-8 rounded-3xl border border-amber-200 bg-amber-50 p-6">
-        <summary className="cursor-pointer font-black text-amber-950">
-          Advanced/internal tools
-        </summary>
-        <div className="mt-5 grid gap-4 md:grid-cols-3">
-          {internalLinks.map((item) => (
-            <Link
-              key={item.label}
-              href={item.href(scanId)}
-              className="rounded-2xl bg-white p-4 hover:bg-amber-100"
-            >
-              <h3 className="font-black">{item.label}</h3>
-              <p className="mt-2 text-sm leading-6 text-slate-600">
-                {item.description}
-              </p>
-            </Link>
-          ))}
+      <div className="mt-8 space-y-8">
+        <div>
+          <h3 className="mb-4 text-sm font-black uppercase tracking-wide text-slate-500">
+            Customer
+          </h3>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {customerLinks.map((item) => (
+              <NavCard key={item.label} item={item} scanId={scanId} dark />
+            ))}
+          </div>
         </div>
-      </details>
+        <div>
+          <h3 className="mb-4 text-sm font-black uppercase tracking-wide text-slate-500">
+            Product
+          </h3>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {productLinks.map((item) => (
+              <NavCard key={item.label} item={item} scanId={scanId} />
+            ))}
+          </div>
+        </div>
+        <details className="rounded-3xl border border-slate-200 bg-slate-50 p-6">
+          <summary className="cursor-pointer font-black">
+            Admin operations
+          </summary>
+          <div className="mt-5 grid gap-4 md:grid-cols-3">
+            {adminLinks.map((item) => (
+              <NavCard key={item.label} item={item} scanId={scanId} />
+            ))}
+          </div>
+        </details>
+      </div>
     </section>
   );
 }
