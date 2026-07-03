@@ -44,3 +44,5 @@ next-env.d.ts
 node_modules/
 src/node_modules/
 src/.next/
+playwright-report/
+test-results/

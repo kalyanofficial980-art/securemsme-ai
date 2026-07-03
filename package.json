@@ -14,8 +14,10 @@
     "e2e:ui": "playwright test --ui",
     "audit:npm": "npm audit --audit-level=high",
     "audit:lighthouse": "lighthouse http://localhost:3000 --output html --output-path ./audit-reports/lighthouse-home.html --chrome-flags=\"--headless\"",
-    "audit:app": "npm run lint \u0026\u0026 npm run test \u0026\u0026 npm run build",
-    "audit:full": "npm run audit:app \u0026\u0026 npm run e2e"
+    "audit:app": "npm run lint && npm run test && npm run build",
+    "audit:full": "npm run audit:app && npm run e2e",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.0",
