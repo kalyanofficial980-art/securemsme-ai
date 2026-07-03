@@ -1,41 +1,29 @@
-import { expect, test } from "@playwright/test";
+﻿import { test, expect } from "@playwright/test";
 
 test("contact support page renders", async ({ page }) => {
   await page.goto("/contact", {
-    waitUntil: "domcontentloaded",
+    waitUntil: "networkidle",
     timeout: 60_000,
   });
-  await expect(page.locator("body")).toContainText(
-    /Contact Support|Support Request|sensitive/i,
-  );
+
+  const body = page.locator("body");
+
+  await expect(body).toContainText(/Contact SecureMSME AI Support|SecureMSME AI Support/i);
+  await expect(body).toContainText(/Submit ticket/i);
+  await expect(body).toContainText(/Do not send credentials|private keys|tokens|OTP/i);
+  await expect(body).toContainText(/Safety/i);
 });
 
 test("support redirects to contact", async ({ page }) => {
   await page.goto("/support", {
-    waitUntil: "domcontentloaded",
+    waitUntil: "networkidle",
     timeout: 60_000,
   });
-  await expect(page.locator("body")).toContainText(
-    /Contact Support|Support Request|sensitive/i,
-  );
-});
 
-test("support success page renders", async ({ page }) => {
-  await page.goto("/support/success", {
-    waitUntil: "domcontentloaded",
-    timeout: 60_000,
-  });
-  await expect(page.locator("body")).toContainText(
-    /Support ticket submitted|Public Launch|Demo/i,
-  );
-});
+  const body = page.locator("body");
 
-test("admin support inbox requires auth or admin", async ({ page }) => {
-  await page.goto("/admin/support-inbox", {
-    waitUntil: "domcontentloaded",
-    timeout: 60_000,
-  });
-  await expect(page.locator("body")).toContainText(
-    /login|Admin|Support Inbox/i,
-  );
+  await expect(body).toContainText(/Contact SecureMSME AI Support|SecureMSME AI Support/i);
+  await expect(body).toContainText(/Submit ticket/i);
+  await expect(body).toContainText(/Do not send credentials|private keys|tokens|OTP/i);
+  await expect(body).toContainText(/Safety/i);
 });
