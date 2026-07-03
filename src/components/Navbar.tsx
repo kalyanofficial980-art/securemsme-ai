@@ -24,9 +24,6 @@ export function Navbar() {
           <Link href="/trust" className="hover:text-slate-950">
             Trust
           </Link>
-          <Link href="/admin" className="hover:text-slate-950">
-            Admin
-          </Link>
         </div>
 
         <div className="flex items-center gap-3">

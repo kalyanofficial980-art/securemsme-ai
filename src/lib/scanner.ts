@@ -1,4 +1,4 @@
-﻿import dns from "node:dns/promises";
+import dns from "node:dns/promises";
 import net from "node:net";
 import tls from "node:tls";
 
@@ -68,6 +68,18 @@ const IMPORTANT_SECURITY_HEADERS = [
 
 const PRIVATE_HOSTS = new Set(["localhost", "127.0.0.1", "::1", "0.0.0.0"]);
 
+const BLOCKED_HOST_SUFFIXES = [
+  ".localhost",
+  ".local",
+  ".internal",
+];
+
+const BLOCKED_HOSTNAMES = new Set([
+  "metadata.google.internal",
+]);
+
+const MAX_SAFE_REDIRECTS = 3;
+
 const SENSITIVE_PUBLIC_PATHS = [
   "/.env",
   "/.git/config",
@@ -114,15 +126,23 @@ function getEmailDomain(hostname: string) {
 function isPrivateIp(ip: string) {
   if (net.isIP(ip) === 4) {
     const parts = ip.split(".").map(Number);
-    const [a, b] = parts;
+    const [a, b, c] = parts;
 
     return (
+      a === 0 ||
       a === 10 ||
       a === 127 ||
+      (a === 169 && b === 254) ||
       (a === 172 && b >= 16 && b <= 31) ||
       (a === 192 && b === 168) ||
-      (a === 169 && b === 254) ||
-      a === 0
+      (a === 100 && b >= 64 && b <= 127) ||
+      (a === 192 && b === 0 && c === 0) ||
+      (a === 198 && (b === 18 || b === 19)) ||
+      (a === 192 && b === 0 && c === 2) ||
+      (a === 198 && b === 51 && c === 100) ||
+      (a === 203 && b === 0 && c === 113) ||
+      (a >= 224 && a <= 239) ||
+      a >= 240
     );
   }
 
@@ -130,20 +150,47 @@ function isPrivateIp(ip: string) {
     const lowered = ip.toLowerCase();
 
     return (
+      lowered === "::" ||
       lowered === "::1" ||
       lowered.startsWith("fc") ||
       lowered.startsWith("fd") ||
-      lowered.startsWith("fe80")
+      lowered.startsWith("fe80") ||
+      lowered.startsWith("::ffff:127.") ||
+      lowered.startsWith("::ffff:10.") ||
+      lowered.startsWith("::ffff:192.168.") ||
+      lowered.startsWith("::ffff:169.254.")
     );
   }
 
   return false;
 }
 
+function isBlockedHostname(hostname: string) {
+  const lower = hostname.toLowerCase().replace(/\.$/, "");
+
+  return (
+    PRIVATE_HOSTS.has(lower) ||
+    BLOCKED_HOSTNAMES.has(lower) ||
+    BLOCKED_HOST_SUFFIXES.some((suffix) => lower.endsWith(suffix))
+  );
+}
+
 async function validatePublicHost(url: URL) {
+  if (!["http:", "https:"].includes(url.protocol)) {
+    throw new Error("Only HTTP and HTTPS websites are allowed");
+  }
+
+  if (url.username || url.password) {
+    throw new Error("URLs with username/password are not allowed");
+  }
+
+  if (url.port && !["80", "443"].includes(url.port)) {
+    throw new Error("Only standard website ports 80 and 443 are allowed");
+  }
+
   const hostname = url.hostname.toLowerCase();
 
-  if (PRIVATE_HOSTS.has(hostname)) {
+  if (isBlockedHostname(hostname)) {
     throw new Error("Local/private websites are not allowed");
   }
 
@@ -160,7 +207,11 @@ async function validatePublicHost(url: URL) {
   }
 }
 
-async function fetchWithTimeout(url: string, options?: RequestInit) {
+function isRedirectStatus(status: number) {
+  return [301, 302, 303, 307, 308].includes(status);
+}
+
+async function fetchOnceWithTimeout(url: string, options?: RequestInit) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 8000);
 
@@ -168,7 +219,7 @@ async function fetchWithTimeout(url: string, options?: RequestInit) {
     return await fetch(url, {
       ...options,
       signal: controller.signal,
-      redirect: options?.redirect ?? "follow",
+      redirect: "manual",
       headers: {
         "user-agent": "SecureMSME-AI-Safety-Checker/0.4",
         ...(options?.headers || {}),
@@ -177,6 +228,35 @@ async function fetchWithTimeout(url: string, options?: RequestInit) {
   } finally {
     clearTimeout(timeout);
   }
+}
+
+async function fetchWithTimeout(url: string, options?: RequestInit) {
+  let currentUrl = new URL(url);
+  await validatePublicHost(currentUrl);
+
+  if (options?.redirect === "manual") {
+    return fetchOnceWithTimeout(currentUrl.toString(), options);
+  }
+
+  for (let redirectCount = 0; redirectCount <= MAX_SAFE_REDIRECTS; redirectCount++) {
+    const response = await fetchOnceWithTimeout(currentUrl.toString(), options);
+
+    if (!isRedirectStatus(response.status)) {
+      return response;
+    }
+
+    const location = response.headers.get("location");
+
+    if (!location) {
+      return response;
+    }
+
+    const nextUrl = new URL(location, currentUrl);
+    await validatePublicHost(nextUrl);
+    currentUrl = nextUrl;
+  }
+
+  throw new Error("Too many redirects while checking website");
 }
 
 async function pageExists(baseUrl: URL, path: string) {

@@ -16,7 +16,12 @@ const scanSchema = z.object({
   websiteId: z.string().uuid().optional(),
 });
 
-const TEMP_DEV_FREE_SCAN_LIMIT = 999;
+const PLAN_SCAN_LIMITS: Record<string, number> = {
+  free: 3,
+  starter: 20,
+  growth: 100,
+  agency: 500,
+};
 
 function mergedRiskLevel(
   baseRisk: string,
@@ -89,20 +94,30 @@ export async function POST(request: Request) {
       .select("plan")
       .eq("id", user.id)
       .single();
+    const plan = profile?.plan || "free";
+    const scanLimit = PLAN_SCAN_LIMITS[plan] ?? PLAN_SCAN_LIMITS.free;
+    const windowStart = new Date();
+
+    if (plan === "free") {
+      windowStart.setHours(0, 0, 0, 0);
+    } else {
+      windowStart.setDate(1);
+      windowStart.setHours(0, 0, 0, 0);
+    }
 
     const { count } = await supabase
       .from("scans")
       .select("id", { count: "exact", head: true })
-      .eq("user_id", user.id);
+      .eq("user_id", user.id)
+      .gte("created_at", windowStart.toISOString());
 
-    if (
-      (profile?.plan || "free") === "free" &&
-      (count || 0) >= TEMP_DEV_FREE_SCAN_LIMIT
-    ) {
+    if ((count || 0) >= scanLimit) {
       return NextResponse.json(
         {
           error:
-            "Temporary free development limit reached. Razorpay paid limits will be added at the end.",
+            plan === "free"
+              ? "Free daily scan limit reached. Please try again tomorrow or upgrade."
+              : "Monthly scan limit reached for your current plan.",
         },
         { status: 402 },
       );
