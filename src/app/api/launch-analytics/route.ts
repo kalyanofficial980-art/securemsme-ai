@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { normalizeAnalyticsInput } from "@/lib/seo-launch-analytics-engine";
 import { createClient } from "@/lib/supabase/server";
+import { enforceRateLimit } from "@/lib/security/request-guard";
 
 export async function POST(request: NextRequest) {
+  const rateLimited = enforceRateLimit(request, "launch-analytics", 60, 60_000);
+  if (rateLimited) return rateLimited;
+
   try {
     const body = await request.json().catch(() => ({}));
     const normalized = normalizeAnalyticsInput({

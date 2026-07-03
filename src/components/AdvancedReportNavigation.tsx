@@ -93,38 +93,7 @@ const productLinks: NavItem[] = [
   },
 ];
 
-const adminLinks: NavItem[] = [
-  {
-    label: "Final Launch Ops",
-    description: "Checklist, beta and manual queue",
-    href: () => `/admin/launch-ops`,
-  },
-  {
-    label: "Lead CRM",
-    description: "Demo/support leads and export",
-    href: () => `/admin/lead-crm`,
-  },
-  {
-    label: "Support Inbox",
-    description: "Tickets and reply drafts",
-    href: () => `/admin/support-inbox`,
-  },
-  {
-    label: "Abuse Protection",
-    description: "Public form monitoring",
-    href: () => `/admin/abuse-protection`,
-  },
-  {
-    label: "Launch Analytics",
-    description: "SEO and event analytics",
-    href: () => `/admin/launch-analytics`,
-  },
-  {
-    label: "Demo Funnel",
-    description: "Demo request management",
-    href: () => `/admin/demo-funnel`,
-  },
-];
+const adminLinks: NavItem[] = [];
 
 function NavCard({
   item,
@@ -187,12 +156,12 @@ export function AdvancedReportNavigation({
           </p>
           <h2 className="mt-2 text-3xl font-black">SecureMSME AI navigation</h2>
           <p className="mt-3 max-w-3xl leading-7 text-slate-600">
-            Customer journey, security workflow and admin operations in one
+            Customer journey and security workflow in one
             clean structure.
           </p>
         </div>
         <Link
-          href="/admin/launch-ops"
+          href="/dashboard"
           className="rounded-full bg-slate-950 px-6 py-3 text-sm font-black text-white hover:bg-slate-800"
         >
           Launch ops
@@ -219,16 +188,16 @@ export function AdvancedReportNavigation({
             ))}
           </div>
         </div>
-        <details className="rounded-3xl border border-slate-200 bg-slate-50 p-6">
-          <summary className="cursor-pointer font-black">
-            Admin operations
-          </summary>
-          <div className="mt-5 grid gap-4 md:grid-cols-3">
-            {adminLinks.map((item) => (
-              <NavCard key={item.label} item={item} scanId={scanId} />
-            ))}
-          </div>
-        </details>
+        {adminLinks.length ? (
+          <details className="rounded-3xl border border-slate-200 bg-slate-50 p-6">
+            <summary className="cursor-pointer font-black">Admin operations</summary>
+            <div className="mt-5 grid gap-4 md:grid-cols-3">
+              {adminLinks.map((item) => (
+                <NavCard key={item.label} item={item} scanId={scanId} />
+              ))}
+            </div>
+          </details>
+        ) : null}
       </div>
     </section>
   );

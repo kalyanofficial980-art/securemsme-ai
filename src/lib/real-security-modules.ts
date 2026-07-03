@@ -2,6 +2,7 @@ import dns from "node:dns/promises";
 import net from "node:net";
 import tls from "node:tls";
 import type { PentestIntensity } from "@/lib/authorized-pentest-engine";
+import { validatePublicHttpUrl } from "@/lib/security/ssrf";
 
 export type RealModuleSeverity =
   "Critical" | "High" | "Medium" | "Low" | "Info";
@@ -207,6 +208,7 @@ async function runHttpSecurityModule(url: URL): Promise<RealModuleResult> {
   const timeout = setTimeout(() => controller.abort(), 10_000);
 
   try {
+    await validatePublicHttpUrl(target);
     const response = await fetch(target, {
       method: "GET",
       redirect: "manual",

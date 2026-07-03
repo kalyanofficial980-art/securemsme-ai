@@ -8,6 +8,8 @@ import { calculateScore } from "@/lib/score";
 import { createClient } from "@/lib/supabase/server";
 import { runVulnerabilityIntelligence } from "@/lib/vulnerability-intelligence";
 import { getWebsiteNameFromUrl } from "@/lib/websites";
+import { enforceRateLimit } from "@/lib/security/request-guard";
+import { validatePublicHttpUrl } from "@/lib/security/ssrf";
 
 export const runtime = "nodejs";
 
@@ -34,6 +36,9 @@ function mergedRiskLevel(
 }
 
 export async function POST(request: Request) {
+  const rateLimited = enforceRateLimit(request, "scan-api", 10, 60_000);
+  if (rateLimited) return rateLimited;
+
   try {
     const supabase = await createClient();
 
@@ -88,6 +93,8 @@ export async function POST(request: Request) {
         { status: 400 },
       );
     }
+
+    await validatePublicHttpUrl(websiteUrl);
 
     const { data: profile } = await supabase
       .from("profiles")

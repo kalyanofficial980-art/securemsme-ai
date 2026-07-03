@@ -4,6 +4,7 @@ import type {
   EngineIntensity,
   VulnerabilitySeed,
 } from "@/lib/international-security-engine";
+import { validatePublicHttpUrl } from "@/lib/security/ssrf";
 
 export type AuthExecutionMode =
   | "metadata-only"
@@ -413,6 +414,7 @@ async function fetchAuthenticatedMetadata(input: {
   const timeout = setTimeout(() => controller.abort(), 8_000);
 
   try {
+    await validatePublicHttpUrl(input.url.toString());
     const response = await fetch(input.url.toString(), {
       method: "GET",
       redirect: "manual",

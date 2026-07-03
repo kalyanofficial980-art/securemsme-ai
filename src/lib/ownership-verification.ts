@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
 import { resolveTxt } from "node:dns/promises";
+import { validatePublicHttpUrl } from "@/lib/security/ssrf";
 
 export type VerificationMethod = "dns_txt" | "html_file" | "meta_tag";
 
@@ -68,6 +69,7 @@ async function safeFetchText(url: string) {
   const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
 
   try {
+    await validatePublicHttpUrl(url);
     const response = await fetch(url, {
       method: "GET",
       redirect: "follow",

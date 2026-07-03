@@ -1,3 +1,4 @@
+import { validatePublicHttpUrl } from "@/lib/security/ssrf";
 export type InbuiltAuditStatus = "pass" | "warning" | "fail" | "info";
 export type InbuiltAuditSeverity =
   "Critical" | "High" | "Medium" | "Low" | "Info";
@@ -95,6 +96,7 @@ async function safeFetch(url: string): Promise<FetchResult> {
   const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
 
   try {
+    await validatePublicHttpUrl(url);
     const response = await fetch(url, {
       method: "GET",
       redirect: "follow",

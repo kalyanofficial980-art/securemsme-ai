@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { validatePublicHttpUrl } from "@/lib/security/ssrf";
 
 export type CrawlerMode = "safe-light" | "safe-standard" | "safe-deep";
 
@@ -509,6 +510,7 @@ async function safeFetch(url: URL) {
   const timeout = setTimeout(() => controller.abort(), 10_000);
 
   try {
+    await validatePublicHttpUrl(url.toString());
     const response = await fetch(url.toString(), {
       method: "GET",
       redirect: "manual",

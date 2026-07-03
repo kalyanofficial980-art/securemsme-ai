@@ -1,5 +1,6 @@
 import dns from "node:dns/promises";
 import type { PentestIntensity } from "@/lib/authorized-pentest-engine";
+import { validatePublicHttpUrl } from "@/lib/security/ssrf";
 
 export type CmsSeverity = "Critical" | "High" | "Medium" | "Low" | "Info";
 export type CmsStatus =
@@ -199,6 +200,7 @@ async function fetchObservation(input: {
   const timeout = setTimeout(() => controller.abort(), 8_000);
 
   try {
+    await validatePublicHttpUrl(url.toString());
     const response = await fetch(url.toString(), {
       method,
       redirect: "manual",

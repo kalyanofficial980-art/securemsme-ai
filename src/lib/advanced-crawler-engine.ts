@@ -4,6 +4,7 @@ import type {
   EngineEvidenceSeed,
   VulnerabilitySeed,
 } from "@/lib/international-security-engine";
+import { validatePublicHttpUrl } from "@/lib/security/ssrf";
 
 export type AttackSurfaceItemType =
   | "route"
@@ -392,6 +393,7 @@ async function fetchPage(url: URL, maxBodyReadBytes: number) {
   const timeout = setTimeout(() => controller.abort(), 10_000);
 
   try {
+    await validatePublicHttpUrl(url.toString());
     const response = await fetch(url.toString(), {
       method: "GET",
       redirect: "manual",

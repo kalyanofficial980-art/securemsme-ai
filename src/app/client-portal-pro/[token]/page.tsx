@@ -2,6 +2,18 @@ import { notFound } from "next/navigation";
 import { Navbar } from "@/components/Navbar";
 import { createClient } from "@/lib/supabase/server";
 
+type PortalSection = {
+  id: string;
+  title: string;
+  section_type: string;
+  display_order: number;
+  status_label: string;
+  body: string;
+  evidence_summary: string;
+  action_summary: string;
+  blocked_claim: string;
+};
+
 function badgeClass(value: string) {
   if (
     ["Ready", "active"].includes(value) ||
@@ -21,23 +33,16 @@ export default async function ClientPortalProSharePage({
 }) {
   const { token } = await params;
   const supabase = (await createClient()) as any;
-  const { data: link } = await supabase
-    .from("client_portal_pro_links_v2")
-    .select(
-      "id, target_url, status, executive_score, report_readiness_score, fix_progress_score, retest_pass_rate, client_readiness_score, portal_summary, limitations_summary, expires_at",
-    )
-    .eq("share_token", token)
-    .eq("status", "active")
-    .gt("expires_at", new Date().toISOString())
-    .single();
-  if (!link) notFound();
-  const { data: sections } = await supabase
-    .from("client_portal_pro_sections_v2")
-    .select(
-      "id, title, section_type, display_order, status_label, body, evidence_summary, action_summary, blocked_claim",
-    )
-    .eq("link_id", link.id)
-    .order("display_order", { ascending: true });
+  const { data: portal, error } = await supabase
+    .rpc("get_client_portal_pro_link", { public_token: token })
+    .maybeSingle();
+
+  if (error || !portal) notFound();
+
+  const sections = ((portal.sections || []) as PortalSection[]).sort(
+    (a, b) => (a.display_order || 0) - (b.display_order || 0),
+  );
+
   return (
     <main className="min-h-screen bg-slate-50 text-slate-950">
       <Navbar />
@@ -48,19 +53,19 @@ export default async function ClientPortalProSharePage({
             Client Security Progress Portal
           </h1>
           <p className="mt-4 max-w-3xl break-all leading-8 text-blue-900">
-            {link.target_url}
+            {portal.target_url}
           </p>
           <p className="mt-4 max-w-4xl leading-8 text-blue-900">
-            {link.portal_summary}
+            {portal.portal_summary}
           </p>
         </div>
         <div className="mt-8 grid gap-4 md:grid-cols-5">
           {[
-            ["Executive", link.executive_score],
-            ["Report", link.report_readiness_score],
-            ["Fix", link.fix_progress_score],
-            ["Retest", link.retest_pass_rate],
-            ["Client", link.client_readiness_score],
+            ["Executive", portal.executive_score],
+            ["Report", portal.report_readiness_score],
+            ["Fix", portal.fix_progress_score],
+            ["Retest", portal.retest_pass_rate],
+            ["Client", portal.client_readiness_score],
           ].map(([label, score]) => (
             <div
               key={String(label)}
@@ -72,7 +77,7 @@ export default async function ClientPortalProSharePage({
                 <div
                   className="h-full rounded-full bg-slate-950"
                   style={{
-                    width: `${Math.max(3, Math.min(100, Number(score)))}%`,
+                    width: Math.max(3, Math.min(100, Number(score))) + "%",
                   }}
                 />
               </div>
@@ -80,7 +85,7 @@ export default async function ClientPortalProSharePage({
           ))}
         </div>
         <div className="mt-8 grid gap-5">
-          {(sections || []).map((section: any) => (
+          {sections.map((section) => (
             <div
               key={section.id}
               className="rounded-3xl border border-slate-200 bg-white p-8"
@@ -93,7 +98,7 @@ export default async function ClientPortalProSharePage({
                   <h2 className="mt-2 text-2xl font-black">{section.title}</h2>
                 </div>
                 <span
-                  className={`rounded-full px-3 py-1 text-xs font-black ${badgeClass(section.status_label)}`}
+                  className={"rounded-full px-3 py-1 text-xs font-black " + badgeClass(section.status_label)}
                 >
                   {section.status_label}
                 </span>
@@ -121,6 +126,9 @@ export default async function ClientPortalProSharePage({
         <div className="mt-8 rounded-3xl border border-amber-200 bg-amber-50 p-6 text-sm font-bold leading-7 text-amber-950">
           This portal is not a legal compliance certificate and does not
           guarantee that every vulnerability was found or fixed.
+          <span className="mt-2 block">
+            Link expires: {new Date(portal.expires_at).toLocaleString()}
+          </span>
         </div>
       </section>
     </main>

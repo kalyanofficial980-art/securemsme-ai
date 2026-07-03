@@ -1,5 +1,6 @@
 import dns from "node:dns/promises";
 import type { PentestIntensity } from "@/lib/authorized-pentest-engine";
+import { validatePublicHttpUrl } from "@/lib/security/ssrf";
 
 export type RealTemplateSeverity =
   "Critical" | "High" | "Medium" | "Low" | "Info";
@@ -359,6 +360,7 @@ async function fetchObservation(
   const timeout = setTimeout(() => controller.abort(), 8_000);
 
   try {
+    await validatePublicHttpUrl(url.toString());
     const response = await fetch(url.toString(), {
       method: template.method,
       redirect: "manual",

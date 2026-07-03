@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { validatePublicHttpUrl } from "@/lib/security/ssrf";
 
 export type ApiReviewMode = "safe-light" | "safe-standard" | "safe-deep";
 export type ApiSpecType =
@@ -275,6 +276,7 @@ async function safeFetch(url: URL) {
   const timeout = setTimeout(() => controller.abort(), 10_000);
 
   try {
+    await validatePublicHttpUrl(url.toString());
     const response = await fetch(url.toString(), {
       method: "GET",
       redirect: "manual",

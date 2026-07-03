@@ -4,6 +4,7 @@ import type {
   EngineIntensity,
   VulnerabilitySeed,
 } from "@/lib/international-security-engine";
+import { validatePublicHttpUrl } from "@/lib/security/ssrf";
 
 export type ApiHttpMethod =
   "GET" | "POST" | "PUT" | "PATCH" | "DELETE" | "HEAD" | "OPTIONS" | "UNKNOWN";
@@ -232,6 +233,7 @@ async function fetchDoc(url: URL) {
   const timeout = setTimeout(() => controller.abort(), 8_000);
 
   try {
+    await validatePublicHttpUrl(url.toString());
     const response = await fetch(url.toString(), {
       method: "GET",
       redirect: "manual",

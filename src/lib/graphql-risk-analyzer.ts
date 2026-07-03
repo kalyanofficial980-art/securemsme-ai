@@ -4,6 +4,7 @@ import type {
   EngineIntensity,
   VulnerabilitySeed,
 } from "@/lib/international-security-engine";
+import { validatePublicHttpUrl } from "@/lib/security/ssrf";
 
 export type GraphqlEndpointObservation = {
   url: string;
@@ -261,6 +262,7 @@ async function fetchEndpointMetadata(url: URL, maxBodyReadBytes: number) {
   const timeout = setTimeout(() => controller.abort(), 8_000);
 
   try {
+    await validatePublicHttpUrl(url.toString());
     const response = await fetch(url.toString(), {
       method: "GET",
       redirect: "manual",

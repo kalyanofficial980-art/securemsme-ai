@@ -4,6 +4,7 @@ import type {
   EngineIntensity,
   VulnerabilitySeed,
 } from "@/lib/international-security-engine";
+import { validatePublicHttpUrl } from "@/lib/security/ssrf";
 
 export type AccessControlComparisonMode =
   "low-privilege-metadata" | "dual-role-metadata";
@@ -447,6 +448,7 @@ async function fetchMetadata(input: {
   const timeout = setTimeout(() => controller.abort(), 8_000);
 
   try {
+    await validatePublicHttpUrl(input.url.toString());
     const response = await fetch(input.url.toString(), {
       method: "GET",
       redirect: "manual",
