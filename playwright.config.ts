@@ -5,7 +5,7 @@ export default defineConfig({
   workers: 1,
   testDir: "./tests/e2e",
   timeout: 90_000,
-  retries: 1,
+  retries: 0,
   use: {
     baseURL: "http://127.0.0.1:3000",
     trace: "on-first-retry",
@@ -24,3 +24,4 @@ export default defineConfig({
     },
   ],
 });
+
