@@ -463,15 +463,102 @@ export async function scanWebsite(inputUrl: string): Promise<ScanReport> {
   await validatePublicHost(url);
 
   const startedAt = Date.now();
-  const response = await fetchWithTimeout(url.toString(), { method: "GET" });
-  const responseTimeMs = Date.now() - startedAt;
-
+  let response: Response | null = null;
+  let responseTimeMs = 0;
   const headers: Record<string, string> = {};
-  response.headers.forEach((value, key) => {
-    headers[key.toLowerCase()] = value;
-  });
+
+  try {
+    response = await fetchWithTimeout(url.toString(), { method: "GET" });
+    responseTimeMs = Date.now() - startedAt;
+
+    response.headers.forEach((value, key) => {
+      headers[key.toLowerCase()] = value;
+    });
+  } catch {
+    responseTimeMs = Date.now() - startedAt;
+  }
 
   const findings: ScanFinding[] = [];
+
+  if (!response) {
+    const httpsPass = url.protocol === "https:";
+    const sslInfo =
+      url.protocol === "https:" ? await getSslCertificate(url.hostname) : null;
+    const emailSecurity = await checkEmailSecurity(url.hostname);
+    const httpsRedirect = await checkHttpsRedirect(url);
+
+    findings.push({
+      name: "Homepage reachability",
+      status: "warning",
+      message:
+        "The homepage could not be fetched from the scanner server, so this limited report uses safe passive checks only.",
+      points: 0,
+      maxPoints: 10,
+    });
+
+    findings.push({
+      name: "HTTPS / SSL",
+      status: httpsPass ? "pass" : "fail",
+      message: httpsPass
+        ? "Website is using HTTPS."
+        : "Website is not using HTTPS. Customers may not trust it.",
+      points: httpsPass ? 10 : 0,
+      maxPoints: 10,
+    });
+
+    findings.push({
+      name: "MX records",
+      status: emailSecurity.mxRecords.length > 0 ? "pass" : "warning",
+      message:
+        emailSecurity.mxRecords.length > 0
+          ? `${emailSecurity.mxRecords.length} mail exchange record(s) found for ${emailSecurity.domain}.`
+          : `No MX records found for ${emailSecurity.domain}. Business email may not be configured.`,
+      points: emailSecurity.mxRecords.length > 0 ? 10 : 3,
+      maxPoints: 10,
+    });
+
+    findings.push({
+      name: "SPF record",
+      status: emailSecurity.spfRecord ? "pass" : "warning",
+      message: emailSecurity.spfRecord
+        ? "SPF record found. This helps reduce email spoofing."
+        : "SPF record was not found. Add SPF to reduce email spoofing risk.",
+      points: emailSecurity.spfRecord ? 15 : 4,
+      maxPoints: 15,
+    });
+
+    findings.push({
+      name: "DMARC record",
+      status: emailSecurity.dmarcRecord ? "pass" : "fail",
+      message: emailSecurity.dmarcRecord
+        ? "DMARC record found."
+        : "DMARC record was not found. Add DMARC to protect business email identity.",
+      points: emailSecurity.dmarcRecord ? 15 : 0,
+      maxPoints: 15,
+    });
+
+    return {
+      url: inputUrl,
+      normalizedUrl: url.toString(),
+      checkedAt: new Date().toISOString(),
+      findings,
+      raw: {
+        responseTimeMs,
+        ssl: sslInfo ?? undefined,
+        httpsRedirect,
+        emailSecurity,
+        hygiene: {
+          robotsTxt: false,
+          sitemapXml: false,
+          securityTxt: false,
+          sensitiveFiles: [],
+          mixedContentCount: 0,
+          cookieCount: 0,
+          insecureCookieCount: 0,
+        },
+      },
+    };
+  }
 
   const httpsPass = url.protocol === "https:";
   findings.push({
