@@ -243,6 +243,12 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ scan });
   } catch (error) {
+    console.error("scan route failed", {
+      route: "./src/app/api/scan/route.ts",
+      name: error instanceof Error ? error.name : "UnknownError",
+      message: error instanceof Error ? error.message : String(error),
+    });
+
     const message = toSafeScanErrorMessage(
       error,
       "Scan could not be completed safely. Please check the website URL and try again.",
