@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toClientSafeScanError } from "@/lib/security/scan-error";
 
 type RescanButtonProps = {
   websiteId: string;
@@ -26,7 +27,7 @@ export function RescanButton({
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.error || "Rescan failed.");
+        setError(toClientSafeScanError(data.error));
         return;
       }
 

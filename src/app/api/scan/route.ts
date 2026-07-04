@@ -1,3 +1,4 @@
+import { toSafeScanErrorMessage } from "@/lib/security/scan-error";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { buildAdvancedSecurityAudit } from "@/lib/advanced-security-audit";
@@ -242,10 +243,10 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ scan });
   } catch (error) {
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Something went wrong while scanning.";
+    const message = toSafeScanErrorMessage(
+      error,
+      "Scan could not be completed safely. Please check the website URL and try again.",
+    );
 
     return NextResponse.json({ error: message }, { status: 500 });
   }

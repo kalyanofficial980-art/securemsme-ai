@@ -1,3 +1,4 @@
+import { toSafeScanErrorMessage } from "@/lib/security/scan-error";
 import type { NextRequest } from "next/server";
 import { buildAdvancedSecurityAudit } from "@/lib/advanced-security-audit";
 import { runInbuiltAdvancedAudit } from "@/lib/inbuilt-advanced-audit";
@@ -162,10 +163,10 @@ export async function POST(
 
     return Response.json({ scan });
   } catch (error) {
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Something went wrong while rescanning.";
+    const message = toSafeScanErrorMessage(
+      error,
+      "Rescan could not be completed safely. Please check the website URL and try again.",
+    );
 
     return Response.json({ error: message }, { status: 500 });
   }

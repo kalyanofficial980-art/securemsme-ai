@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { AdvancedReportNavigation } from "@/components/AdvancedReportNavigation";
 import { RiskBadge } from "@/components/RiskBadge";
+import { toClientSafeScanError } from "@/lib/security/scan-error";
 
 type WebsiteOption = {
   id: string;
@@ -45,31 +46,29 @@ export function ScanForm({
     setIsScanning(true);
 
     try {
+      const manualWebsiteUrl = websiteUrl.trim();
+
       const response = await fetch("/api/scan", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          websiteUrl: websiteId ? undefined : websiteUrl,
-          websiteId: websiteId || undefined,
+          websiteUrl: manualWebsiteUrl || undefined,
+          websiteId: manualWebsiteUrl ? undefined : websiteId || undefined,
         }),
       });
 
       const data = (await response.json()) as ScanResponse;
 
       if (!response.ok || !data.scan) {
-        setError(data.error || "Scan failed. Please try again.");
+        setError(toClientSafeScanError(data.error));
         return;
       }
 
       setResult(data.scan);
-    } catch (scanError) {
-      setError(
-        scanError instanceof Error
-          ? scanError.message
-          : "Scan failed. Please try again.",
-      );
+    } catch {
+      setError(toClientSafeScanError());
     } finally {
       setIsScanning(false);
     }
