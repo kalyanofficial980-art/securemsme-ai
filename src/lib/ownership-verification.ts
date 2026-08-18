@@ -18,6 +18,19 @@ export function buildVerificationToken() {
   return `securemsme_${crypto.randomBytes(18).toString("hex")}`;
 }
 
+export function buildBoundVerificationToken(
+  userId: string,
+  websiteId: string,
+) {
+  const digest = crypto
+    .createHash("sha256")
+    .update(`securemsme:v2:${userId}:${websiteId}`)
+    .digest("hex")
+    .slice(0, 36);
+
+  return `securemsme_${digest}`;
+}
+
 export function normalizeWebsiteUrl(input: string) {
   const trimmed = input.trim();
 

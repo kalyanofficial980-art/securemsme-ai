@@ -7,6 +7,11 @@ import { scanWebsite } from "@/lib/scanner";
 import { calculateScore } from "@/lib/score";
 import { createClient } from "@/lib/supabase/server";
 import { runVulnerabilityIntelligence } from "@/lib/vulnerability-intelligence";
+import {
+  buildBoundVerificationToken,
+  type VerificationMethod,
+  verifyWebsiteOwnership,
+} from "@/lib/ownership-verification";
 
 export const runtime = "nodejs";
 
@@ -45,7 +50,7 @@ export async function POST(
     const { data: website } = await supabase
       .from("websites")
       .select(
-        "id, url, scan_frequency, verification_status, verified_at, permission_attested_at, deep_scan_enabled",
+        "id, url, scan_frequency, verification_method, verification_status, verified_at, permission_attested_at, deep_scan_enabled",
       )
       .eq("id", id)
       .eq("user_id", user.id)
@@ -64,6 +69,39 @@ export async function POST(
         {
           error:
             "Deep scan locked. Verify website ownership and permission first.",
+        },
+        { status: 403 },
+      );
+    }
+
+    const verificationMethod: VerificationMethod =
+      website.verification_method === "html_file" ||
+      website.verification_method === "meta_tag"
+        ? website.verification_method
+        : "dns_txt";
+
+    const expectedToken = buildBoundVerificationToken(user.id, website.id);
+
+    const freshVerification = await verifyWebsiteOwnership({
+      websiteUrl: website.url,
+      token: expectedToken,
+      method: verificationMethod,
+    });
+
+    if (!freshVerification.verified) {
+      await supabase
+        .from("websites")
+        .update({
+          verification_status: "failed",
+          deep_scan_enabled: false,
+        })
+        .eq("id", website.id)
+        .eq("user_id", user.id);
+
+      return Response.json(
+        {
+          error:
+            "Ownership proof could not be confirmed. Re-verify the website before running a deep scan.",
         },
         { status: 403 },
       );

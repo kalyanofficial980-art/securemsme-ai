@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import {
   type VerificationMethod,
-  buildVerificationToken,
+  buildBoundVerificationToken,
   verifyWebsiteOwnership,
 } from "@/lib/ownership-verification";
 import { createClient } from "@/lib/supabase/server";
@@ -48,12 +48,13 @@ async function getOwnedWebsite(websiteId: string) {
 
 export async function rotateVerificationToken(formData: FormData) {
   const websiteId = String(formData.get("websiteId") || "");
-  const { supabase, website } = await getOwnedWebsite(websiteId);
+  const { supabase, user, website } = await getOwnedWebsite(websiteId);
+  const token = buildBoundVerificationToken(user.id, website.id);
 
   await supabase
     .from("websites")
     .update({
-      verification_token: buildVerificationToken(),
+      verification_token: token,
       verification_status: "unverified",
       verified_at: null,
       verified_by: null,
@@ -77,13 +78,21 @@ export async function verifyOwnershipAction(formData: FormData) {
   }
 
   const { supabase, user, website } = await getOwnedWebsite(websiteId);
-  const token = website.verification_token || buildVerificationToken();
+  const token = buildBoundVerificationToken(user.id, website.id);
 
-  if (!website.verification_token) {
+  if (website.verification_token !== token) {
     await supabase
       .from("websites")
-      .update({ verification_token: token })
-      .eq("id", website.id);
+      .update({
+        verification_token: token,
+        verification_status: "unverified",
+        verified_at: null,
+        verified_by: null,
+        permission_attested_at: null,
+        deep_scan_enabled: false,
+      })
+      .eq("id", website.id)
+      .eq("user_id", user.id);
   }
 
   const result = await verifyWebsiteOwnership({
