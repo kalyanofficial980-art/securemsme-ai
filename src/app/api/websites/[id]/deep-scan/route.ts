@@ -8,7 +8,6 @@ import { calculateScore } from "@/lib/score";
 import { createClient } from "@/lib/supabase/server";
 import { runVulnerabilityIntelligence } from "@/lib/vulnerability-intelligence";
 import {
-  buildBoundVerificationToken,
   type VerificationMethod,
   verifyWebsiteOwnership,
 } from "@/lib/ownership-verification";
@@ -21,9 +20,18 @@ function mergedRiskLevel(
   baseRisk: string,
   intelRisk: "Low" | "Medium" | "High" | "Critical",
 ) {
-  if (intelRisk === "Critical") return "High";
-  if (intelRisk === "High") return "High";
-  if (baseRisk === "High" || intelRisk === "Medium") return "Medium";
+  if (
+    baseRisk === "High" ||
+    intelRisk === "High" ||
+    intelRisk === "Critical"
+  ) {
+    return "High";
+  }
+
+  if (baseRisk === "Medium" || intelRisk === "Medium") {
+    return "Medium";
+  }
+
   return baseRisk;
 }
 
@@ -50,7 +58,7 @@ export async function POST(
     const { data: website } = await supabase
       .from("websites")
       .select(
-        "id, url, scan_frequency, verification_method, verification_status, verified_at, permission_attested_at, deep_scan_enabled",
+        "id, url, scan_frequency, verification_token, verification_method, verification_status, verified_at, permission_attested_at, deep_scan_enabled",
       )
       .eq("id", id)
       .eq("user_id", user.id)
@@ -80,11 +88,16 @@ export async function POST(
         ? website.verification_method
         : "dns_txt";
 
-    const expectedToken = buildBoundVerificationToken(user.id, website.id);
+    if (!website.verification_token) {
+      return Response.json(
+        { error: "Ownership verification token is missing. Re-verify this website." },
+        { status: 403 },
+      );
+    }
 
     const freshVerification = await verifyWebsiteOwnership({
       websiteUrl: website.url,
-      token: expectedToken,
+      token: website.verification_token,
       method: verificationMethod,
     });
 

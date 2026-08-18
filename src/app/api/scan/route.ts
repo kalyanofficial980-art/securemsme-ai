@@ -30,9 +30,18 @@ function mergedRiskLevel(
   baseRisk: string,
   intelRisk: "Low" | "Medium" | "High" | "Critical",
 ) {
-  if (intelRisk === "Critical") return "High";
-  if (intelRisk === "High") return "High";
-  if (baseRisk === "High" || intelRisk === "Medium") return "Medium";
+  if (
+    baseRisk === "High" ||
+    intelRisk === "High" ||
+    intelRisk === "Critical"
+  ) {
+    return "High";
+  }
+
+  if (baseRisk === "Medium" || intelRisk === "Medium") {
+    return "Medium";
+  }
+
   return baseRisk;
 }
 

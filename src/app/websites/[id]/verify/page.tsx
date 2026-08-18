@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { Navbar } from "@/components/Navbar";
 import { VerificationStatusBadge } from "@/components/VerificationStatusBadge";
 import {
-  buildBoundVerificationToken,
+  buildVerificationToken,
   getVerificationInstructions,
 } from "@/lib/ownership-verification";
 import { createClient } from "@/lib/supabase/server";
@@ -41,9 +41,11 @@ export default async function WebsiteVerifyPage({
     redirect("/websites?message=Website not found");
   }
 
-  const token = buildBoundVerificationToken(user.id, website.id);
+  let token = website.verification_token as string | null;
 
-  if (website.verification_token !== token) {
+  if (!token) {
+    token = buildVerificationToken();
+
     await supabase
       .from("websites")
       .update({

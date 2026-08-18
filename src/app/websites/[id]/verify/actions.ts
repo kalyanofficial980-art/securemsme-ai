@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import {
   type VerificationMethod,
-  buildBoundVerificationToken,
+  buildVerificationToken,
   verifyWebsiteOwnership,
 } from "@/lib/ownership-verification";
 import { createClient } from "@/lib/supabase/server";
@@ -48,8 +48,8 @@ async function getOwnedWebsite(websiteId: string) {
 
 export async function rotateVerificationToken(formData: FormData) {
   const websiteId = String(formData.get("websiteId") || "");
-  const { supabase, user, website } = await getOwnedWebsite(websiteId);
-  const token = buildBoundVerificationToken(user.id, website.id);
+  const { supabase, website } = await getOwnedWebsite(websiteId);
+  const token = buildVerificationToken();
 
   await supabase
     .from("websites")
@@ -78,9 +78,9 @@ export async function verifyOwnershipAction(formData: FormData) {
   }
 
   const { supabase, user, website } = await getOwnedWebsite(websiteId);
-  const token = buildBoundVerificationToken(user.id, website.id);
+  const token = website.verification_token || buildVerificationToken();
 
-  if (website.verification_token !== token) {
+  if (!website.verification_token) {
     await supabase
       .from("websites")
       .update({
