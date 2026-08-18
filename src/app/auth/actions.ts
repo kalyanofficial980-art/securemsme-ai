@@ -1,4 +1,4 @@
-﻿"use server";
+"use server";
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -7,6 +7,24 @@ import { createClient } from "@/lib/supabase/server";
 function getFormValue(formData: FormData, key: string) {
   const value = formData.get(key);
   return typeof value === "string" ? value.trim() : "";
+}
+
+function getAuthRedirectUrl() {
+  const configuredSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  const vercelUrl = process.env.NEXT_PUBLIC_VERCEL_URL?.trim();
+
+  const baseUrl =
+    configuredSiteUrl && !configuredSiteUrl.includes("localhost")
+      ? configuredSiteUrl
+      : vercelUrl
+        ? vercelUrl.startsWith("http")
+          ? vercelUrl
+          : `https://${vercelUrl}`
+        : "http://localhost:3000";
+
+  return `${baseUrl.replace(/\/$/, "")}/login?message=${encodeURIComponent(
+    "Email confirmed. Please login.",
+  )}`;
 }
 
 export async function signUp(formData: FormData) {
@@ -31,6 +49,7 @@ export async function signUp(formData: FormData) {
       data: {
         full_name: fullName,
       },
+      emailRedirectTo: getAuthRedirectUrl(),
     },
   });
 
@@ -39,7 +58,7 @@ export async function signUp(formData: FormData) {
   }
 
   revalidatePath("/", "layout");
-  redirect("/login?message=Signup successful. Now login.");
+  redirect("/login?message=Signup successful. Check your email to confirm your account.");
 }
 
 export async function signIn(formData: FormData) {
