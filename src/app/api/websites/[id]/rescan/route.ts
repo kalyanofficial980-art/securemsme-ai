@@ -8,6 +8,7 @@ import {
 } from "@/lib/billing/entitlements";
 import { runInbuiltAdvancedAudit } from "@/lib/inbuilt-advanced-audit";
 import { getNextScanDate } from "@/lib/monitoring";
+import { applyReportAccuracyPolicy } from "@/lib/report-accuracy-policy";
 import { normalizeScanReport } from "@/lib/report-normalization";
 import { buildRetestComparison } from "@/lib/retest-comparison";
 import { scanWebsite } from "@/lib/scanner";
@@ -92,12 +93,19 @@ export async function POST(
       .limit(1)
       .maybeSingle();
 
-    const report = await scanWebsite(website.url);
-    const [inbuiltAdvancedAudit, vulnerabilityIntelligence] =
+    const rawReport = await scanWebsite(website.url);
+    const [rawInbuiltAdvancedAudit, vulnerabilityIntelligence] =
       await Promise.all([
-        runInbuiltAdvancedAudit(report.normalizedUrl),
-        runVulnerabilityIntelligence(report.normalizedUrl),
+        runInbuiltAdvancedAudit(rawReport.normalizedUrl),
+        runVulnerabilityIntelligence(rawReport.normalizedUrl),
       ]);
+
+    const accuracyResult = await applyReportAccuracyPolicy(
+      rawReport,
+      rawInbuiltAdvancedAudit,
+    );
+    const report = accuracyResult.report;
+    const inbuiltAdvancedAudit = accuracyResult.inbuiltAdvancedAudit;
 
     const normalizedReport = normalizeScanReport(
       report,
