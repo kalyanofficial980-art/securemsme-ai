@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { siteUrl } from "@/lib/seo-launch-analytics-engine";
+import { publicSiteUrl } from "@/lib/public-site-url";
 
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -27,7 +27,7 @@ export default function robots(): MetadataRoute.Robots {
         ],
       },
     ],
-    sitemap: `${siteUrl.replace(/\/$/, "")}/sitemap.xml`,
-    host: siteUrl.replace(/\/$/, ""),
+    sitemap: `${publicSiteUrl}/sitemap.xml`,
+    host: publicSiteUrl,
   };
 }
