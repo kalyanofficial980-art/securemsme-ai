@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import { Navbar } from "@/components/Navbar";
 import { signUp } from "@/app/auth/actions";
 
@@ -20,7 +20,7 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
         <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
           <h1 className="text-3xl font-black">Create account</h1>
           <p className="mt-2 text-slate-600">
-            Start your free SecureMSME AI account.
+            Start your free VeyraSec account.
           </p>
 
           {message ? (
@@ -33,6 +33,7 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
             <input
               name="fullName"
               type="text"
+              autoComplete="name"
               className="w-full rounded-2xl border border-slate-300 px-4 py-3"
               placeholder="Full name"
             />
@@ -40,6 +41,7 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
             <input
               name="email"
               type="email"
+              autoComplete="email"
               required
               className="w-full rounded-2xl border border-slate-300 px-4 py-3"
               placeholder="Email address"
@@ -48,10 +50,11 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
             <input
               name="password"
               type="password"
+              autoComplete="new-password"
               required
-              minLength={6}
+              minLength={8}
               className="w-full rounded-2xl border border-slate-300 px-4 py-3"
-              placeholder="Password minimum 6 characters"
+              placeholder="Password minimum 8 characters"
             />
 
             <button className="w-full rounded-full bg-slate-950 px-4 py-3 font-bold text-white hover:bg-slate-800">
@@ -59,8 +62,13 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
             </button>
           </form>
 
+          <p className="mt-4 text-xs leading-5 text-slate-500">
+            We will send a confirmation email. You must confirm the address before
+            signing in.
+          </p>
+
           <p className="mt-6 text-center text-sm text-slate-600">
-            Already have account?{" "}
+            Already have an account?{" "}
             <Link href="/login" className="font-bold text-slate-950 underline">
               Login
             </Link>
