@@ -1,36 +1,59 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# VeyraSec
 
-## Getting Started
+VeyraSec is a website security review workflow for agencies and small teams. It turns safe public website checks into prioritized findings, developer-ready remediation guidance, ownership-gated deeper review, and retest evidence.
 
-First, run the development server:
+## Core workflow
+
+1. Add a website.
+2. Run safe public checks.
+3. Review prioritized findings and evidence.
+4. Verify ownership or authorization before deeper workflows.
+5. Apply fixes and retest to document improvement.
+
+## Product capabilities
+
+- Safe public website security checks
+- HTTPS, TLS, security-header and exposure review
+- Email-security posture checks
+- Website hygiene and public-file checks
+- Ownership verification by DNS, HTML file, or meta tag
+- Client-facing reports and developer fix roadmaps
+- Scan history and monitoring-ready website records
+- Google OAuth authentication through Supabase
+- Server-side plan and scan-limit enforcement
+- Assisted monthly paid-plan activation for the initial launch
+
+## Safety boundary
+
+Standard VeyraSec workflows are designed for authorized defensive review. They do not use brute force, login bypass, destructive exploitation, or private-data access. Deeper workflows require verified ownership or explicit authorization.
+
+## Stack
+
+- Next.js / TypeScript
+- Supabase authentication and PostgreSQL
+- Vercel deployment
+- Vitest / Playwright test coverage
+
+## Local development
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Run validation before merging:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm test
+npm run build
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Environment-specific secrets must stay outside the repository and be configured through the deployment environment.
 
-## Learn More
+## Launch status
 
-To learn more about Next.js, take a look at the following resources:
+The current launch path uses Google sign-in, safe/ownership-gated scanning, client-ready reporting, and assisted monthly plan activation. Self-serve recurring gateway billing can be enabled later after payment-provider onboarding and production verification.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Responsible use
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Only scan websites you own, manage, or are authorized to assess. See the in-product Trust, Terms, Privacy, Acceptable Use, and Responsible Disclosure pages for customer-facing policies.
