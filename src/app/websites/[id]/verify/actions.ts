@@ -48,7 +48,7 @@ async function getOwnedWebsite(websiteId: string) {
 
 export async function rotateVerificationToken(formData: FormData) {
   const websiteId = String(formData.get("websiteId") || "");
-  const { supabase, website } = await getOwnedWebsite(websiteId);
+  const { supabase, user, website } = await getOwnedWebsite(websiteId);
   const token = buildVerificationToken();
 
   await supabase
@@ -61,8 +61,10 @@ export async function rotateVerificationToken(formData: FormData) {
       permission_attested_at: null,
       deep_scan_enabled: false,
     })
-    .eq("id", website.id);
+    .eq("id", website.id)
+    .eq("user_id", user.id);
 
+  revalidatePath(`/websites/${website.id}`);
   revalidatePath(`/websites/${website.id}/verify`);
 }
 
@@ -107,9 +109,13 @@ export async function verifyOwnershipAction(formData: FormData) {
       .update({
         verification_method: method,
         verification_status: "failed",
+        verified_at: null,
+        verified_by: null,
+        permission_attested_at: null,
         deep_scan_enabled: false,
       })
-      .eq("id", website.id);
+      .eq("id", website.id)
+      .eq("user_id", user.id);
 
     redirect(
       `/websites/${website.id}/verify?message=${encodeURIComponent(result.evidence)}`,
@@ -126,7 +132,8 @@ export async function verifyOwnershipAction(formData: FormData) {
       permission_attested_at: new Date().toISOString(),
       deep_scan_enabled: true,
     })
-    .eq("id", website.id);
+    .eq("id", website.id)
+    .eq("user_id", user.id);
 
   revalidatePath(`/websites/${website.id}`);
   revalidatePath(`/websites/${website.id}/verify`);
