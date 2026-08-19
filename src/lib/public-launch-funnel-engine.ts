@@ -50,69 +50,72 @@ export const pricingPlans: PricingPlan[] = [
   {
     plan: "starter",
     name: "Starter",
-    priceLabel: "Manual billing",
+    priceLabel: "₹999/month",
     description:
-      "For first-time MSME security check and simple client-safe report.",
-    bestFor: "One website, first scan, beginner-friendly setup",
+      "For a small business that wants repeatable website checks, reports and retests without enterprise complexity.",
+    bestFor: "First paid security workflow",
     features: [
-      "Authorized website scan",
-      "Client-safe report",
-      "Basic developer fix checklist",
-      "Legal and authorization reminders",
+      "20 scans per month",
+      "Authorized website scans",
+      "Client-safe report and PDF",
+      "Fix checklist and retest comparison",
     ],
-    cta: "Start first scan",
-    safetyNote: "Best for safe first review. Not a compliance certificate.",
+    cta: "Subscribe to Starter",
+    safetyNote:
+      "Recurring monthly plan. Security review only; not a compliance certificate.",
   },
   {
     plan: "growth",
     name: "Growth",
-    priceLabel: "Manual billing",
+    priceLabel: "₹2,499/month",
     description:
-      "For businesses that need fixes, retest proof, monitoring and repo/cloud review.",
-    bestFor: "Growing business with developer workflow",
+      "For growing teams that need more scan capacity and ownership-verified deeper passive evidence.",
+    bestFor: "Developer remediation and repeated reviews",
     features: [
+      "100 scans per month",
       "Everything in Starter",
-      "AI Copilot over reports",
-      "Scheduled scans",
-      "Repo dependency/secrets review",
-      "Cloud config checklist",
+      "Ownership-verified deep passive scans",
+      "Technology and attack-surface evidence",
+      "Retest comparison history",
     ],
-    cta: "Request growth demo",
+    cta: "Subscribe to Growth",
     safetyNote:
-      "Security review with safe evidence, not a guarantee all issues are found.",
+      "Deep scans require current ownership proof and permission. No exploitation or destructive testing.",
   },
   {
     plan: "agency",
     name: "Agency",
-    priceLabel: "Manual billing",
-    description: "For agencies managing multiple client security workflows.",
-    bestFor: "Multi-client reporting and repeated reviews",
+    priceLabel: "₹6,999/month",
+    description:
+      "For agencies operating repeatable authorized security reviews across multiple client websites.",
+    bestFor: "High-volume client reporting workflow",
     features: [
-      "Multi-client workflow",
-      "Agency SOC views",
-      "Admin observability",
-      "Reusable client-safe reports",
-      "Manual payment approval",
+      "500 scans per month",
+      "Everything in Growth",
+      "Multi-website workflow",
+      "Reusable client-ready reports",
+      "Ownership and permission controls for client websites",
     ],
-    cta: "Request agency demo",
-    safetyNote: "Client scans require ownership or written permission.",
+    cta: "Subscribe to Agency",
+    safetyNote:
+      "Every client website still requires ownership or written permission before authorized deep scanning.",
   },
   {
     plan: "enterprise-review",
     name: "Enterprise Review",
-    priceLabel: "Contact support",
+    priceLabel: "Custom",
     description: "For larger teams that need manual review before onboarding.",
     bestFor: "Complex environments and custom review",
     features: [
       "Manual scoping",
       "Custom onboarding",
-      "Cloud/process checklist",
-      "Support workflow",
-      "Enterprise-safe messaging",
+      "Security workflow review",
+      "Support coordination",
+      "Enterprise-safe reporting",
     ],
     cta: "Contact support",
     safetyNote:
-      "Manual review is required before any enterprise security claim.",
+      "Manual review is required before any enterprise security or compliance claim.",
   },
 ];
 
@@ -197,7 +200,7 @@ export function pricingInterestReason(plan: PublicPlan, expectedUsage: string) {
   if (plan === "starter")
     return "Starter interest captured for first website scan and simple report workflow.";
   if (plan === "growth")
-    return "Growth interest captured for deeper remediation, monitoring, repo or cloud config workflow.";
+    return "Growth interest captured for deeper remediation and repeated authorized review workflow.";
   if (plan === "agency")
     return `Agency interest captured for ${expectedUsage} usage. Confirm client authorization workflow before launch.`;
   return "Enterprise review interest captured. Manual scoping is recommended before pricing or security claims.";
