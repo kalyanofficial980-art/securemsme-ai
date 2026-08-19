@@ -32,7 +32,7 @@ function getAuthBaseUrl() {
 }
 
 function getAuthRedirectUrl() {
-  return `${getAuthBaseUrl()}/dashboard`;
+  return `${getAuthBaseUrl()}/auth/confirm`;
 }
 
 function friendlyAuthMessage(message: string, flow: "signup" | "login") {
@@ -87,8 +87,7 @@ export async function signUp(formData: FormData) {
       data: {
         full_name: fullName,
       },
-      // The confirmation template should send the token hash to /auth/confirm
-      // and use this value as the post-confirmation destination.
+      // The Supabase confirmation template sends TokenHash to this endpoint.
       emailRedirectTo: getAuthRedirectUrl(),
     },
   });
