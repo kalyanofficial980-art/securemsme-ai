@@ -27,6 +27,10 @@ export function DeepScanButton({
 
       if (!response.ok || !data.scan?.id) {
         setError(data.error || "Deep scan failed.");
+        // A failed fresh ownership proof check can revoke verification and
+        // deep-scan access on the server. Refresh immediately so the badge,
+        // button state, and server-rendered website data cannot remain stale.
+        router.refresh();
         return;
       }
 
@@ -38,6 +42,7 @@ export function DeepScanButton({
           ? scanError.message
           : "Deep scan failed. Please try again.",
       );
+      router.refresh();
     } finally {
       setIsLoading(false);
     }
