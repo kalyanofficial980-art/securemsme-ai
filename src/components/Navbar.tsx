@@ -12,12 +12,23 @@ const primaryLinks = [
 export async function Navbar() {
   const supabase = await createClient();
   let userEmail: string | null = null;
+  let isAdmin = false;
 
   try {
     const {
       data: { user },
     } = await supabase.auth.getUser();
+
     userEmail = user?.email ?? null;
+
+    if (user) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .maybeSingle();
+      isAdmin = profile?.role === "admin";
+    }
   } catch (error) {
     console.warn("navbar auth lookup failed", {
       message: error instanceof Error ? error.message : "Unknown auth error",
@@ -41,14 +52,19 @@ export async function Navbar() {
             <Link
               key={href}
               href={href}
-              className="text-sm font-medium text-slate-600 hover:text-blue-700"
+              className="text-sm font-medium text-slate-600 transition-colors hover:text-blue-700"
             >
               {label}
             </Link>
           ))}
           {userEmail ? (
-            <Link href="/billing" className="text-sm font-medium text-slate-600 hover:text-blue-700">
+            <Link href="/billing" className="text-sm font-medium text-slate-600 transition-colors hover:text-blue-700">
               Billing
+            </Link>
+          ) : null}
+          {isAdmin ? (
+            <Link href="/admin" className="text-sm font-semibold text-slate-900 transition-colors hover:text-blue-700">
+              Admin
             </Link>
           ) : null}
         </div>
@@ -60,7 +76,7 @@ export async function Navbar() {
                 {userEmail}
               </span>
               <form action={signOut}>
-                <button className="rounded-md border border-slate-300 bg-white px-3.5 py-2 text-sm font-semibold text-slate-700 hover:border-slate-400 hover:bg-slate-50">
+                <button className="rounded-md border border-slate-300 bg-white px-3.5 py-2 text-sm font-semibold text-slate-700 transition-colors hover:border-slate-400 hover:bg-slate-50">
                   Log out
                 </button>
               </form>
@@ -81,28 +97,36 @@ export async function Navbar() {
           <summary className="flex h-9 w-9 cursor-pointer list-none items-center justify-center rounded-md border border-slate-300 bg-white text-base font-semibold text-slate-700">
             ≡
           </summary>
-          <div className="absolute right-0 mt-2 w-60 rounded-lg border border-slate-200 bg-white p-2 shadow-lg">
-            <div className="grid">
+          <div className="absolute right-0 mt-2 w-64 border border-slate-200 bg-white p-2 shadow-lg">
+            {userEmail ? (
+              <p className="truncate border-b border-slate-100 px-3 py-2 text-xs font-medium text-slate-500">{userEmail}</p>
+            ) : null}
+            <div className="grid py-1">
               {primaryLinks.map(([label, href]) => (
-                <Link key={href} href={href} className="rounded-md px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                <Link key={href} href={href} className="px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50">
                   {label}
                 </Link>
               ))}
               {userEmail ? (
-                <Link href="/billing" className="rounded-md px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                <Link href="/billing" className="px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50">
                   Billing
                 </Link>
               ) : null}
+              {isAdmin ? (
+                <Link href="/admin" className="px-3 py-2.5 text-sm font-semibold text-slate-950 hover:bg-slate-50">
+                  Admin
+                </Link>
+              ) : null}
             </div>
-            <div className="mt-2 border-t border-slate-100 pt-2">
+            <div className="border-t border-slate-100 pt-2">
               {userEmail ? (
                 <form action={signOut}>
-                  <button className="w-full rounded-md px-3 py-2.5 text-left text-sm font-medium text-slate-700 hover:bg-slate-50">
+                  <button className="w-full px-3 py-2.5 text-left text-sm font-medium text-slate-700 hover:bg-slate-50">
                     Log out
                   </button>
                 </form>
               ) : (
-                <Link href="/login" className="block rounded-md bg-blue-700 px-3 py-2.5 text-center text-sm font-semibold text-white">
+                <Link href="/login" className="block bg-blue-700 px-3 py-2.5 text-center text-sm font-semibold text-white">
                   Continue with Google
                 </Link>
               )}
