@@ -5,6 +5,7 @@ import { buildAdvancedSecurityAudit } from "@/lib/advanced-security-audit";
 import { normalizeAdvancedSecurityAudit } from "@/lib/advanced-audit-normalization";
 import { runInbuiltAdvancedAudit } from "@/lib/inbuilt-advanced-audit";
 import { getNextScanDate } from "@/lib/monitoring";
+import { applyReportAccuracyPolicy } from "@/lib/report-accuracy-policy";
 import { scanWebsite } from "@/lib/scanner";
 import { calculateScore } from "@/lib/score";
 import { normalizeScanReport } from "@/lib/report-normalization";
@@ -120,20 +121,26 @@ export async function POST(request: Request) {
       });
     };
 
-    const report = await scanWebsite(websiteUrl);
+    const rawReport = await scanWebsite(websiteUrl);
 
-    const [inbuiltAdvancedAudit, vulnerabilityIntelligence] =
+    const [rawInbuiltAdvancedAudit, vulnerabilityIntelligence] =
       await Promise.all([
-        runInbuiltAdvancedAudit(report.normalizedUrl),
-        runVulnerabilityIntelligence(report.normalizedUrl),
+        runInbuiltAdvancedAudit(rawReport.normalizedUrl),
+        runVulnerabilityIntelligence(rawReport.normalizedUrl),
       ]);
 
-    const normalizedReport = normalizeScanReport(
-      report,
+    const normalizedPublicReport = normalizeScanReport(
+      rawReport,
       vulnerabilityIntelligence,
     );
+    const accuracyResult = await applyReportAccuracyPolicy(
+      normalizedPublicReport,
+      rawInbuiltAdvancedAudit,
+    );
+    const report = accuracyResult.report;
+    const inbuiltAdvancedAudit = accuracyResult.inbuiltAdvancedAudit;
 
-    const scoreResult = calculateScore(normalizedReport);
+    const scoreResult = calculateScore(report);
     const canonicalRiskLevel: "Low" | "Medium" | "High" =
       scoreResult.severityCounts.critical > 0 || scoreResult.severityCounts.high > 0
         ? "High"
@@ -178,7 +185,7 @@ export async function POST(request: Request) {
     }
 
     const baseReport = {
-      ...normalizedReport,
+      ...report,
       findings: scoreResult.enhancedFindings,
       score: scoreResult.score,
       rawScore: scoreResult.rawScore,
