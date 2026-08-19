@@ -27,7 +27,6 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
   const savedWebsites = websites ?? [];
   const averageScore = latestScans.length ? Math.round(latestScans.reduce((total, scan) => total + Number(scan.score || 0), 0) / latestScans.length) : 0;
   const highRiskCount = latestScans.filter((scan) => scan.risk_level === "High").length;
-  const dueWebsites = savedWebsites.filter((website) => website.monitoring_enabled && website.next_scan_at && new Date(website.next_scan_at).getTime() <= Date.now());
   const activeMonitoringCount = savedWebsites.filter((website) => website.monitoring_enabled).length;
   const displayName = profile?.full_name || user.email?.split("@")[0] || "Workspace";
   const plan = profile?.plan || "free";
@@ -59,7 +58,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
             ["Websites", totalWebsites ?? 0, "Tracked assets"],
             ["Scans", totalScans ?? 0, "Reports generated"],
             ["Average score", averageScore || "—", latestScans.length ? "Recent scans" : "No scans yet"],
-            ["Due rescans", dueWebsites.length, dueWebsites.length ? "Needs review" : "Up to date"],
+            ["Monitoring", activeMonitoringCount, activeMonitoringCount ? "Active schedules" : "Not enabled"],
           ].map(([label, value, helper], index) => (
             <div key={label} className={`p-5 ${index < 3 ? "xl:border-r xl:border-slate-200" : ""} ${index % 2 === 0 ? "sm:border-r sm:border-slate-200 xl:border-r" : ""}`}>
               <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">{label}</p>
