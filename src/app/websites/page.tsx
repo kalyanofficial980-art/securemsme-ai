@@ -9,7 +9,13 @@ import { VerificationStatusBadge } from "@/components/VerificationStatusBadge";
 import { createClient } from "@/lib/supabase/server";
 import { formatDate } from "@/lib/monitoring";
 
-export default async function WebsitesPage() {
+type WebsitesPageProps = {
+  searchParams?: Promise<{ message?: string }>;
+};
+
+export default async function WebsitesPage({ searchParams }: WebsitesPageProps) {
+  const params = await searchParams;
+  const message = params?.message;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login?message=Please login to view websites");
@@ -20,22 +26,28 @@ export default async function WebsitesPage() {
   const scannedCount = savedWebsites.filter((website) => website.latest_scan_id).length;
 
   return (
-    <main className="min-h-screen bg-white text-slate-950">
+    <main className="min-h-screen bg-[#f6f8fb] text-slate-950">
       <Navbar />
       <section className="mx-auto max-w-7xl px-6 py-10">
-        <div className="flex flex-col justify-between gap-6 border-b border-slate-200 pb-8 lg:flex-row lg:items-end">
+        <div className="flex flex-col justify-between gap-6 border-b border-slate-300 pb-8 lg:flex-row lg:items-end">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.14em] text-blue-700">Asset inventory</p>
             <h1 className="mt-2 text-3xl font-semibold tracking-[-0.04em]">Websites</h1>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">Ownership, latest security posture, review cadence and retest actions in one place.</p>
           </div>
-          <div className="flex gap-2">
-            <Link href="/scan" className="border border-slate-300 px-4 py-2.5 text-sm font-semibold hover:bg-slate-50">Run scan</Link>
-            <Link href="/websites/new" className="bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700">Add website</Link>
+          <div className="flex flex-wrap gap-2">
+            <Link href="/scan" className="border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold hover:bg-slate-50">Run scan</Link>
+            <Link href="/websites/new" className="bg-blue-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-800">Add website</Link>
           </div>
         </div>
 
-        <div className="grid border-x border-b border-slate-200 sm:grid-cols-3">
+        {message ? (
+          <div className="mt-6 border-l-2 border-blue-700 bg-blue-50 px-4 py-3 text-sm font-medium text-blue-950">
+            {message}
+          </div>
+        ) : null}
+
+        <div className="grid border-x border-b border-slate-300 bg-white sm:grid-cols-3">
           {[["Saved", savedWebsites.length], ["Scanned", scannedCount], ["Verified", verifiedCount]].map(([label, value], index) => (
             <div key={label} className={`p-5 ${index < 2 ? "sm:border-r sm:border-slate-200" : ""}`}>
               <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">{label}</p>
@@ -45,7 +57,7 @@ export default async function WebsitesPage() {
         </div>
 
         {savedWebsites.length ? (
-          <div className="mt-8 divide-y divide-slate-200 border border-slate-200">
+          <div className="mt-8 divide-y divide-slate-200 border border-slate-300 bg-white">
             {savedWebsites.map((website) => {
               const deepScanUnlocked = website.verification_status === "verified" && website.deep_scan_enabled;
               return (
@@ -86,10 +98,10 @@ export default async function WebsitesPage() {
             })}
           </div>
         ) : (
-          <div className="mt-8 border border-dashed border-slate-300 p-10">
+          <div className="mt-8 border border-dashed border-slate-300 bg-white p-10">
             <h2 className="text-lg font-semibold">No websites saved</h2>
             <p className="mt-2 max-w-xl text-sm leading-6 text-slate-500">Add a public website to start a safe scan and create its security history.</p>
-            <Link href="/websites/new" className="mt-5 inline-flex bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white">Add first website</Link>
+            <Link href="/websites/new" className="mt-5 inline-flex bg-blue-700 px-4 py-2.5 text-sm font-semibold text-white">Add first website</Link>
           </div>
         )}
       </section>
