@@ -42,7 +42,8 @@ function getAuthBaseUrl() {
 }
 
 function getAuthRedirectUrl() {
-  return `${getAuthBaseUrl()}/auth/confirm`;
+  const message = encodeURIComponent("Email confirmed. Please login.");
+  return `${getAuthBaseUrl()}/login?message=${message}`;
 }
 
 function friendlyAuthMessage(message: string, flow: "signup" | "login") {
@@ -97,7 +98,8 @@ export async function signUp(formData: FormData) {
       data: {
         full_name: fullName,
       },
-      // The Supabase confirmation template sends TokenHash to this endpoint.
+      // Keep the default Supabase confirmation template. Supabase verifies the
+      // email first, then redirects the user back to our stable login URL.
       emailRedirectTo: getAuthRedirectUrl(),
     },
   });
