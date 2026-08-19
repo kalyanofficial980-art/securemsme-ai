@@ -1,6 +1,13 @@
 import Link from "next/link";
+import { signOut } from "@/app/auth/actions";
+import { createClient } from "@/lib/supabase/server";
 
-export function Navbar() {
+export async function Navbar() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   return (
     <header className="border-b border-slate-200 bg-white/90 backdrop-blur">
       <nav className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
@@ -21,19 +28,34 @@ export function Navbar() {
         </div>
 
         <div className="flex items-center gap-3">
-          <Link
-            href="/login"
-            className="rounded-full border border-slate-300 px-4 py-2 text-sm font-bold hover:bg-slate-100"
-          >
-            Login
-          </Link>
+          {user ? (
+            <>
+              <span className="hidden max-w-52 truncate text-sm font-bold text-slate-500 lg:inline">
+                {user.email}
+              </span>
+              <form action={signOut}>
+                <button className="rounded-full border border-slate-300 px-4 py-2 text-sm font-bold hover:bg-slate-100">
+                  Logout
+                </button>
+              </form>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                className="rounded-full border border-slate-300 px-4 py-2 text-sm font-bold hover:bg-slate-100"
+              >
+                Login
+              </Link>
 
-          <Link
-            href="/signup"
-            className="rounded-full bg-slate-950 px-4 py-2 text-sm font-bold text-white hover:bg-slate-800"
-          >
-            Start
-          </Link>
+              <Link
+                href="/signup"
+                className="rounded-full bg-slate-950 px-4 py-2 text-sm font-bold text-white hover:bg-slate-800"
+              >
+                Start free
+              </Link>
+            </>
+          )}
         </div>
       </nav>
     </header>
