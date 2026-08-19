@@ -74,7 +74,7 @@ export default async function InbuiltReportPage({
             href={`/report/${scan.id}/advanced`}
             className="rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-black hover:bg-slate-100"
           >
-            OWASP/ASVS report
+            OWASP/ASVS-aligned mapping
           </Link>
         </div>
 
@@ -82,7 +82,8 @@ export default async function InbuiltReportPage({
           <p className="font-black">Diagnostic module — not the overall score</p>
           <p className="mt-2 text-slate-600">
             Canonical customer score: {scan.score}/100 · {scan.risk_level}.
-            The module score below is supporting evidence only.
+            The module score below is supporting passive evidence only, not a
+            penetration test or certification.
           </p>
         </div>
 
