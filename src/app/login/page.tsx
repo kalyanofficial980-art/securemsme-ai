@@ -1,6 +1,6 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import { Navbar } from "@/components/Navbar";
-import { signIn } from "@/app/auth/actions";
+import { resendConfirmation, signIn } from "@/app/auth/actions";
 
 type LoginPageProps = {
   searchParams?: Promise<{
@@ -20,7 +20,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
           <h1 className="text-3xl font-black">Login</h1>
           <p className="mt-2 text-slate-600">
-            Login to your SecureMSME AI dashboard.
+            Login to your VeyraSec dashboard.
           </p>
 
           {message ? (
@@ -33,6 +33,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             <input
               name="email"
               type="email"
+              autoComplete="email"
               required
               className="w-full rounded-2xl border border-slate-300 px-4 py-3"
               placeholder="Email address"
@@ -41,6 +42,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             <input
               name="password"
               type="password"
+              autoComplete="current-password"
               required
               className="w-full rounded-2xl border border-slate-300 px-4 py-3"
               placeholder="Password"
@@ -50,6 +52,25 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
               Login
             </button>
           </form>
+
+          <div className="mt-8 border-t border-slate-200 pt-6">
+            <p className="text-sm font-black text-slate-700">
+              Confirmation email expired or missing?
+            </p>
+            <form action={resendConfirmation} className="mt-3 flex gap-2">
+              <input
+                name="email"
+                type="email"
+                autoComplete="email"
+                required
+                className="min-w-0 flex-1 rounded-2xl border border-slate-300 px-4 py-3 text-sm"
+                placeholder="Your signup email"
+              />
+              <button className="rounded-full border border-slate-300 px-4 py-2 text-sm font-black hover:bg-slate-100">
+                Resend
+              </button>
+            </form>
+          </div>
 
           <p className="mt-6 text-center text-sm text-slate-600">
             New user?{" "}
