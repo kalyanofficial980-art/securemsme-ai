@@ -3,8 +3,10 @@ import type { NextRequest } from "next/server";
 import { buildAdvancedSecurityAudit } from "@/lib/advanced-security-audit";
 import { runInbuiltAdvancedAudit } from "@/lib/inbuilt-advanced-audit";
 import { getNextScanDate } from "@/lib/monitoring";
+import { normalizeScanReport } from "@/lib/report-normalization";
 import { scanWebsite } from "@/lib/scanner";
 import { calculateScore } from "@/lib/score";
+import { enforceRateLimit } from "@/lib/security/request-guard";
 import { createClient } from "@/lib/supabase/server";
 import { runVulnerabilityIntelligence } from "@/lib/vulnerability-intelligence";
 import {
@@ -14,31 +16,20 @@ import {
 
 export const runtime = "nodejs";
 
-const TEMP_DEV_FREE_SCAN_LIMIT = 999;
-
-function mergedRiskLevel(
-  baseRisk: string,
-  intelRisk: "Low" | "Medium" | "High" | "Critical",
-) {
-  if (
-    baseRisk === "High" ||
-    intelRisk === "High" ||
-    intelRisk === "Critical"
-  ) {
-    return "High";
-  }
-
-  if (baseRisk === "Medium" || intelRisk === "Medium") {
-    return "Medium";
-  }
-
-  return baseRisk;
-}
+const PLAN_SCAN_LIMITS: Record<string, number> = {
+  free: 3,
+  starter: 20,
+  growth: 100,
+  agency: 500,
+};
 
 export async function POST(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ): Promise<Response> {
+  const rateLimited = enforceRateLimit(request, "deep-scan-api", 5, 60_000);
+  if (rateLimited) return rateLimited;
+
   try {
     const { id } = await params;
     const supabase = await createClient();
@@ -106,6 +97,9 @@ export async function POST(
         .from("websites")
         .update({
           verification_status: "failed",
+          verified_at: null,
+          verified_by: null,
+          permission_attested_at: null,
           deep_scan_enabled: false,
         })
         .eq("id", website.id)
@@ -126,37 +120,55 @@ export async function POST(
       .eq("id", user.id)
       .single();
 
+    const plan = profile?.plan || "free";
+    const scanLimit = PLAN_SCAN_LIMITS[plan] ?? PLAN_SCAN_LIMITS.free;
+    const windowStart = new Date();
+
+    if (plan === "free") {
+      windowStart.setHours(0, 0, 0, 0);
+    } else {
+      windowStart.setDate(1);
+      windowStart.setHours(0, 0, 0, 0);
+    }
+
     const { count } = await supabase
       .from("scans")
       .select("id", { count: "exact", head: true })
-      .eq("user_id", user.id);
+      .eq("user_id", user.id)
+      .gte("created_at", windowStart.toISOString());
 
-    if (
-      (profile?.plan || "free") === "free" &&
-      (count || 0) >= TEMP_DEV_FREE_SCAN_LIMIT
-    ) {
+    if ((count || 0) >= scanLimit) {
       return Response.json(
         {
           error:
-            "Temporary free development limit reached. Razorpay paid limits will be added at the end.",
+            plan === "free"
+              ? "Free daily scan limit reached. Please try again tomorrow or upgrade."
+              : "Monthly scan limit reached for your current plan.",
         },
         { status: 402 },
       );
     }
 
     const report = await scanWebsite(website.url);
-    const [inbuiltAdvancedAudit, vulnerabilityIntelligence, scoreResult] =
+    const [inbuiltAdvancedAudit, vulnerabilityIntelligence] =
       await Promise.all([
         runInbuiltAdvancedAudit(report.normalizedUrl),
         runVulnerabilityIntelligence(report.normalizedUrl),
-        Promise.resolve(calculateScore(report)),
       ]);
+
+    const normalizedReport = normalizeScanReport(
+      report,
+      vulnerabilityIntelligence,
+    );
+    const scoreResult = calculateScore(normalizedReport);
 
     const deepScan = {
       mode: "authorized-deep-passive",
       authorized: true,
       verifiedAt: website.verified_at,
       permissionAttestedAt: website.permission_attested_at,
+      proofRecheckedAt: freshVerification.checkedAt,
+      verificationMethod,
       scope: "Customer-owned or customer-managed public website",
       unlockedChecks: [
         "Technology fingerprinting",
@@ -175,7 +187,7 @@ export async function POST(
     };
 
     const baseReport = {
-      ...report,
+      ...normalizedReport,
       findings: scoreResult.enhancedFindings,
       score: scoreResult.score,
       rawScore: scoreResult.rawScore,
@@ -191,6 +203,13 @@ export async function POST(
       topFixes: scoreResult.topFixes,
       inbuiltAdvancedAudit,
       vulnerabilityIntelligence,
+      diagnosticScores: {
+        inbuiltAudit: inbuiltAdvancedAudit.overallScore,
+        vulnerabilityIntelligence:
+          vulnerabilityIntelligence.intelligenceScore,
+        note:
+          "Diagnostic module scores are supporting signals only and do not replace the canonical customer-facing score.",
+      },
       deepScan,
     };
 
@@ -199,24 +218,15 @@ export async function POST(
       advancedAudit: buildAdvancedSecurityAudit(baseReport),
     };
 
-    const finalScore = Math.round(
-      (scoreResult.score +
-        inbuiltAdvancedAudit.overallScore +
-        vulnerabilityIntelligence.intelligenceScore) /
-        3,
-    );
-
-    const finalRiskLevel = mergedRiskLevel(
-      scoreResult.riskLevel,
-      vulnerabilityIntelligence.riskLevel,
-    );
+    const finalScore = scoreResult.score;
+    const finalRiskLevel = scoreResult.riskLevel;
 
     const { data: scan, error: insertError } = await supabase
       .from("scans")
       .insert({
         user_id: user.id,
         website_id: website.id,
-        website_url: report.normalizedUrl,
+        website_url: normalizedReport.normalizedUrl,
         score: finalScore,
         risk_level: finalRiskLevel,
         report: fullReport,
