@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Navbar } from "@/components/Navbar";
 import { resendConfirmation, signIn } from "@/app/auth/actions";
+import { createClient } from "@/lib/supabase/server";
 
 type LoginPageProps = {
   searchParams?: Promise<{
@@ -9,6 +11,15 @@ type LoginPageProps = {
 };
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (user) {
+    redirect("/dashboard");
+  }
+
   const params = await searchParams;
   const message = params?.message;
 
