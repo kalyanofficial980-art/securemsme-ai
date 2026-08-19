@@ -100,18 +100,18 @@ export async function POST(
         runVulnerabilityIntelligence(rawReport.normalizedUrl),
       ]);
 
-    const accuracyResult = await applyReportAccuracyPolicy(
+    const normalizedPublicReport = normalizeScanReport(
       rawReport,
+      vulnerabilityIntelligence,
+    );
+    const accuracyResult = await applyReportAccuracyPolicy(
+      normalizedPublicReport,
       rawInbuiltAdvancedAudit,
     );
     const report = accuracyResult.report;
     const inbuiltAdvancedAudit = accuracyResult.inbuiltAdvancedAudit;
 
-    const normalizedReport = normalizeScanReport(
-      report,
-      vulnerabilityIntelligence,
-    );
-    const scoreResult = calculateScore(normalizedReport);
+    const scoreResult = calculateScore(report);
     const canonicalRiskLevel: "Low" | "Medium" | "High" =
       scoreResult.severityCounts.critical > 0 || scoreResult.severityCounts.high > 0
         ? "High"
@@ -126,7 +126,7 @@ export async function POST(
           : scoreResult.executiveSummary;
 
     const baseReport = {
-      ...normalizedReport,
+      ...report,
       findings: scoreResult.enhancedFindings,
       score: scoreResult.score,
       rawScore: scoreResult.rawScore,
