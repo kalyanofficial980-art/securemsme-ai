@@ -42,6 +42,8 @@ create table if not exists public.billing_subscriptions (
   current_end timestamptz,
   ended_at timestamptz,
   activated_at timestamptz,
+  cancel_requested_at timestamptz,
+  cancel_at_cycle_end boolean not null default false,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   constraint billing_subscriptions_plan_check
