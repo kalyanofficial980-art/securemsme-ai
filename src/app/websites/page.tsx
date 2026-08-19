@@ -140,7 +140,12 @@ export default async function WebsitesPage() {
                         Latest report
                       </Link>
                     ) : null}
-                    <RescanButton websiteId={website.id} label="Normal rescan" />
+                    <RescanButton
+                      websiteId={website.id}
+                      label={
+                        website.latest_scan_id ? "Retest after fixes" : "Run scan"
+                      }
+                    />
                   </div>
 
                   <div className="mt-4 border-t border-slate-200 pt-4">
