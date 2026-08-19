@@ -123,35 +123,12 @@ export async function submitDemoRequestAction(formData: FormData) {
 }
 
 export async function submitPricingInterestAction(formData: FormData) {
-  const supabase = await createClient();
-  const selectedPlan = clean(formData.get("selectedPlan"), "starter") as PublicPlan;
-  const expectedUsage = clean(formData.get("expectedUsage"), "single-website");
+  const requestedPlan = clean(formData.get("selectedPlan"), "starter") as PublicPlan;
+  const selectedPlan: PublicPlan = ["starter", "growth", "agency", "enterprise-review"].includes(requestedPlan)
+    ? requestedPlan
+    : "starter";
 
-  const { error } = await supabase.from("public_pricing_interests_v2").insert({
-    selected_plan: selectedPlan,
-    billing_preference: clean(formData.get("billingPreference"), "manual"),
-    expected_usage: expectedUsage,
-    price_sensitivity: clean(formData.get("priceSensitivity"), "medium"),
-    interest_status: "active",
-    pricing_reason: pricingInterestReason(selectedPlan, expectedUsage),
-    next_best_action: selectedPlan === "enterprise-review"
-      ? "Contact support for manual review."
-      : "Continue to demo request or onboarding.",
-    interest_payload: { source: "pricing-page" },
-  });
-
-  if (error) redirect(`/pricing?message=${encodeURIComponent(error.message)}`);
-
-  await supabase.from("public_landing_events_v2").insert({
-    event_type: "pricing-interest",
-    source_path: "/pricing",
-    severity: "Info",
-    event_title: "Pricing interest captured",
-    event_details: `Interest captured for ${selectedPlan}.`,
-    event_payload: { selectedPlan, expectedUsage },
-  });
-
-  redirect(`/demo?plan=${selectedPlan}&message=Pricing interest saved. Continue demo request.`);
+  redirect(`/demo?plan=${selectedPlan}`);
 }
 
 export async function updateDemoRequestStatusAction(formData: FormData) {
