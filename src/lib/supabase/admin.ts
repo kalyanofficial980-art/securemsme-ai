@@ -6,7 +6,7 @@ export function createSupabaseAdminClient() {
 
   if (!supabaseUrl || !serviceRoleKey) {
     throw new Error(
-      "SUPABASE_SERVICE_ROLE_KEY is required for cron worker API execution.",
+      "NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required for privileged server operations.",
     );
   }
 
