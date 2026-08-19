@@ -6,7 +6,13 @@ import { RiskBadge } from "@/components/RiskBadge";
 import { createClient } from "@/lib/supabase/server";
 import { formatDate } from "@/lib/monitoring";
 
-export default async function DashboardPage() {
+type DashboardPageProps = {
+  searchParams?: Promise<{ message?: string }>;
+};
+
+export default async function DashboardPage({ searchParams }: DashboardPageProps) {
+  const params = await searchParams;
+  const message = params?.message;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login?message=Please login to view dashboard");
@@ -21,33 +27,38 @@ export default async function DashboardPage() {
   const savedWebsites = websites ?? [];
   const averageScore = latestScans.length ? Math.round(latestScans.reduce((total, scan) => total + Number(scan.score || 0), 0) / latestScans.length) : 0;
   const highRiskCount = latestScans.filter((scan) => scan.risk_level === "High").length;
-  const dueWebsites = savedWebsites.filter((website) => website.monitoring_enabled && website.next_scan_at && new Date(website.next_scan_at).getTime() <= Date.now());
   const activeMonitoringCount = savedWebsites.filter((website) => website.monitoring_enabled).length;
   const displayName = profile?.full_name || user.email?.split("@")[0] || "Workspace";
   const plan = profile?.plan || "free";
 
   return (
-    <main className="min-h-screen bg-white text-slate-950">
+    <main className="min-h-screen bg-[#f6f8fb] text-slate-950">
       <Navbar />
       <section className="mx-auto max-w-7xl px-6 py-10">
-        <div className="flex flex-col justify-between gap-6 border-b border-slate-200 pb-8 lg:flex-row lg:items-end">
+        <div className="flex flex-col justify-between gap-6 border-b border-slate-300 pb-8 lg:flex-row lg:items-end">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.14em] text-blue-700">Security operations</p>
             <h1 className="mt-2 text-3xl font-semibold tracking-[-0.04em]">{displayName}</h1>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">Monitor website posture, review findings, and track remediation evidence.</p>
           </div>
-          <div className="flex gap-2">
-            <Link href="/scan" className="border border-slate-300 px-4 py-2.5 text-sm font-semibold hover:bg-slate-50">Run scan</Link>
-            <Link href="/websites/new" className="bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700">Add website</Link>
+          <div className="flex flex-wrap gap-2">
+            <Link href="/scan" className="border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold hover:bg-slate-50">Run scan</Link>
+            <Link href="/websites/new" className="bg-blue-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-800">Add website</Link>
           </div>
         </div>
 
-        <div className="grid border-x border-b border-slate-200 sm:grid-cols-2 xl:grid-cols-4">
+        {message ? (
+          <div className="mt-6 border-l-2 border-blue-700 bg-blue-50 px-4 py-3 text-sm font-medium text-blue-950">
+            {message}
+          </div>
+        ) : null}
+
+        <div className="grid border-x border-b border-slate-300 bg-white sm:grid-cols-2 xl:grid-cols-4">
           {[
             ["Websites", totalWebsites ?? 0, "Tracked assets"],
             ["Scans", totalScans ?? 0, "Reports generated"],
             ["Average score", averageScore || "—", latestScans.length ? "Recent scans" : "No scans yet"],
-            ["Due rescans", dueWebsites.length, dueWebsites.length ? "Needs review" : "Up to date"],
+            ["Monitoring", activeMonitoringCount, activeMonitoringCount ? "Active schedules" : "Not enabled"],
           ].map(([label, value, helper], index) => (
             <div key={label} className={`p-5 ${index < 3 ? "xl:border-r xl:border-slate-200" : ""} ${index % 2 === 0 ? "sm:border-r sm:border-slate-200 xl:border-r" : ""}`}>
               <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">{label}</p>
@@ -59,7 +70,7 @@ export default async function DashboardPage() {
 
         <div className="mt-8 grid gap-8 xl:grid-cols-[1.4fr_0.6fr]">
           <section>
-            <div className="flex items-end justify-between gap-4 border-b border-slate-200 pb-3">
+            <div className="flex items-end justify-between gap-4 border-b border-slate-300 pb-3">
               <div>
                 <h2 className="text-lg font-semibold">Website posture</h2>
                 <p className="mt-1 text-sm text-slate-500">Latest score, risk and next review.</p>
@@ -68,12 +79,12 @@ export default async function DashboardPage() {
             </div>
 
             {savedWebsites.length ? (
-              <div className="divide-y divide-slate-200 border-x border-b border-slate-200">
+              <div className="divide-y divide-slate-200 border-x border-b border-slate-300 bg-white">
                 {savedWebsites.map((website) => (
                   <div key={website.id} className="grid gap-4 px-5 py-4 lg:grid-cols-[1fr_auto] lg:items-center">
                     <div className="min-w-0">
                       <div className="flex items-center gap-3">
-                        <div className="h-2.5 w-2.5 shrink-0 bg-blue-600" />
+                        <div className="h-2.5 w-2.5 shrink-0 bg-blue-700" />
                         <div className="min-w-0">
                           <p className="truncate font-semibold">{website.name || "Website"}</p>
                           <p className="mt-0.5 truncate text-sm text-slate-500">{website.url}</p>
@@ -91,16 +102,16 @@ export default async function DashboardPage() {
                 ))}
               </div>
             ) : (
-              <div className="border border-slate-200 p-8">
+              <div className="border border-slate-300 bg-white p-8">
                 <p className="font-semibold">No websites yet</p>
                 <p className="mt-2 text-sm text-slate-500">Add a public website to start a security history.</p>
-                <Link href="/websites/new" className="mt-4 inline-flex bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white">Add website</Link>
+                <Link href="/websites/new" className="mt-4 inline-flex bg-blue-700 px-4 py-2.5 text-sm font-semibold text-white">Add website</Link>
               </div>
             )}
           </section>
 
           <aside>
-            <div className="border border-slate-200">
+            <div className="border border-slate-300 bg-white">
               <div className="border-b border-slate-200 bg-slate-50 px-5 py-3">
                 <h2 className="text-sm font-semibold">Workspace status</h2>
               </div>
@@ -109,17 +120,17 @@ export default async function DashboardPage() {
                 <div className="flex justify-between px-5 py-4"><dt className="text-slate-500">Active monitoring</dt><dd className="font-semibold">{activeMonitoringCount}</dd></div>
                 <div className="flex justify-between px-5 py-4"><dt className="text-slate-500">High-risk recent</dt><dd className="font-semibold">{highRiskCount}</dd></div>
               </dl>
-              <Link href="/pricing" className="block border-t border-slate-200 px-5 py-3 text-sm font-semibold text-blue-700">Review plan limits →</Link>
+              <Link href="/billing" className="block border-t border-slate-200 px-5 py-3 text-sm font-semibold text-blue-700">Manage plan & billing →</Link>
             </div>
           </aside>
         </div>
 
         <section className="mt-8">
-          <div className="border-b border-slate-200 pb-3">
+          <div className="border-b border-slate-300 pb-3">
             <h2 className="text-lg font-semibold">Recent scan activity</h2>
           </div>
           {latestScans.length ? (
-            <div className="divide-y divide-slate-200 border-x border-b border-slate-200">
+            <div className="divide-y divide-slate-200 border-x border-b border-slate-300 bg-white">
               {latestScans.map((scan) => (
                 <div key={scan.id} className="grid gap-3 px-5 py-4 md:grid-cols-[1fr_auto] md:items-center">
                   <div className="min-w-0">
@@ -135,7 +146,7 @@ export default async function DashboardPage() {
               ))}
             </div>
           ) : (
-            <div className="border border-slate-200 p-5 text-sm text-slate-500">No scan activity yet.</div>
+            <div className="border border-slate-300 bg-white p-5 text-sm text-slate-500">No scan activity yet.</div>
           )}
         </section>
       </section>
