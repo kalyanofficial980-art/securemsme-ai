@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 import { resolveTxt } from "node:dns/promises";
-import { validatePublicHttpUrl } from "@/lib/security/ssrf";
+import { safeFetchPublicUrl } from "@/lib/security/ssrf";
 
 export type VerificationMethod = "dns_txt" | "html_file" | "meta_tag";
 
@@ -69,13 +69,11 @@ async function safeFetchText(url: string) {
   const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
 
   try {
-    await validatePublicHttpUrl(url);
-    const response = await fetch(url, {
+    const response = await safeFetchPublicUrl(url, {
       method: "GET",
-      redirect: "follow",
       signal: controller.signal,
       headers: {
-        "User-Agent": "SecureMSME-AI-Ownership-Verification/1.0",
+        "User-Agent": "VeyraSec-Ownership-Verification/1.0",
         Accept: "text/html,text/plain,*/*;q=0.8",
       },
     });
@@ -86,14 +84,12 @@ async function safeFetchText(url: string) {
       ok: response.ok,
       status: response.status,
       text: text.slice(0, 250_000),
-      finalUrl: response.url,
     };
   } catch (error) {
     return {
       ok: false,
       status: 0,
       text: "",
-      finalUrl: url,
       error: error instanceof Error ? error.message : "Fetch failed",
     };
   } finally {
