@@ -19,7 +19,6 @@ export function getEffectivePlan(profile?: {
   const expiresAt = profile?.plan_expires_at;
   if (!expiresAt) {
     // Backward compatibility for manually provisioned launch accounts.
-    // New recurring subscriptions always write an explicit expiry.
     return plan;
   }
 
