@@ -52,8 +52,25 @@ export async function validatePublicHttpUrl(input: string): Promise<URL> {
   const directIpType = net.isIP(hostname);
   if (directIpType === 4) assertPublicAddress(hostname, 4);
   if (directIpType === 6) assertPublicAddress(hostname, 6);
-  const records = await dns.lookup(hostname, { all: true });
-  if (!records.length) throw new Error("Target hostname did not resolve");
+  let records;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      records = await dns.lookup(hostname, { all: true });
+      break;
+    } catch (error) {
+      const code =
+        error && typeof error === "object" && "code" in error
+          ? String(error.code)
+          : "";
+
+      const transient = code === "EBUSY" || code === "EAI_AGAIN";
+      if (!transient || attempt === 2) throw error;
+
+      await new Promise((resolve) => setTimeout(resolve, 150 * (attempt + 1)));
+    }
+  }
+
+  if (!records?.length) throw new Error("Target hostname did not resolve");
   for (const record of records) assertPublicAddress(record.address, record.family);
   return url;
 }
