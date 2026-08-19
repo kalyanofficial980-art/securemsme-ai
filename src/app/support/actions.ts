@@ -1,5 +1,6 @@
 "use server";
 
+import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import {
@@ -43,26 +44,24 @@ export async function submitSupportContactAction(formData: FormData) {
   priority = priorityFromTopic(topic, priority);
   const context = [companyName, websiteUrl].filter(Boolean).join(" · ");
   const subject = `${topic}: ${fullName}${context ? ` · ${context}` : ""}`;
+  const ticketId = randomUUID();
 
-  const { data: ticket, error } = await supabase
-    .from("support_requests_v2")
-    .insert({
-      user_id: user?.id ?? null,
-      subject,
-      request_type: topic,
-      priority,
-      request_status: "open",
-      contact_email: email,
-      message,
-    })
-    .select("id")
-    .single();
+  const { error } = await supabase.from("support_requests_v2").insert({
+    id: ticketId,
+    user_id: user?.id ?? null,
+    subject,
+    request_type: topic,
+    priority,
+    request_status: "open",
+    contact_email: email,
+    message,
+  });
 
-  if (error || !ticket?.id) {
-    redirect(`/contact?message=${encodeURIComponent(error?.message || "Could not submit support ticket")}`);
+  if (error) {
+    redirect(`/contact?message=${encodeURIComponent(error.message || "Could not submit support ticket")}`);
   }
 
-  redirect(`/support/success?ticket=${ticket.id}&message=Support ticket submitted successfully.`);
+  redirect(`/support/success?ticket=${ticketId}&message=Support ticket submitted successfully.`);
 }
 
 export async function updateSupportTicketStatusAction(formData: FormData) {
