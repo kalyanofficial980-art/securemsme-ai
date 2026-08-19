@@ -1,4 +1,4 @@
-export type LaunchPlanKey = "free" | "starter" | "business" | "pro" | "agency";
+export type LaunchPlanKey = "free" | "starter" | "growth" | "agency";
 
 export type LaunchPlan = {
   key: LaunchPlanKey;
@@ -25,58 +25,47 @@ export type ManualPaymentRequestInput = {
 export const launchPlans: LaunchPlan[] = [
   {
     key: "free",
-    name: "Free Demo",
+    name: "Free",
     amountInr: 0,
     monthlyScans: 3,
     websites: 1,
     reports: 3,
     monitoringTargets: 1,
-    supportLevel: "Basic",
-    bestFor: "Testing",
+    supportLevel: "Basic support",
+    bestFor: "Evaluation",
   },
   {
     key: "starter",
     name: "Starter",
     amountInr: 999,
-    monthlyScans: 10,
+    monthlyScans: 20,
     websites: 1,
-    reports: 10,
+    reports: 20,
     monitoringTargets: 1,
-    supportLevel: "Email",
-    bestFor: "Small business",
+    supportLevel: "Email support",
+    bestFor: "First paid security workflow",
   },
   {
-    key: "business",
-    name: "Business",
-    amountInr: 2999,
-    monthlyScans: 50,
-    websites: 3,
-    reports: 50,
-    monitoringTargets: 3,
+    key: "growth",
+    name: "Growth",
+    amountInr: 2499,
+    monthlyScans: 100,
+    websites: 5,
+    reports: 100,
+    monitoringTargets: 5,
     supportLevel: "Priority email",
-    bestFor: "Growing MSME",
-  },
-  {
-    key: "pro",
-    name: "Pro",
-    amountInr: 7999,
-    monthlyScans: 200,
-    websites: 10,
-    reports: 200,
-    monitoringTargets: 10,
-    supportLevel: "Priority",
-    bestFor: "IT team",
+    bestFor: "Developer remediation and repeated reviews",
   },
   {
     key: "agency",
     name: "Agency",
-    amountInr: 19999,
+    amountInr: 6999,
     monthlyScans: 500,
     websites: 25,
     reports: 500,
     monitoringTargets: 25,
-    supportLevel: "Agency",
-    bestFor: "Agencies",
+    supportLevel: "Agency support",
+    bestFor: "High-volume client reporting workflow",
   },
 ];
 
@@ -89,7 +78,7 @@ export const manualPaymentBlockedClaims = [
 
 export const legalBlockedClaims = [
   "Do not claim these templates replace legal advice.",
-  "Do not claim SecureMSME AI guarantees 100% security.",
+  "Do not claim VeyraSec guarantees 100% security.",
   "Do not claim all vulnerabilities will be found.",
   "Do not claim legal compliance certification.",
   "Do not allow unauthorized scanning.",
@@ -115,7 +104,9 @@ export function validateManualPaymentRequest(input: ManualPaymentRequestInput) {
   const combined =
     `${input.paymentReference} ${input.paymentNote || ""}`.toLowerCase();
 
-  if (plan.key !== "free" && !input.paymentReference.trim())
+  if (plan.key === "free")
+    errors.push("Free plan does not require a payment request.");
+  if (!input.paymentReference.trim())
     errors.push("Payment reference or UTR number is required.");
   if (!input.payerName.trim()) errors.push("Payer name is required.");
   if (!/^\S+@\S+\.\S+$/.test(input.payerEmail.trim()))
@@ -136,10 +127,7 @@ export function validateManualPaymentRequest(input: ManualPaymentRequestInput) {
     plan,
     amountInr,
     errors,
-    instructions:
-      plan.key === "free"
-        ? "Free Demo can be activated without payment approval."
-        : `Pay ₹${amountInr} manually by UPI or bank transfer. Submit the UTR/reference number. Your plan activates only after admin approval.`,
+    instructions: `Pay ₹${amountInr} manually by UPI or bank transfer. Submit the UTR/reference number. Your plan activates only after admin approval.`,
     blockedClaims: manualPaymentBlockedClaims,
   };
 }
@@ -201,6 +189,6 @@ export function evaluateScanAuthorization(input: {
     targetUrl,
     errors,
     confirmationText:
-      "I confirm I own this website or have written permission, I request safe checks only, and I will not use SecureMSME AI for unauthorized testing.",
+      "I confirm I own this website or have written permission, I request safe checks only, and I will not use VeyraSec for unauthorized testing.",
   };
 }
