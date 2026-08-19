@@ -9,23 +9,33 @@ function getFormValue(formData: FormData, key: string) {
   return typeof value === "string" ? value.trim() : "";
 }
 
+function withHttps(value: string) {
+  return `${value.startsWith("http") ? "" : "https://"}${value}`.replace(
+    /\/$/,
+    "",
+  );
+}
+
 function getAuthBaseUrl() {
+  const branchUrl = process.env.VERCEL_BRANCH_URL?.trim();
   const configuredSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
   const vercelUrl =
-    process.env.VERCEL_BRANCH_URL?.trim() ||
     process.env.VERCEL_PROJECT_PRODUCTION_URL?.trim() ||
     process.env.VERCEL_URL?.trim() ||
     process.env.NEXT_PUBLIC_VERCEL_URL?.trim();
+
+  // A Vercel branch URL is stable across preview redeploys, so confirmation
+  // emails do not point at an obsolete deployment hostname.
+  if (branchUrl) {
+    return withHttps(branchUrl);
+  }
 
   if (configuredSiteUrl && !configuredSiteUrl.includes("localhost")) {
     return configuredSiteUrl.replace(/\/$/, "");
   }
 
   if (vercelUrl) {
-    return `${vercelUrl.startsWith("http") ? "" : "https://"}${vercelUrl}`.replace(
-      /\/$/,
-      "",
-    );
+    return withHttps(vercelUrl);
   }
 
   return "http://localhost:3000";
