@@ -3,10 +3,47 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 export const selfServePlans = ["starter", "growth", "agency"] as const;
 export type SelfServePlan = (typeof selfServePlans)[number];
 
-const PLAN_AMOUNT_ENV: Record<SelfServePlan, string> = {
-  starter: "RAZORPAY_STARTER_AMOUNT",
-  growth: "RAZORPAY_GROWTH_AMOUNT",
-  agency: "RAZORPAY_AGENCY_AMOUNT",
+export const launchPlanConfig: Record<
+  SelfServePlan,
+  {
+    amount: number;
+    currency: "INR";
+    interval: 1;
+    period: "monthly";
+    displayPrice: string;
+    scanLimit: number;
+  }
+> = {
+  starter: {
+    amount: 99_900,
+    currency: "INR",
+    interval: 1,
+    period: "monthly",
+    displayPrice: "₹999/month",
+    scanLimit: 20,
+  },
+  growth: {
+    amount: 249_900,
+    currency: "INR",
+    interval: 1,
+    period: "monthly",
+    displayPrice: "₹2,499/month",
+    scanLimit: 100,
+  },
+  agency: {
+    amount: 699_900,
+    currency: "INR",
+    interval: 1,
+    period: "monthly",
+    displayPrice: "₹6,999/month",
+    scanLimit: 500,
+  },
+};
+
+const PLAN_ID_ENV: Record<SelfServePlan, string> = {
+  starter: "RAZORPAY_STARTER_PLAN_ID",
+  growth: "RAZORPAY_GROWTH_PLAN_ID",
+  agency: "RAZORPAY_AGENCY_PLAN_ID",
 };
 
 const PLAN_RANK: Record<string, number> = {
@@ -37,13 +74,50 @@ export type RazorpayPayment = {
   order_id?: string | null;
 };
 
-export function getPlanAmount(plan: SelfServePlan) {
-  const raw = process.env[PLAN_AMOUNT_ENV[plan]];
-  if (!raw) return null;
+export type RazorpayPlan = {
+  id: string;
+  entity: "plan";
+  interval: number;
+  period: string;
+  item: {
+    id?: string;
+    active?: boolean;
+    name?: string;
+    description?: string;
+    amount: number;
+    currency: string;
+  };
+};
 
-  const amount = Number.parseInt(raw, 10);
-  if (!Number.isSafeInteger(amount) || amount <= 0) return null;
-  return amount;
+export type RazorpaySubscription = {
+  id: string;
+  entity: "subscription";
+  plan_id: string;
+  status:
+    | "created"
+    | "authenticated"
+    | "active"
+    | "pending"
+    | "halted"
+    | "cancelled"
+    | "completed"
+    | "expired"
+    | string;
+  current_start?: number | null;
+  current_end?: number | null;
+  ended_at?: number | null;
+  charge_at?: number | null;
+  paid_count?: number;
+  total_count?: number;
+  short_url?: string;
+};
+
+export function getPlanAmount(plan: SelfServePlan) {
+  return launchPlanConfig[plan].amount;
+}
+
+export function getRazorpayPlanId(plan: SelfServePlan) {
+  return process.env[PLAN_ID_ENV[plan]]?.trim() || null;
 }
 
 export function getRazorpayConfig() {
@@ -55,10 +129,13 @@ export function getRazorpayConfig() {
 }
 
 export function isSelfServeBillingConfigured(plan: SelfServePlan) {
-  return Boolean(getRazorpayConfig() && getPlanAmount(plan));
+  return Boolean(getRazorpayConfig() && getRazorpayPlanId(plan));
 }
 
-export function shouldActivatePlan(currentPlan: string | null | undefined, paidPlan: SelfServePlan) {
+export function shouldActivatePlan(
+  currentPlan: string | null | undefined,
+  paidPlan: SelfServePlan,
+) {
   return (PLAN_RANK[paidPlan] ?? 0) >= (PLAN_RANK[currentPlan || "free"] ?? 0);
 }
 
@@ -85,6 +162,19 @@ export function verifyCheckoutSignature(input: {
   return safeEqualHex(expected, input.signature);
 }
 
+export function verifySubscriptionCheckoutSignature(input: {
+  subscriptionId: string;
+  paymentId: string;
+  signature: string;
+  keySecret: string;
+}) {
+  const expected = createHmac("sha256", input.keySecret)
+    .update(`${input.paymentId}|${input.subscriptionId}`)
+    .digest("hex");
+
+  return safeEqualHex(expected, input.signature);
+}
+
 export function verifyWebhookSignature(input: {
   rawBody: string;
   signature: string;
@@ -95,6 +185,11 @@ export function verifyWebhookSignature(input: {
     .digest("hex");
 
   return safeEqualHex(expected, input.signature);
+}
+
+export function unixSecondsToIso(value?: number | null) {
+  if (!value || !Number.isFinite(value)) return null;
+  return new Date(value * 1000).toISOString();
 }
 
 export async function razorpayRequest<T>(
