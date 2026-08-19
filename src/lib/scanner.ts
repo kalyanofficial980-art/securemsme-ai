@@ -197,7 +197,6 @@ function getSslCertificateAtAddress(
     const socket = tls.connect(
       {
         host: target.address,
-        family: target.family,
         port: 443,
         ...(net.isIP(tlsHostname) === 0
           ? { servername: tlsHostname }
