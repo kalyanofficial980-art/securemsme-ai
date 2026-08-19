@@ -8,6 +8,7 @@ import { getNextScanDate } from "@/lib/monitoring";
 import { scanWebsite } from "@/lib/scanner";
 import { calculateScore } from "@/lib/score";
 import { normalizeScanReport } from "@/lib/report-normalization";
+import { buildRetestComparison } from "@/lib/retest-comparison";
 import { createClient } from "@/lib/supabase/server";
 import { runVulnerabilityIntelligence } from "@/lib/vulnerability-intelligence";
 import { getWebsiteNameFromUrl } from "@/lib/websites";
@@ -208,15 +209,34 @@ export async function POST(request: Request) {
       scoreResult.enhancedFindings,
     );
 
+    const finalScore = scoreResult.score;
+    const finalRiskLevel = canonicalRiskLevel;
+
+    let previousScan = null;
+    if (savedWebsiteId) {
+      const { data } = await supabase
+        .from("scans")
+        .select("id, created_at, score, risk_level, report")
+        .eq("website_id", savedWebsiteId)
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      previousScan = data;
+    }
+
+    const retestComparison = buildRetestComparison({
+      previousScan,
+      currentScore: finalScore,
+      currentRiskLevel: finalRiskLevel,
+      currentFindings: scoreResult.enhancedFindings,
+    });
+
     const fullReport = {
       ...baseReport,
       advancedAudit,
+      retestComparison,
     };
-
-    // One customer-facing source of truth.
-    // Auxiliary engines remain diagnostic evidence only.
-    const finalScore = scoreResult.score;
-    const finalRiskLevel = canonicalRiskLevel;
 
     const { data: scan, error: insertError } = await supabase
       .from("scans")
