@@ -34,13 +34,13 @@ export function InbuiltAuditPanel({ audit }: { audit: InbuiltAdvancedAudit }) {
     <section className="space-y-8">
       <div className="rounded-3xl border border-slate-200 bg-white p-8">
         <p className="text-sm font-bold text-slate-500">
-          Inbuilt advanced audit engine
+          Inbuilt passive review engine
         </p>
 
         <div className="mt-4 flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
           <div>
             <h2 className="text-3xl font-black">
-              Customer-ready automated security audit
+              Evidence-based passive security review
             </h2>
             <p className="mt-3 max-w-3xl leading-7 text-slate-600">
               {audit.customerSummary}
@@ -48,7 +48,7 @@ export function InbuiltAuditPanel({ audit }: { audit: InbuiltAdvancedAudit }) {
           </div>
 
           <div className="rounded-3xl bg-slate-950 p-6 text-white">
-            <p className="text-sm text-slate-300">Inbuilt audit score</p>
+            <p className="text-sm text-slate-300">Diagnostic score</p>
             <p className="mt-1 text-5xl font-black">{audit.overallScore}</p>
             <p className="mt-2 font-bold">{audit.maturityLevel}</p>
             <p className="text-sm text-slate-300">{audit.businessReadiness}</p>
@@ -164,7 +164,7 @@ export function InbuiltAuditPanel({ audit }: { audit: InbuiltAdvancedAudit }) {
 
       <div className="rounded-3xl border border-emerald-200 bg-emerald-50 p-8">
         <h3 className="text-2xl font-black text-emerald-950">
-          Customer-side SaaS model
+          Safe testing scope
         </h3>
         <ul className="mt-5 space-y-3">
           {audit.safeTestingNotice.map((item) => (
