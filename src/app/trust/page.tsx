@@ -6,48 +6,32 @@ export default function TrustPage() {
   return (
     <main className="min-h-screen bg-slate-50 text-slate-950">
       <Navbar />
-      <section className="mx-auto max-w-6xl px-6 py-16">
-        <div className="rounded-3xl border border-blue-200 bg-blue-50 p-8">
-          <p className="text-sm font-black text-blue-700">Trust Center</p>
-          <h1 className="mt-2 text-4xl font-black text-blue-950">
-            SecureMSME AI Trust Center
-          </h1>
-          <p className="mt-4 max-w-4xl leading-8 text-blue-900">
-            Security, legal, responsible disclosure, acceptable use and support
-            information for safe authorized cybersecurity workflows.
+      <section className="mx-auto max-w-6xl px-6 py-14">
+        <div className="border border-slate-300 bg-white p-8">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-700">Trust center</p>
+          <h1 className="mt-3 text-4xl font-semibold tracking-[-0.03em]">Security boundaries and operating policies.</h1>
+          <p className="mt-4 max-w-3xl leading-7 text-slate-600">
+            VeyraSec is built around authorized website review: safe public checks first, ownership or permission before deeper workflows, and evidence-based reporting without promising complete security.
           </p>
         </div>
-        <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+
+        <div className="mt-8 grid border-t border-slate-300 md:grid-cols-2 lg:grid-cols-3">
           {legalPages.map((page) => (
-            <Link
-              key={page.key}
-              href={page.href}
-              className="rounded-3xl border border-slate-200 bg-white p-6 hover:bg-slate-50"
-            >
-              <h2 className="text-xl font-black">{page.title}</h2>
-              <p className="mt-3 text-sm leading-6 text-slate-600">
-                View current launch template.
-              </p>
+            <Link key={page.key} href={page.href} className="border-b border-r border-slate-200 bg-white p-6 hover:bg-slate-50">
+              <h2 className="text-base font-semibold">{page.title}</h2>
+              <p className="mt-2 text-sm leading-6 text-slate-600">Read the current VeyraSec launch policy.</p>
             </Link>
           ))}
-          <Link
-            href="/support"
-            className="rounded-3xl border border-slate-950 bg-slate-950 p-6 text-white hover:bg-slate-800"
-          >
-            <h2 className="text-xl font-black">Support</h2>
-            <p className="mt-3 text-sm leading-6 text-slate-300">
-              Contact support, sales, billing or security disclosure.
-            </p>
+          <Link href="/contact" className="border-b border-r border-slate-200 bg-slate-950 p-6 text-white hover:bg-slate-900">
+            <h2 className="text-base font-semibold">Support & security contact</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-300">Billing, product support and responsible disclosure contact.</p>
           </Link>
         </div>
-        <div className="mt-8 rounded-3xl border border-red-200 bg-red-50 p-8">
-          <h2 className="text-2xl font-black text-red-950">
-            Important limitations
-          </h2>
-          <p className="mt-3 leading-7 text-red-900">
-            SecureMSME AI does not guarantee 100% security, does not guarantee
-            all vulnerabilities are found, does not provide legal compliance
-            certification and must be used only with authorization.
+
+        <div className="mt-8 border-l-2 border-blue-700 bg-white px-6 py-5">
+          <p className="text-sm font-semibold text-slate-950">Important limitation</p>
+          <p className="mt-2 max-w-4xl text-sm leading-6 text-slate-600">
+            VeyraSec does not guarantee 100% security, does not guarantee every vulnerability is found, and does not provide legal compliance certification. Use the service only for targets you own, manage or are explicitly authorized to assess.
           </p>
         </div>
       </section>
