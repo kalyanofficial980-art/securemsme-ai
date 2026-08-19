@@ -2,6 +2,7 @@ import { toSafeScanErrorMessage } from "@/lib/security/scan-error";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { buildAdvancedSecurityAudit } from "@/lib/advanced-security-audit";
+import { normalizeAdvancedSecurityAudit } from "@/lib/advanced-audit-normalization";
 import { runInbuiltAdvancedAudit } from "@/lib/inbuilt-advanced-audit";
 import { getNextScanDate } from "@/lib/monitoring";
 import { scanWebsite } from "@/lib/scanner";
@@ -133,6 +134,18 @@ export async function POST(request: Request) {
     );
 
     const scoreResult = calculateScore(normalizedReport);
+    const canonicalRiskLevel: "Low" | "Medium" | "High" =
+      scoreResult.severityCounts.critical > 0 || scoreResult.severityCounts.high > 0
+        ? "High"
+        : scoreResult.severityCounts.medium > 0
+          ? "Medium"
+          : scoreResult.riskLevel;
+    const canonicalSummary =
+      canonicalRiskLevel === "High"
+        ? "This website has at least one high-impact actionable finding. Fix the highest-severity issue before treating the public posture as low risk."
+        : canonicalRiskLevel === "Medium"
+          ? "This website has one or more medium-severity actionable findings. Address them before treating the public posture as low risk."
+          : scoreResult.executiveSummary;
 
     if (!savedWebsiteId) {
       const { data: existingWebsite } = await supabase
@@ -170,9 +183,9 @@ export async function POST(request: Request) {
       score: scoreResult.score,
       rawScore: scoreResult.rawScore,
       maxScore: scoreResult.maxScore,
-      riskLevel: scoreResult.riskLevel,
-      summary: scoreResult.summary,
-      executiveSummary: scoreResult.executiveSummary,
+      riskLevel: canonicalRiskLevel,
+      summary: canonicalSummary,
+      executiveSummary: canonicalSummary,
       categoryScores: scoreResult.categoryScores,
       severityCounts: scoreResult.severityCounts,
       passedChecks: scoreResult.passedChecks,
@@ -190,15 +203,20 @@ export async function POST(request: Request) {
       },
     };
 
+    const advancedAudit = normalizeAdvancedSecurityAudit(
+      buildAdvancedSecurityAudit(baseReport),
+      scoreResult.enhancedFindings,
+    );
+
     const fullReport = {
       ...baseReport,
-      advancedAudit: buildAdvancedSecurityAudit(baseReport),
+      advancedAudit,
     };
 
     // One customer-facing source of truth.
     // Auxiliary engines remain diagnostic evidence only.
     const finalScore = scoreResult.score;
-    const finalRiskLevel = scoreResult.riskLevel;
+    const finalRiskLevel = canonicalRiskLevel;
 
     const { data: scan, error: insertError } = await supabase
       .from("scans")
