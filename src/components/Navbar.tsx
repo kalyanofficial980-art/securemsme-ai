@@ -34,6 +34,14 @@ export async function Navbar() {
           <Link href="/scan" className="hover:text-slate-950">
             Scan
           </Link>
+          <Link href="/pricing" className="hover:text-slate-950">
+            Pricing
+          </Link>
+          {userEmail ? (
+            <Link href="/billing" className="hover:text-slate-950">
+              Billing
+            </Link>
+          ) : null}
         </div>
 
         <div className="flex items-center gap-3">
