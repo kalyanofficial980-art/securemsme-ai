@@ -1,95 +1,59 @@
-# VeyraSec paid billing launch checklist
+# VeyraSec assisted paid-launch checklist
 
-VeyraSec uses recurring monthly Razorpay Subscriptions for Starter, Growth and Agency. Billing remains fail-closed until the correct database, Razorpay Plan IDs, API credentials and webhook secret are configured. Never put a Razorpay Key Secret, webhook secret or Supabase service-role key in frontend code, screenshots, chat, logs or Git history.
+VeyraSec uses assisted monthly plan activation for the initial paid launch. Automatic Razorpay subscription checkout is intentionally not exposed until the payment account, KYC, settlement setup and production operations are ready.
 
 ## Launch pricing
 
-| Plan | Monthly price | Provider amount | Scan limit |
-| --- | ---: | ---: | ---: |
-| Starter | ₹999/month | 99900 paise | 20/month |
-| Growth | ₹2,499/month | 249900 paise | 100/month |
-| Agency | ₹6,999/month | 699900 paise | 500/month |
-| Enterprise Review | Custom | Manual | Manual scope |
+| Plan | Monthly price | Scan limit |
+| --- | ---: | ---: |
+| Starter | ₹999/month | 20/month |
+| Growth | ₹2,499/month | 100/month |
+| Agency | ₹6,999/month | 500/month |
+| Enterprise Review | Custom | Manual scope |
 
-Free remains the evaluation tier with the existing daily scan limit. No separate paid trial or annual commitment is enabled for the first launch.
+Free remains the evaluation tier with the existing daily scan limit.
 
-## Required server environment variables
+## Customer flow
 
-```text
-RAZORPAY_KEY_ID=rzp_test_or_live_key_id
-RAZORPAY_KEY_SECRET=server_only_secret
-RAZORPAY_WEBHOOK_SECRET=separate_webhook_secret
-RAZORPAY_STARTER_PLAN_ID=plan_...
-RAZORPAY_GROWTH_PLAN_ID=plan_...
-RAZORPAY_AGENCY_PLAN_ID=plan_...
-SUPABASE_SERVICE_ROLE_KEY=server_only_service_role_key
-```
+1. Customer chooses Starter, Growth or Agency.
+2. Customer contacts the official VeyraSec billing/support channel.
+3. Approved payment instructions are shared outside sensitive application fields.
+4. Customer provides only the transaction reference/UTR needed for verification.
+5. Admin verifies the payment and activates `profiles.plan` with an appropriate `plan_expires_at`.
+6. Server-side scan limits use the effective plan and automatically fall back to Free after expiry.
+7. Renewal is assisted/manual during this launch phase.
 
-The three Razorpay Plan IDs must point to monthly INR plans whose amount, currency, period and interval exactly match the VeyraSec server-side launch pricing. The subscription-create API fetches and validates each provider Plan before opening checkout, so a dashboard pricing mismatch fails closed.
+## Payment-safety rules
 
-## Razorpay Plans
+Never request or store OTPs, UPI PINs, card PINs, banking passwords, private keys, session cookies or Supabase/Razorpay secrets in customer-facing forms, screenshots, chat, logs or Git history.
 
-Create separate Plans in Razorpay **Test Mode** first:
+A transaction reference is not proof by itself. Admin activation should happen only after payment is independently verified through the approved payment channel.
 
-- Starter: INR 999, period `monthly`, interval `1`
-- Growth: INR 2,499, period `monthly`, interval `1`
-- Agency: INR 6,999, period `monthly`, interval `1`
+## Server-side entitlement rules
 
-After full Test Mode E2E validation, create equivalent **Live Mode** plans and replace the environment Plan IDs together with the Live API credentials. Never mix Test and Live Plan IDs or credentials.
+The application must enforce plan limits on API routes, not only in the UI:
 
-## Database migration
+- Free: 3 scans/day
+- Starter: 20 scans/month
+- Growth: 100 scans/month
+- Agency: 500 scans/month
 
-Apply `supabase/migrations/20260819082000_paid_billing_foundation.sql` to the **same Supabase project used by the production Vercel environment** before enabling checkout.
+`plan_expires_at` is authoritative when present. Expired paid access must resolve to the Free plan.
 
-The migration adds:
+## Existing database foundation
 
-- payment audit metadata and provider idempotency indexes
-- `profiles.plan_expires_at` for time-bounded paid entitlements
-- `billing_subscriptions` for Razorpay subscription state, provider Plan ID, paid period and cancellation state
-- `payment_webhook_events` for webhook replay/idempotency tracking
-- RLS plus revoked direct anon/authenticated access to billing-internal tables
+The paid-billing foundation migration may include tables reserved for future automated billing. Those tables remain server-only and are not a customer-facing payment flow during the assisted launch. Public self-serve subscription endpoints and checkout UI are intentionally disabled.
 
-## Razorpay Dashboard
+## Before enabling automatic billing later
 
-1. Start in Test Mode.
-2. Generate Test API keys.
-3. Create the three monthly Plans listed above.
-4. Configure the webhook endpoint as `/api/billing/webhook` on the final HTTPS domain.
-5. Use a separate webhook secret and store it only as a server environment variable.
-6. Subscribe to the subscription lifecycle events required by the implementation, including `subscription.authenticated`, `subscription.activated`, `subscription.charged`, `subscription.pending`, `subscription.halted`, `subscription.paused`, `subscription.resumed`, `subscription.updated`, `subscription.cancelled` and `subscription.completed`.
-7. Run authorization, recurring charge, webhook retry, cancellation and expiry tests before switching to Live Mode.
+Do not enable self-serve recurring billing until all of the following are complete:
 
-## Server flow implemented
+- payment-provider KYC and live account approval;
+- settlement and refund operations tested;
+- production credentials stored only in server environment variables;
+- webhook signature verification and idempotency tested;
+- payment failure, renewal, cancellation and expiry flows tested end to end;
+- support and refund processes documented;
+- one controlled live-payment test completed successfully.
 
-1. Authenticated user requests a recurring checkout at `POST /api/billing/subscription`.
-2. The server chooses the plan and amount from VeyraSec configuration; client-provided amounts are never accepted.
-3. VeyraSec fetches the configured Razorpay Plan and validates amount/currency/monthly interval before creating a subscription.
-4. The browser receives only the public Razorpay Key ID and provider subscription ID, then loads Razorpay-hosted Standard Checkout.
-5. Checkout success is verified at `POST /api/billing/subscription/verify` with HMAC-SHA256 using the server-known subscription ID, followed by a provider subscription lookup.
-6. Paid entitlements activate only when the provider subscription is `active` with a future paid-period end.
-7. Scan, retest and authorized deep-scan limits use the effective plan and expiry instead of trusting a stale profile label.
-8. `POST /api/billing/webhook` verifies the raw-body signature, records events idempotently, validates recurring charge amount/currency/capture state, and synchronizes lifecycle/expiry state.
-9. `POST /api/billing/subscription/cancel` requests cancellation at the current billing-cycle end when a paid cycle exists; otherwise it cancels immediately. Paid access is preserved only through the already-paid period.
-10. Legacy one-time paid-plan order/verification endpoints are removed from the launch branch so they cannot accidentally activate recurring paid access.
-
-## Customer-facing billing controls
-
-- `/pricing` shows the exact monthly prices and truthful current feature scope.
-- `/billing` shows effective plan, subscription status, current paid period and cancellation state.
-- Customers can cancel recurring billing from `/billing`.
-- VeyraSec forms never request card numbers, OTPs, UPI PINs or banking passwords; payment credentials remain inside Razorpay Checkout.
-
-## Required pre-launch validation
-
-- reconcile the production Vercel Supabase URL with the Supabase project receiving the migration
-- apply the migration only after that backend identity is confirmed
-- configure Test API keys, webhook secret and Test Plan IDs in Vercel
-- verify `/pricing` CSP allows Razorpay Checkout but does not expose server secrets
-- test first subscription activation and confirm `profiles.plan` plus `plan_expires_at`
-- test paid scan limits and an expired entitlement falling back to Free
-- test `subscription.charged`, duplicate webhook delivery and out-of-order/retry behavior
-- test failed/pending/halted states without granting unpaid future access
-- test cancel-at-cycle-end and confirm access remains only through the paid period
-- test immediate cancellation before a paid cycle begins
-- confirm support, refund, GST/tax invoice and legal cancellation wording before Live Mode
-- repeat the payment lifecycle using controlled Live credentials and a real transaction before public paid launch
+Until then, assisted activation is the production billing model.
