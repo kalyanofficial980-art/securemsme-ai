@@ -88,33 +88,25 @@ function getRetestComparison(
 function getCategoryScores(report: Record<string, unknown>): CategoryScore[] {
   const scores = report.categoryScores;
 
-  if (Array.isArray(scores)) {
-    return scores as CategoryScore[];
-  }
+  if (Array.isArray(scores)) return scores as CategoryScore[];
 
   if (scores && typeof scores === "object") {
-    return Object.entries(scores as Record<string, unknown>).map(
-      ([key, value]) => {
-        const item =
-          value && typeof value === "object"
-            ? (value as Record<string, unknown>)
-            : {};
+    return Object.entries(scores as Record<string, unknown>).map(([key, value]) => {
+      const item =
+        value && typeof value === "object"
+          ? (value as Record<string, unknown>)
+          : {};
 
-        return {
-          label: String(item.label || key),
-          score: typeof item.score === "number" ? item.score : undefined,
-          percentage:
-            typeof item.percentage === "number"
-              ? item.percentage
-              : undefined,
-          rawScore:
-            typeof item.rawScore === "number" ? item.rawScore : undefined,
-          maxScore:
-            typeof item.maxScore === "number" ? item.maxScore : undefined,
-          grade: typeof item.grade === "string" ? item.grade : undefined,
-        };
-      },
-    );
+      return {
+        label: String(item.label || key),
+        score: typeof item.score === "number" ? item.score : undefined,
+        percentage:
+          typeof item.percentage === "number" ? item.percentage : undefined,
+        rawScore: typeof item.rawScore === "number" ? item.rawScore : undefined,
+        maxScore: typeof item.maxScore === "number" ? item.maxScore : undefined,
+        grade: typeof item.grade === "string" ? item.grade : undefined,
+      };
+    });
   }
 
   return [];
@@ -129,25 +121,22 @@ function scoreWidth(score?: number, rawScore?: number, maxScore?: number) {
   ) {
     return Math.round((rawScore / maxScore) * 100);
   }
-
   return 0;
 }
 
 function severityClass(severity?: string) {
   const text = String(severity || "").toLowerCase();
-
-  if (text.includes("critical")) return "bg-red-100 text-red-900";
-  if (text.includes("high")) return "bg-red-50 text-red-800";
-  if (text.includes("medium")) return "bg-amber-50 text-amber-800";
-  if (text.includes("low")) return "bg-slate-100 text-slate-700";
-
-  return "bg-emerald-50 text-emerald-800";
+  if (text.includes("critical")) return "border-red-300 bg-red-50 text-red-900";
+  if (text.includes("high")) return "border-red-200 bg-red-50 text-red-800";
+  if (text.includes("medium")) return "border-amber-200 bg-amber-50 text-amber-800";
+  if (text.includes("low")) return "border-slate-200 bg-slate-50 text-slate-700";
+  return "border-emerald-200 bg-emerald-50 text-emerald-800";
 }
 
 function outcomeClass(outcome: RetestComparison["outcome"]) {
-  if (outcome === "improved") return "bg-emerald-100 text-emerald-900";
-  if (outcome === "regressed") return "bg-red-100 text-red-900";
-  return "bg-slate-100 text-slate-800";
+  if (outcome === "improved") return "border-emerald-200 bg-emerald-50 text-emerald-900";
+  if (outcome === "regressed") return "border-red-200 bg-red-50 text-red-900";
+  return "border-slate-200 bg-slate-50 text-slate-800";
 }
 
 export default async function ReportPage({
@@ -192,234 +181,174 @@ export default async function ReportPage({
   const actionableFindings = findings.filter(isActionableFinding);
   const categoryScores = getCategoryScores(report);
   const retestComparison = getRetestComparison(report);
-
   const severityCounts =
     report.severityCounts && typeof report.severityCounts === "object"
       ? (report.severityCounts as Record<string, number>)
       : {};
 
   return (
-    <main className="min-h-screen bg-slate-50 text-slate-950">
+    <main className="min-h-screen bg-[#f6f8fb] text-slate-950">
       <Navbar />
 
-      <section className="mx-auto max-w-6xl space-y-8 px-6 py-16">
-        <div className="rounded-3xl border border-slate-200 bg-white p-8">
-          <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-start">
-            <div>
-              <p className="text-sm font-black text-slate-500">
-                Security report
-              </p>
-              <h1 className="mt-2 break-all text-4xl font-black">
-                {scan.website_url}
-              </h1>
-              <p className="mt-3 max-w-3xl leading-7 text-slate-600">
-                This is the canonical customer-facing security score from
-                normalized safe public checks. Diagnostic modules provide
-                supporting evidence but do not replace this score.
-              </p>
-
-              <div className="mt-5 flex flex-wrap gap-3">
-                <RiskBadge riskLevel={scan.risk_level} />
-                <span className="rounded-full bg-slate-100 px-4 py-2 text-sm font-black">
-                  Scan date {new Date(scan.created_at).toLocaleString()}
-                </span>
-                {retestComparison ? (
-                  <span
-                    className={`rounded-full px-4 py-2 text-sm font-black ${outcomeClass(
-                      retestComparison.outcome,
-                    )}`}
-                  >
-                    Retest {retestComparison.outcome}
-                  </span>
-                ) : null}
-              </div>
-
-              <AdvancedReportNavigation scanId={scan.id} variant="compact" />
-            </div>
-
-            <div className="rounded-3xl bg-slate-950 p-6 text-white">
-              <p className="text-sm text-slate-300">Overall score</p>
-              <p className="mt-1 text-5xl font-black">{scan.score}</p>
-              <p className="text-sm text-slate-300">out of 100</p>
-            </div>
-          </div>
+      <section className="mx-auto max-w-7xl px-6 py-12 sm:py-16">
+        <div className="mb-5 flex items-center justify-between gap-4 text-sm">
+          <Link href="/websites" className="font-semibold text-slate-600 hover:text-blue-700">
+            ← Website workspaces
+          </Link>
+          <span className="text-slate-400">Report ID {scan.id.slice(0, 8)}</span>
         </div>
 
-        <AdvancedReportNavigation scanId={scan.id} />
+        <section className="grid border border-slate-300 bg-white lg:grid-cols-[1fr_230px]">
+          <div className="p-6 sm:p-8">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-700">
+              Security report
+            </p>
+            <h1 className="mt-3 break-all text-3xl font-semibold tracking-[-0.03em] sm:text-4xl">
+              {scan.website_url}
+            </h1>
+            <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-600">
+              Canonical customer-facing result from normalized safe public checks. Supporting diagnostics add evidence without replacing this score.
+            </p>
 
-        <section className="grid gap-4 md:grid-cols-4">
-          <div className="rounded-3xl border border-slate-200 bg-white p-6">
-            <p className="text-sm text-slate-500">Critical</p>
-            <p className="mt-2 text-3xl font-black text-red-950">
-              {severityCounts.critical ?? 0}
-            </p>
+            <div className="mt-6 flex flex-wrap items-center gap-3 text-sm">
+              <RiskBadge riskLevel={scan.risk_level} />
+              <span className="text-slate-500">Scanned {new Date(scan.created_at).toLocaleString()}</span>
+              {retestComparison ? (
+                <span className={`rounded-md border px-2.5 py-1 text-xs font-semibold capitalize ${outcomeClass(retestComparison.outcome)}`}>
+                  Retest {retestComparison.outcome}
+                </span>
+              ) : null}
+            </div>
+
+            <AdvancedReportNavigation scanId={scan.id} variant="compact" />
           </div>
-          <div className="rounded-3xl border border-slate-200 bg-white p-6">
-            <p className="text-sm text-slate-500">High</p>
-            <p className="mt-2 text-3xl font-black text-red-700">
-              {severityCounts.high ?? 0}
-            </p>
-          </div>
-          <div className="rounded-3xl border border-slate-200 bg-white p-6">
-            <p className="text-sm text-slate-500">Medium</p>
-            <p className="mt-2 text-3xl font-black text-amber-700">
-              {severityCounts.medium ?? 0}
-            </p>
-          </div>
-          <div className="rounded-3xl border border-slate-200 bg-white p-6">
-            <p className="text-sm text-slate-500">Action items</p>
-            <p className="mt-2 text-3xl font-black">
-              {actionableFindings.length}
-            </p>
+
+          <div className="border-t border-slate-200 bg-slate-950 p-6 text-white lg:border-l lg:border-t-0">
+            <p className="text-xs font-semibold uppercase tracking-[0.13em] text-slate-400">Overall score</p>
+            <div className="mt-4 flex items-end gap-2">
+              <span className="text-6xl font-semibold tracking-[-0.06em]">{scan.score}</span>
+              <span className="pb-2 text-sm text-slate-400">/100</span>
+            </div>
+            <p className="mt-3 text-sm capitalize text-slate-300">{scan.risk_level} risk</p>
           </div>
         </section>
 
+        <div className="mt-6">
+          <AdvancedReportNavigation scanId={scan.id} />
+        </div>
+
+        <section className="mt-6 grid border border-slate-300 bg-white sm:grid-cols-2 lg:grid-cols-4">
+          {[
+            ["Critical", severityCounts.critical ?? 0, "text-red-800"],
+            ["High", severityCounts.high ?? 0, "text-red-700"],
+            ["Medium", severityCounts.medium ?? 0, "text-amber-700"],
+            ["Action items", actionableFindings.length, "text-slate-950"],
+          ].map(([label, value, tone], index) => (
+            <div
+              key={String(label)}
+              className={`p-5 ${index < 3 ? "border-b border-slate-200 sm:border-b-0 sm:border-r" : ""}`}
+            >
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">{label}</p>
+              <p className={`mt-2 text-3xl font-semibold ${tone}`}>{value}</p>
+            </div>
+          ))}
+        </section>
+
         {retestComparison ? (
-          <section className="rounded-3xl border border-slate-200 bg-white p-8">
-            <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
+          <section className="mt-8 border border-slate-300 bg-white">
+            <div className="flex flex-col justify-between gap-4 border-b border-slate-200 px-6 py-5 sm:flex-row sm:items-start">
               <div>
-                <p className="text-sm font-black text-slate-500">Retest result</p>
-                <h2 className="mt-1 text-2xl font-black">
-                  Before vs after fixes
-                </h2>
-                <p className="mt-2 max-w-3xl text-slate-600">
-                  Consecutive safe public scans are compared using the same
-                  canonical finding rules.
+                <p className="text-xs font-semibold uppercase tracking-[0.13em] text-blue-700">Retest evidence</p>
+                <h2 className="mt-2 text-xl font-semibold">Before vs after remediation</h2>
+                <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
+                  Consecutive scans are compared with the same canonical finding rules so resolved, persistent and new issues stay clear.
                 </p>
               </div>
-              <span
-                className={`rounded-full px-4 py-2 text-sm font-black ${outcomeClass(
-                  retestComparison.outcome,
-                )}`}
-              >
-                {retestComparison.outcome.toUpperCase()}
+              <span className={`rounded-md border px-3 py-1.5 text-xs font-semibold uppercase ${outcomeClass(retestComparison.outcome)}`}>
+                {retestComparison.outcome}
               </span>
             </div>
 
-            <div className="mt-6 grid gap-4 md:grid-cols-3">
-              <div className="rounded-2xl bg-slate-50 p-5">
-                <p className="text-sm text-slate-500">Score</p>
-                <p className="mt-2 text-2xl font-black">
-                  {retestComparison.baselineScore} → {retestComparison.currentScore}
-                </p>
-                <p className="mt-1 text-sm font-bold text-slate-600">
-                  {retestComparison.scoreDelta > 0 ? "+" : ""}
-                  {retestComparison.scoreDelta} points
-                </p>
-              </div>
-              <div className="rounded-2xl bg-emerald-50 p-5">
-                <p className="text-sm text-emerald-800">Resolved / no longer detected</p>
-                <p className="mt-2 text-3xl font-black text-emerald-950">
-                  {retestComparison.counts.resolved}
-                </p>
-              </div>
-              <div className="rounded-2xl bg-red-50 p-5">
-                <p className="text-sm text-red-800">New actionable findings</p>
-                <p className="mt-2 text-3xl font-black text-red-950">
-                  {retestComparison.counts.newFindings}
-                </p>
-              </div>
+            <div className="grid border-b border-slate-200 md:grid-cols-4">
+              {[
+                ["Baseline", `${retestComparison.baselineScore}/100`],
+                ["Current", `${retestComparison.currentScore}/100`],
+                ["Score change", `${retestComparison.scoreDelta > 0 ? "+" : ""}${retestComparison.scoreDelta}`],
+                ["Resolved", String(retestComparison.counts.resolved)],
+              ].map(([label, value], index) => (
+                <div key={label} className={`p-5 ${index < 3 ? "border-b border-slate-200 md:border-b-0 md:border-r" : ""}`}>
+                  <p className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">{label}</p>
+                  <p className="mt-2 text-2xl font-semibold">{value}</p>
+                </div>
+              ))}
             </div>
 
-            <div className="mt-6 grid gap-5 lg:grid-cols-3">
-              <div className="rounded-2xl border border-slate-200 p-5">
-                <h3 className="font-black">Resolved</h3>
-                <div className="mt-3 grid gap-2 text-sm text-slate-700">
-                  {retestComparison.resolved.length ? (
-                    retestComparison.resolved.slice(0, 8).map((finding) => (
-                      <p key={`${finding.category}-${finding.title}`}>
-                        {finding.title}
-                      </p>
-                    ))
-                  ) : (
-                    <p>No prior actionable finding disappeared.</p>
-                  )}
-                </div>
-              </div>
-
-              <div className="rounded-2xl border border-slate-200 p-5">
-                <h3 className="font-black">Still open</h3>
-                <div className="mt-3 grid gap-2 text-sm text-slate-700">
-                  {retestComparison.persistent.length ? (
-                    retestComparison.persistent.slice(0, 8).map((finding) => (
-                      <p key={`${finding.category}-${finding.title}`}>
-                        {finding.title}
-                      </p>
-                    ))
-                  ) : (
-                    <p>No actionable finding persisted.</p>
-                  )}
-                </div>
-              </div>
-
-              <div className="rounded-2xl border border-slate-200 p-5">
-                <h3 className="font-black">New</h3>
-                <div className="mt-3 grid gap-2 text-sm text-slate-700">
-                  {retestComparison.newFindings.length ? (
-                    retestComparison.newFindings.slice(0, 8).map((finding) => (
-                      <p key={`${finding.category}-${finding.title}`}>
-                        {finding.title}
-                      </p>
-                    ))
-                  ) : (
-                    <p>No new actionable finding appeared.</p>
-                  )}
-                </div>
-              </div>
+            <div className="grid lg:grid-cols-3">
+              {[
+                ["Resolved / no longer detected", retestComparison.resolved, "No prior actionable finding disappeared."],
+                ["Still open", retestComparison.persistent, "No actionable finding persisted."],
+                ["New", retestComparison.newFindings, "No new actionable finding appeared."],
+              ].map(([title, items, empty], index) => {
+                const list = items as RetestFinding[];
+                return (
+                  <div key={String(title)} className={`p-6 ${index < 2 ? "border-b border-slate-200 lg:border-b-0 lg:border-r" : ""}`}>
+                    <div className="flex items-center justify-between gap-3">
+                      <h3 className="font-semibold">{String(title)}</h3>
+                      <span className="text-xs font-semibold text-slate-400">{list.length}</span>
+                    </div>
+                    <div className="mt-4 divide-y divide-slate-100 text-sm text-slate-700">
+                      {list.length ? (
+                        list.slice(0, 8).map((finding) => (
+                          <p key={`${finding.category}-${finding.title}`} className="py-2.5">{finding.title}</p>
+                        ))
+                      ) : (
+                        <p className="py-2.5 text-slate-500">{String(empty)}</p>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
 
-            <div className="mt-6 flex flex-col justify-between gap-4 border-t border-slate-200 pt-5 md:flex-row md:items-center">
-              <p className="max-w-3xl text-sm leading-6 text-slate-500">
-                {retestComparison.note}
-              </p>
-              <Link
-                href={`/report/${retestComparison.baselineScanId}`}
-                className="shrink-0 font-black underline"
-              >
-                Open baseline report
+            <div className="flex flex-col justify-between gap-4 border-t border-slate-200 px-6 py-5 sm:flex-row sm:items-center">
+              <p className="max-w-3xl text-xs leading-5 text-slate-500">{retestComparison.note}</p>
+              <Link href={`/report/${retestComparison.baselineScanId}`} className="text-sm font-semibold text-blue-700 hover:text-blue-900">
+                Open baseline →
               </Link>
             </div>
           </section>
         ) : null}
 
         {categoryScores.length ? (
-          <section className="rounded-3xl border border-slate-200 bg-white p-8">
-            <h2 className="text-2xl font-black">Category scores</h2>
-            <div className="mt-6 grid gap-4 md:grid-cols-2">
-              {categoryScores.map((item) => {
+          <section className="mt-8 border border-slate-300 bg-white">
+            <div className="border-b border-slate-200 px-6 py-5">
+              <h2 className="text-xl font-semibold">Security posture by category</h2>
+              <p className="mt-1 text-sm text-slate-500">Category scores supporting the overall report.</p>
+            </div>
+            <div className="grid md:grid-cols-2">
+              {categoryScores.map((item, index) => {
                 const label = item.label || item.name || "Category";
                 const width =
                   typeof item.percentage === "number"
                     ? Math.max(0, Math.min(100, item.percentage))
-                    : scoreWidth(
-                        item.score,
-                        item.rawScore,
-                        item.maxScore,
-                      );
+                    : scoreWidth(item.score, item.rawScore, item.maxScore);
 
                 return (
                   <div
                     key={label}
-                    className="rounded-2xl border border-slate-200 p-5"
+                    className={`p-6 ${index % 2 === 0 ? "md:border-r" : ""} ${index < categoryScores.length - 2 ? "border-b" : ""} border-slate-200`}
                   >
-                    <div className="flex justify-between gap-3">
-                      <h3 className="font-black">{label}</h3>
-                      <p className="font-black">
-                        {item.grade ? `Grade ${item.grade} · ` : ""}
-                        {width}/100
+                    <div className="flex items-baseline justify-between gap-4">
+                      <h3 className="font-semibold">{label}</h3>
+                      <p className="text-sm font-semibold text-slate-700">
+                        {item.grade ? `${item.grade} · ` : ""}{width}/100
                       </p>
                     </div>
-                    <div className="mt-4 h-3 rounded-full bg-slate-100">
-                      <div
-                        className="h-3 rounded-full bg-slate-950"
-                        style={{ width: `${width}%` }}
-                      />
+                    <div className="mt-4 h-1.5 bg-slate-100">
+                      <div className="h-1.5 bg-blue-700" style={{ width: `${width}%` }} />
                     </div>
-                    {typeof item.rawScore === "number" &&
-                    typeof item.maxScore === "number" ? (
-                      <p className="mt-3 text-sm text-slate-500">
-                        {item.rawScore}/{item.maxScore} points
-                      </p>
+                    {typeof item.rawScore === "number" && typeof item.maxScore === "number" ? (
+                      <p className="mt-2 text-xs text-slate-400">{item.rawScore}/{item.maxScore} weighted points</p>
                     ) : null}
                   </div>
                 );
@@ -428,73 +357,62 @@ export default async function ReportPage({
           </section>
         ) : null}
 
-        <section className="rounded-3xl border border-slate-200 bg-white p-8">
-          <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
+        <section className="mt-8 border border-slate-300 bg-white">
+          <div className="flex flex-col justify-between gap-4 border-b border-slate-200 px-6 py-5 sm:flex-row sm:items-end">
             <div>
-              <h2 className="text-2xl font-black">Top fixes</h2>
-              <p className="mt-2 text-slate-600">
-                Give this to your developer, then retest after fixes.
-              </p>
+              <p className="text-xs font-semibold uppercase tracking-[0.13em] text-blue-700">Remediation</p>
+              <h2 className="mt-2 text-xl font-semibold">Prioritized fixes</h2>
+              <p className="mt-1 text-sm text-slate-500">Use these actions for developer handoff, then retest after changes are deployed.</p>
             </div>
-            <Link
-              href={`/report/${scan.id}/fix-roadmap`}
-              className="rounded-full bg-slate-950 px-5 py-3 text-sm font-black text-white hover:bg-slate-800"
-            >
-              Open developer roadmap
+            <Link href={`/report/${scan.id}/fix-roadmap`} className="text-sm font-semibold text-blue-700 hover:text-blue-900">
+              Open full fix roadmap →
             </Link>
           </div>
 
-          <div className="mt-6 grid gap-5">
-            {actionableFindings.length ? (
-              actionableFindings.slice(0, 12).map((finding, index) => (
-                <div
-                  key={`${finding.name || finding.title}-${index}`}
-                  className="rounded-2xl border border-slate-200 p-6"
-                >
-                  <div className="flex flex-col justify-between gap-3 md:flex-row md:items-start">
-                    <div>
-                      <p className="text-xs font-black uppercase text-slate-500">
-                        {finding.category || "Security"}
-                      </p>
-                      <h3 className="mt-1 text-xl font-black">
-                        {finding.name || finding.title || "Security finding"}
-                      </h3>
-                    </div>
-                    <span
-                      className={`rounded-full px-3 py-1 text-xs font-black ${severityClass(
-                        finding.severity,
-                      )}`}
-                    >
+          {actionableFindings.length ? (
+            <div className="divide-y divide-slate-200">
+              {actionableFindings.slice(0, 12).map((finding, index) => (
+                <article key={`${finding.name || finding.title}-${index}`} className="grid gap-4 px-6 py-6 lg:grid-cols-[180px_1fr]">
+                  <div>
+                    <span className={`inline-flex rounded-md border px-2.5 py-1 text-xs font-semibold ${severityClass(finding.severity)}`}>
                       {finding.severity || "Review"}
                     </span>
-                  </div>
-
-                  <div className="mt-4 grid gap-3 text-sm leading-6 text-slate-700">
-                    {finding.description ? <p>{finding.description}</p> : null}
-                    {finding.businessImpact ? (
-                      <p>
-                        <span className="font-black text-slate-950">
-                          Business impact:
-                        </span>{" "}
-                        {finding.businessImpact}
-                      </p>
-                    ) : null}
-                    <p>
-                      <span className="font-black text-slate-950">Fix:</span>{" "}
-                      {finding.developerFix ||
-                        finding.recommendation ||
-                        "Review this issue and apply the recommended hardening control."}
+                    <p className="mt-3 text-xs font-semibold uppercase tracking-[0.1em] text-slate-400">
+                      {finding.category || "Security"}
                     </p>
                   </div>
-                </div>
-              ))
-            ) : (
-              <p className="text-slate-600">
-                No actionable findings were identified by this safe public scan.
-              </p>
-            )}
-          </div>
+
+                  <div>
+                    <h3 className="text-lg font-semibold">{finding.name || finding.title || "Security finding"}</h3>
+                    {finding.description ? <p className="mt-2 text-sm leading-6 text-slate-600">{finding.description}</p> : null}
+                    {finding.businessImpact ? (
+                      <p className="mt-3 text-sm leading-6 text-slate-700">
+                        <span className="font-semibold text-slate-950">Business impact:</span> {finding.businessImpact}
+                      </p>
+                    ) : null}
+                    <div className="mt-4 border-l-2 border-blue-700 pl-4">
+                      <p className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">Recommended fix</p>
+                      <p className="mt-1 text-sm leading-6 text-slate-700">
+                        {finding.developerFix || finding.recommendation || "Review this issue and apply the recommended hardening control."}
+                      </p>
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <div className="px-6 py-10 text-center text-sm text-slate-600">
+              No actionable findings were identified by this safe public scan.
+            </div>
+          )}
         </section>
+
+        <div className="mt-8 flex flex-col justify-between gap-4 border-t border-slate-300 pt-6 text-xs leading-5 text-slate-500 sm:flex-row">
+          <p className="max-w-3xl">
+            This report is decision-support evidence from the assessed checks, not a guarantee of complete security, a penetration-test certificate, or a compliance certification.
+          </p>
+          <Link href="/trust" className="shrink-0 font-semibold text-slate-700 hover:text-blue-700">Trust & safety →</Link>
+        </div>
       </section>
     </main>
   );
