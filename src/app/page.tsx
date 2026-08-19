@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Navbar } from "@/components/Navbar";
 
 const workflow = [
@@ -10,7 +11,36 @@ const workflow = [
   "Retest and monitoring workflow",
 ];
 
-export default function Home() {
+type HomeProps = {
+  searchParams?: Promise<{
+    code?: string;
+    error?: string;
+    error_description?: string;
+  }>;
+};
+
+export default async function Home({ searchParams }: HomeProps) {
+  const params = await searchParams;
+
+  // Supabase may fall back to the configured Site URL when an OAuth redirect
+  // URL is not allow-listed. Never leave an authorization code sitting on the
+  // public landing page: forward it to the server-side callback immediately so
+  // it can be exchanged for a session and then removed from the browser URL.
+  if (params?.code) {
+    const callback = new URLSearchParams({
+      code: params.code,
+      next: "/dashboard",
+    });
+    redirect(`/auth/callback?${callback.toString()}`);
+  }
+
+  if (params?.error || params?.error_description) {
+    const message = encodeURIComponent(
+      "Google sign-in was not completed. Please try again.",
+    );
+    redirect(`/login?message=${message}`);
+  }
+
   return (
     <main className="min-h-screen bg-slate-50 text-slate-950">
       <Navbar />
