@@ -52,7 +52,7 @@ export async function validatePublicHttpUrl(input: string): Promise<URL> {
   const directIpType = net.isIP(hostname);
   if (directIpType === 4) assertPublicAddress(hostname, 4);
   if (directIpType === 6) assertPublicAddress(hostname, 6);
-  let records;
+  let records: { address: string; family: number }[] | undefined;
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
       records = await dns.lookup(hostname, { all: true });
