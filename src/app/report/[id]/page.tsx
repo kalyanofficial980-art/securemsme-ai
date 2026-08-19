@@ -27,6 +27,32 @@ type Finding = {
   status?: string;
 };
 
+type RetestFinding = {
+  title: string;
+  category: string;
+  severity: string;
+};
+
+type RetestComparison = {
+  baselineScanId: string;
+  baselineCreatedAt: string;
+  baselineScore: number;
+  baselineRiskLevel: string;
+  currentScore: number;
+  currentRiskLevel: string;
+  scoreDelta: number;
+  outcome: "improved" | "unchanged" | "regressed";
+  resolved: RetestFinding[];
+  newFindings: RetestFinding[];
+  persistent: RetestFinding[];
+  counts: {
+    resolved: number;
+    newFindings: number;
+    persistent: number;
+  };
+  note: string;
+};
+
 function getReportObject(value: unknown) {
   return value && typeof value === "object"
     ? (value as Record<string, unknown>)
@@ -35,6 +61,28 @@ function getReportObject(value: unknown) {
 
 function getFindings(report: Record<string, unknown>): Finding[] {
   return Array.isArray(report.findings) ? (report.findings as Finding[]) : [];
+}
+
+function isActionableFinding(finding: Finding) {
+  const status = String(finding.status || "").toLowerCase();
+  const severity = String(finding.severity || "").toLowerCase();
+
+  return (
+    status !== "pass" &&
+    status !== "info" &&
+    status !== "not_assessed" &&
+    status !== "not_applicable" &&
+    severity !== "info"
+  );
+}
+
+function getRetestComparison(
+  report: Record<string, unknown>,
+): RetestComparison | null {
+  const value = report.retestComparison;
+  return value && typeof value === "object"
+    ? (value as RetestComparison)
+    : null;
 }
 
 function getCategoryScores(report: Record<string, unknown>): CategoryScore[] {
@@ -96,6 +144,12 @@ function severityClass(severity?: string) {
   return "bg-emerald-50 text-emerald-800";
 }
 
+function outcomeClass(outcome: RetestComparison["outcome"]) {
+  if (outcome === "improved") return "bg-emerald-100 text-emerald-900";
+  if (outcome === "regressed") return "bg-red-100 text-red-900";
+  return "bg-slate-100 text-slate-800";
+}
+
 export default async function ReportPage({
   params,
 }: {
@@ -135,11 +189,9 @@ export default async function ReportPage({
 
   const report = getReportObject(scan.report);
   const findings = getFindings(report);
-  const actionableFindings = findings.filter(
-    (finding) =>
-      String(finding.status || "").toLowerCase() !== "pass",
-  );
+  const actionableFindings = findings.filter(isActionableFinding);
   const categoryScores = getCategoryScores(report);
+  const retestComparison = getRetestComparison(report);
 
   const severityCounts =
     report.severityCounts && typeof report.severityCounts === "object"
@@ -171,6 +223,15 @@ export default async function ReportPage({
                 <span className="rounded-full bg-slate-100 px-4 py-2 text-sm font-black">
                   Scan date {new Date(scan.created_at).toLocaleString()}
                 </span>
+                {retestComparison ? (
+                  <span
+                    className={`rounded-full px-4 py-2 text-sm font-black ${outcomeClass(
+                      retestComparison.outcome,
+                    )}`}
+                  >
+                    Retest {retestComparison.outcome}
+                  </span>
+                ) : null}
               </div>
 
               <AdvancedReportNavigation scanId={scan.id} variant="compact" />
@@ -212,6 +273,114 @@ export default async function ReportPage({
             </p>
           </div>
         </section>
+
+        {retestComparison ? (
+          <section className="rounded-3xl border border-slate-200 bg-white p-8">
+            <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
+              <div>
+                <p className="text-sm font-black text-slate-500">Retest result</p>
+                <h2 className="mt-1 text-2xl font-black">
+                  Before vs after fixes
+                </h2>
+                <p className="mt-2 max-w-3xl text-slate-600">
+                  Consecutive safe public scans are compared using the same
+                  canonical finding rules.
+                </p>
+              </div>
+              <span
+                className={`rounded-full px-4 py-2 text-sm font-black ${outcomeClass(
+                  retestComparison.outcome,
+                )}`}
+              >
+                {retestComparison.outcome.toUpperCase()}
+              </span>
+            </div>
+
+            <div className="mt-6 grid gap-4 md:grid-cols-3">
+              <div className="rounded-2xl bg-slate-50 p-5">
+                <p className="text-sm text-slate-500">Score</p>
+                <p className="mt-2 text-2xl font-black">
+                  {retestComparison.baselineScore} → {retestComparison.currentScore}
+                </p>
+                <p className="mt-1 text-sm font-bold text-slate-600">
+                  {retestComparison.scoreDelta > 0 ? "+" : ""}
+                  {retestComparison.scoreDelta} points
+                </p>
+              </div>
+              <div className="rounded-2xl bg-emerald-50 p-5">
+                <p className="text-sm text-emerald-800">Resolved / no longer detected</p>
+                <p className="mt-2 text-3xl font-black text-emerald-950">
+                  {retestComparison.counts.resolved}
+                </p>
+              </div>
+              <div className="rounded-2xl bg-red-50 p-5">
+                <p className="text-sm text-red-800">New actionable findings</p>
+                <p className="mt-2 text-3xl font-black text-red-950">
+                  {retestComparison.counts.newFindings}
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-6 grid gap-5 lg:grid-cols-3">
+              <div className="rounded-2xl border border-slate-200 p-5">
+                <h3 className="font-black">Resolved</h3>
+                <div className="mt-3 grid gap-2 text-sm text-slate-700">
+                  {retestComparison.resolved.length ? (
+                    retestComparison.resolved.slice(0, 8).map((finding) => (
+                      <p key={`${finding.category}-${finding.title}`}>
+                        {finding.title}
+                      </p>
+                    ))
+                  ) : (
+                    <p>No prior actionable finding disappeared.</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-slate-200 p-5">
+                <h3 className="font-black">Still open</h3>
+                <div className="mt-3 grid gap-2 text-sm text-slate-700">
+                  {retestComparison.persistent.length ? (
+                    retestComparison.persistent.slice(0, 8).map((finding) => (
+                      <p key={`${finding.category}-${finding.title}`}>
+                        {finding.title}
+                      </p>
+                    ))
+                  ) : (
+                    <p>No actionable finding persisted.</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-slate-200 p-5">
+                <h3 className="font-black">New</h3>
+                <div className="mt-3 grid gap-2 text-sm text-slate-700">
+                  {retestComparison.newFindings.length ? (
+                    retestComparison.newFindings.slice(0, 8).map((finding) => (
+                      <p key={`${finding.category}-${finding.title}`}>
+                        {finding.title}
+                      </p>
+                    ))
+                  ) : (
+                    <p>No new actionable finding appeared.</p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 flex flex-col justify-between gap-4 border-t border-slate-200 pt-5 md:flex-row md:items-center">
+              <p className="max-w-3xl text-sm leading-6 text-slate-500">
+                {retestComparison.note}
+              </p>
+              <Link
+                href={`/report/${retestComparison.baselineScanId}`}
+                className="shrink-0 font-black underline"
+              >
+                Open baseline report
+              </Link>
+            </div>
+          </section>
+        ) : null}
 
         {categoryScores.length ? (
           <section className="rounded-3xl border border-slate-200 bg-white p-8">
@@ -264,7 +433,7 @@ export default async function ReportPage({
             <div>
               <h2 className="text-2xl font-black">Top fixes</h2>
               <p className="mt-2 text-slate-600">
-                Give this to your developer, then rescan after fixes.
+                Give this to your developer, then retest after fixes.
               </p>
             </div>
             <Link
