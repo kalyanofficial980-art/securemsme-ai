@@ -11,189 +11,72 @@ import { formatDate } from "@/lib/monitoring";
 
 export default async function WebsitesPage() {
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login?message=Please login to view websites");
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login?message=Please login to view websites");
-  }
-
-  const { data: websites } = await supabase
-    .from("websites")
-    .select(
-      "id, name, url, monitoring_enabled, scan_frequency, last_scan_at, next_scan_at, latest_score, latest_risk_level, latest_scan_id, verification_status, deep_scan_enabled",
-    )
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false });
-
+  const { data: websites } = await supabase.from("websites").select("id, name, url, monitoring_enabled, scan_frequency, last_scan_at, next_scan_at, latest_score, latest_risk_level, latest_scan_id, verification_status, deep_scan_enabled").eq("user_id", user.id).order("created_at", { ascending: false });
   const savedWebsites = websites ?? [];
-  const verifiedCount = savedWebsites.filter(
-    (website) => website.verification_status === "verified",
-  ).length;
+  const verifiedCount = savedWebsites.filter((website) => website.verification_status === "verified").length;
   const scannedCount = savedWebsites.filter((website) => website.latest_scan_id).length;
 
   return (
-    <main className="min-h-screen text-slate-950">
+    <main className="min-h-screen bg-white text-slate-950">
       <Navbar />
-
-      <section className="mx-auto max-w-7xl px-6 py-10 sm:py-14">
-        <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
+      <section className="mx-auto max-w-7xl px-6 py-10">
+        <div className="flex flex-col justify-between gap-6 border-b border-slate-200 pb-8 lg:flex-row lg:items-end">
           <div>
-            <div className="inline-flex rounded-full border border-sky-200 bg-sky-50 px-3 py-1.5 text-xs font-black uppercase tracking-[0.14em] text-sky-800">
-              Website workspace
-            </div>
-            <h1 className="mt-4 text-4xl font-black tracking-[-0.045em] sm:text-5xl">
-              Your websites
-            </h1>
-            <p className="mt-3 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
-              Keep each website, its latest posture, ownership state, and retest history in one clean workflow.
-            </p>
+            <p className="text-xs font-bold uppercase tracking-[0.14em] text-blue-700">Asset inventory</p>
+            <h1 className="mt-2 text-3xl font-semibold tracking-[-0.04em]">Websites</h1>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">Ownership, latest security posture, review cadence and retest actions in one place.</p>
           </div>
-
-          <div className="flex flex-wrap gap-3">
-            <Link
-              href="/scan"
-              className="inline-flex items-center justify-center rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-black text-slate-700 shadow-sm hover:bg-slate-50"
-            >
-              Run scan
-            </Link>
-            <Link
-              href="/websites/new"
-              className="inline-flex items-center justify-center rounded-full bg-slate-950 px-5 py-3 text-sm font-black text-white shadow-lg shadow-slate-950/10 hover:-translate-y-0.5 hover:bg-slate-800"
-            >
-              + Add website
-            </Link>
+          <div className="flex gap-2">
+            <Link href="/scan" className="border border-slate-300 px-4 py-2.5 text-sm font-semibold hover:bg-slate-50">Run scan</Link>
+            <Link href="/websites/new" className="bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700">Add website</Link>
           </div>
         </div>
 
-        <div className="mt-8 grid gap-4 sm:grid-cols-3">
-          {[
-            ["Saved", savedWebsites.length, "Websites in workspace"],
-            ["Scanned", scannedCount, "With at least one report"],
-            ["Verified", verifiedCount, "Ownership-confirmed"],
-          ].map(([label, value, helper]) => (
-            <div key={label} className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-              <p className="text-sm font-bold text-slate-500">{label}</p>
-              <p className="mt-1 text-3xl font-black tracking-[-0.04em]">{value}</p>
-              <p className="mt-1 text-xs font-semibold text-slate-400">{helper}</p>
+        <div className="grid border-x border-b border-slate-200 sm:grid-cols-3">
+          {[["Saved", savedWebsites.length], ["Scanned", scannedCount], ["Verified", verifiedCount]].map(([label, value], index) => (
+            <div key={label} className={`p-5 ${index < 2 ? "sm:border-r sm:border-slate-200" : ""}`}>
+              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">{label}</p>
+              <p className="mt-2 text-3xl font-semibold tracking-[-0.04em]">{value}</p>
             </div>
           ))}
         </div>
 
         {savedWebsites.length ? (
-          <div className="mt-8 grid gap-5 xl:grid-cols-2">
+          <div className="mt-8 divide-y divide-slate-200 border border-slate-200">
             {savedWebsites.map((website) => {
-              const deepScanUnlocked =
-                website.verification_status === "verified" && website.deep_scan_enabled;
-
+              const deepScanUnlocked = website.verification_status === "verified" && website.deep_scan_enabled;
               return (
-                <article
-                  key={website.id}
-                  className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-lg"
-                >
-                  <div className="p-6 sm:p-7">
-                    <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
-                      <div className="flex min-w-0 items-start gap-3">
-                        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-sm font-black text-white">
-                          {(website.name || website.url || "W").charAt(0).toUpperCase()}
-                        </span>
-                        <div className="min-w-0">
-                          <h2 className="truncate text-xl font-black tracking-[-0.02em]">
-                            {website.name || "Website"}
-                          </h2>
-                          <p className="mt-1 truncate text-sm font-semibold text-slate-500">
-                            {website.url}
-                          </p>
-                        </div>
+                <article key={website.id} className="p-5 sm:p-6">
+                  <div className="grid gap-5 xl:grid-cols-[1.2fr_0.8fr] xl:items-start">
+                    <div>
+                      <div className="flex flex-wrap items-center gap-3">
+                        <h2 className="text-base font-semibold">{website.name || "Website"}</h2>
+                        <VerificationStatusBadge status={website.verification_status} deepScanEnabled={website.deep_scan_enabled} />
+                        <MonitoringBadge monitoringEnabled={website.monitoring_enabled} lastScanAt={website.last_scan_at} nextScanAt={website.next_scan_at} />
                       </div>
+                      <p className="mt-1 break-all text-sm text-slate-500">{website.url}</p>
 
-                      <div className="flex flex-wrap gap-2 sm:justify-end">
-                        <MonitoringBadge
-                          monitoringEnabled={website.monitoring_enabled}
-                          lastScanAt={website.last_scan_at}
-                          nextScanAt={website.next_scan_at}
-                        />
-                        <VerificationStatusBadge
-                          status={website.verification_status}
-                          deepScanEnabled={website.deep_scan_enabled}
-                        />
-                      </div>
+                      <dl className="mt-5 grid gap-px bg-slate-200 sm:grid-cols-4">
+                        <div className="bg-white p-3"><dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">Score</dt><dd className="mt-1 text-xl font-semibold">{website.latest_score ?? "—"}</dd></div>
+                        <div className="bg-white p-3"><dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">Risk</dt><dd className="mt-2">{website.latest_risk_level ? <RiskBadge riskLevel={website.latest_risk_level} /> : <span className="text-xs text-slate-500">Not scanned</span>}</dd></div>
+                        <div className="bg-white p-3"><dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">Last scan</dt><dd className="mt-1 text-xs font-medium text-slate-700">{formatDate(website.last_scan_at)}</dd></div>
+                        <div className="bg-white p-3"><dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">Next review</dt><dd className="mt-1 text-xs font-medium text-slate-700">{formatDate(website.next_scan_at)}</dd></div>
+                      </dl>
                     </div>
 
-                    <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-                      <div className="rounded-2xl bg-slate-50 p-4">
-                        <p className="text-xs font-bold text-slate-400">Score</p>
-                        <p className="mt-1 text-3xl font-black tracking-[-0.04em]">
-                          {website.latest_score ?? "—"}
-                        </p>
+                    <div className="border border-slate-200 bg-slate-50 p-4">
+                      <p className="text-sm font-semibold">{deepScanUnlocked ? "Authorized deeper review available" : "Ownership gate required"}</p>
+                      <p className="mt-1 text-xs leading-5 text-slate-500">{deepScanUnlocked ? "Ownership and permission are confirmed for the deeper passive workflow." : "Verify ownership before deeper passive review is enabled."}</p>
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        <Link href={`/websites/${website.id}`} className="border border-slate-300 bg-white px-3 py-2 text-xs font-semibold">Details</Link>
+                        <Link href={`/websites/${website.id}/verify`} className="border border-slate-300 bg-white px-3 py-2 text-xs font-semibold">{website.verification_status === "verified" ? "Ownership" : "Verify ownership"}</Link>
+                        {website.latest_scan_id ? <Link href={`/report/${website.latest_scan_id}`} className="border border-slate-300 bg-white px-3 py-2 text-xs font-semibold">Latest report</Link> : null}
                       </div>
-                      <div className="rounded-2xl bg-slate-50 p-4">
-                        <p className="text-xs font-bold text-slate-400">Risk</p>
-                        <div className="mt-2">
-                          {website.latest_risk_level ? (
-                            <RiskBadge riskLevel={website.latest_risk_level} />
-                          ) : (
-                            <span className="text-xs font-black text-slate-500">Not scanned</span>
-                          )}
-                        </div>
-                      </div>
-                      <div className="rounded-2xl bg-slate-50 p-4">
-                        <p className="text-xs font-bold text-slate-400">Last scan</p>
-                        <p className="mt-2 text-xs font-black leading-5 text-slate-700">
-                          {formatDate(website.last_scan_at)}
-                        </p>
-                      </div>
-                      <div className="rounded-2xl bg-slate-50 p-4">
-                        <p className="text-xs font-bold text-slate-400">Next review</p>
-                        <p className="mt-2 text-xs font-black leading-5 text-slate-700">
-                          {formatDate(website.next_scan_at)}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="mt-6 flex flex-wrap gap-2">
-                      <Link
-                        href={`/websites/${website.id}`}
-                        className="rounded-full border border-slate-300 bg-white px-4 py-2.5 text-xs font-black text-slate-700 hover:bg-slate-50"
-                      >
-                        Website details
-                      </Link>
-                      <Link
-                        href={`/websites/${website.id}/verify`}
-                        className="rounded-full border border-slate-300 bg-white px-4 py-2.5 text-xs font-black text-slate-700 hover:bg-slate-50"
-                      >
-                        {website.verification_status === "verified" ? "Review ownership" : "Verify ownership"}
-                      </Link>
-                      {website.latest_scan_id ? (
-                        <Link
-                          href={`/report/${website.latest_scan_id}`}
-                          className="rounded-full border border-slate-300 bg-white px-4 py-2.5 text-xs font-black text-slate-700 hover:bg-slate-50"
-                        >
-                          Latest report
-                        </Link>
-                      ) : null}
-                    </div>
-                  </div>
-
-                  <div className="border-t border-slate-100 bg-slate-50/80 p-5 sm:px-7">
-                    <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
-                      <div>
-                        <p className="text-sm font-black text-slate-800">
-                          {deepScanUnlocked ? "Authorized deeper review unlocked" : "Deeper review locked"}
-                        </p>
-                        <p className="mt-1 text-xs font-semibold leading-5 text-slate-500">
-                          {deepScanUnlocked
-                            ? "Ownership and permission are confirmed for the current deeper passive workflow."
-                            : "Verify ownership and permission before running deeper passive checks."}
-                        </p>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        <RescanButton
-                          websiteId={website.id}
-                          label={website.latest_scan_id ? "Retest after fixes" : "Run first scan"}
-                        />
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        <RescanButton websiteId={website.id} label={website.latest_scan_id ? "Retest after fixes" : "Run first scan"} />
                         <DeepScanButton websiteId={website.id} disabled={!deepScanUnlocked} />
                       </div>
                     </div>
@@ -203,18 +86,10 @@ export default async function WebsitesPage() {
             })}
           </div>
         ) : (
-          <div className="mt-10 rounded-[2rem] border border-dashed border-slate-300 bg-white p-10 text-center shadow-sm sm:p-14">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-950 text-xl font-black text-white">+</div>
-            <h2 className="mt-5 text-2xl font-black tracking-[-0.03em]">Add your first website</h2>
-            <p className="mx-auto mt-3 max-w-lg leading-7 text-slate-500">
-              Save one public website, run a safe scan, and VeyraSec will start building its security history.
-            </p>
-            <Link
-              href="/websites/new"
-              className="mt-6 inline-flex rounded-full bg-slate-950 px-6 py-3 text-sm font-black text-white shadow-lg shadow-slate-950/10"
-            >
-              Add first website
-            </Link>
+          <div className="mt-8 border border-dashed border-slate-300 p-10">
+            <h2 className="text-lg font-semibold">No websites saved</h2>
+            <p className="mt-2 max-w-xl text-sm leading-6 text-slate-500">Add a public website to start a safe scan and create its security history.</p>
+            <Link href="/websites/new" className="mt-5 inline-flex bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white">Add first website</Link>
           </div>
         )}
       </section>
