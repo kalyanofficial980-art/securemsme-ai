@@ -9,7 +9,7 @@ export default async function ManualBillingPage({
   searchParams: Promise<{ message?: string }>;
 }) {
   const { message } = await searchParams;
-  const supabase = (await createClient()) as any;
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -25,9 +25,9 @@ export default async function ManualBillingPage({
     .limit(30);
 
   return (
-    <main className="min-h-screen bg-slate-50 text-slate-950">
+    <main className="min-h-screen bg-[#f6f8fb] text-slate-950">
       <Navbar />
-      <section className="mx-auto max-w-6xl px-6 py-16">
+      <section className="mx-auto max-w-6xl px-6 py-12 sm:py-16">
         <ManualBillingPanel payments={payments || []} message={message} />
       </section>
     </main>

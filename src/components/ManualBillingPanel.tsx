@@ -8,187 +8,133 @@ type Payment = {
   amount_inr: number;
   payment_reference: string;
   request_status: string;
-  admin_review_note: string;
+  admin_review_note: string | null;
   plan_activated_at: string | null;
   plan_expires_at: string | null;
   created_at: string;
 };
 
 function badgeClass(value: string) {
-  if (value === "approved") return "bg-emerald-100 text-emerald-950";
+  if (value === "approved") return "border-emerald-200 bg-emerald-50 text-emerald-800";
   if (value === "submitted_for_review" || value === "pending_payment")
-    return "bg-amber-100 text-amber-950";
+    return "border-amber-200 bg-amber-50 text-amber-800";
   if (value === "rejected" || value === "expired")
-    return "bg-red-100 text-red-950";
-  return "bg-slate-100 text-slate-700";
+    return "border-red-200 bg-red-50 text-red-800";
+  return "border-slate-200 bg-slate-50 text-slate-700";
 }
 
-export function ManualBillingPanel({
-  payments,
-  message,
-}: {
-  payments: Payment[];
-  message?: string;
-}) {
+function formatDate(value: string | null) {
+  if (!value) return null;
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return null;
+  return date.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+}
+
+export function ManualBillingPanel({ payments, message }: { payments: Payment[]; message?: string }) {
+  const paidPlans = launchPlans.filter((plan) => plan.key !== "free");
+
   return (
-    <section className="space-y-8">
+    <section>
       {message ? (
-        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 font-bold text-amber-900">
-          {message}
-        </div>
+        <div className="mb-6 border-l-2 border-blue-700 bg-blue-50 px-4 py-3 text-sm font-medium text-blue-950">{message}</div>
       ) : null}
-      <div className="rounded-3xl border border-blue-200 bg-blue-50 p-8">
-        <p className="text-sm font-black text-blue-700">
-          Manual approval billing
-        </p>
-        <h1 className="mt-2 text-4xl font-black text-blue-950">
-          Manual Billing
-        </h1>
-        <p className="mt-4 max-w-4xl leading-8 text-blue-900">
-          Choose a plan, pay manually by UPI/bank transfer and submit
-          UTR/reference. Your plan activates only after admin approval.
-        </p>
+
+      <div className="grid gap-8 border-b border-slate-300 pb-8 lg:grid-cols-[1fr_360px] lg:items-end">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-[0.14em] text-blue-700">Assisted billing</p>
+          <h1 className="mt-2 text-4xl font-semibold tracking-[-0.045em]">Request paid plan activation</h1>
+          <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600">
+            Choose the same plan shown on public pricing, pay through the approved VeyraSec billing channel, then submit only the UTR or transaction reference for review.
+          </p>
+        </div>
+        <div className="border border-slate-300 bg-white p-5 text-sm leading-6 text-slate-600">
+          <p className="font-semibold text-slate-950">Payment safety</p>
+          <p className="mt-2">Never submit an OTP, UPI PIN, card PIN, banking password or other payment secret.</p>
+        </div>
       </div>
-      <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-5">
-        {launchPlans.map((plan) => (
-          <div
-            key={plan.key}
-            className="rounded-3xl border border-slate-200 bg-white p-6"
-          >
-            <h2 className="text-xl font-black">{plan.name}</h2>
-            <p className="mt-3 text-3xl font-black">₹{plan.amountInr}</p>
-            <p className="mt-2 text-sm text-slate-500">per month</p>
-            <div className="mt-4 grid gap-2 text-sm font-bold text-slate-700">
-              <p>{plan.websites} website(s)</p>
-              <p>{plan.monthlyScans} scans/month</p>
-              <p>{plan.reports} reports/month</p>
-              <p>{plan.supportLevel}</p>
-            </div>
+
+      <div className="mt-8 grid border border-slate-300 bg-white md:grid-cols-3">
+        {paidPlans.map((plan, index) => (
+          <div key={plan.key} className={`p-6 ${index < paidPlans.length - 1 ? "border-b border-slate-200 md:border-b-0 md:border-r" : ""}`}>
+            <p className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">{plan.name}</p>
+            <p className="mt-3 text-3xl font-semibold tracking-[-0.04em]">₹{plan.amountInr.toLocaleString("en-IN")}<span className="text-sm font-normal text-slate-500">/month</span></p>
+            <p className="mt-3 text-sm leading-6 text-slate-600">{plan.monthlyScans} scans per month · {plan.bestFor}</p>
           </div>
         ))}
       </div>
-      <form
-        action={submitManualPaymentRequestAction}
-        className="rounded-3xl border border-slate-200 bg-white p-8"
-      >
-        <h2 className="text-2xl font-black">Submit payment request</h2>
-        <div className="mt-6 grid gap-4 md:grid-cols-2">
-          <label className="grid gap-2 text-sm font-black text-slate-700">
+
+      <form action={submitManualPaymentRequestAction} className="mt-8 border border-slate-300 bg-white">
+        <div className="border-b border-slate-200 bg-slate-50 px-6 py-4">
+          <h2 className="text-lg font-semibold">Payment verification request</h2>
+          <p className="mt-1 text-sm text-slate-500">Monthly activation only during the assisted launch.</p>
+        </div>
+        <div className="grid gap-5 p-6 md:grid-cols-2">
+          <label className="grid gap-2 text-sm font-semibold text-slate-700">
             Plan
-            <select
-              name="planKey"
-              className="rounded-2xl border border-slate-300 px-4 py-3"
-            >
-              <option value="starter">Starter ₹999</option>
-              <option value="business">Business ₹2,999</option>
-              <option value="pro">Pro ₹7,999</option>
-              <option value="agency">Agency ₹19,999</option>
+            <select name="planKey" className="border border-slate-300 bg-white px-3.5 py-3 font-normal outline-none focus:border-blue-600">
+              <option value="starter">Starter · ₹999/month</option>
+              <option value="growth">Growth · ₹2,499/month</option>
+              <option value="agency">Agency · ₹6,999/month</option>
             </select>
           </label>
-          <label className="grid gap-2 text-sm font-black text-slate-700">
-            Billing cycle
-            <select
-              name="billingCycle"
-              className="rounded-2xl border border-slate-300 px-4 py-3"
-            >
-              <option value="monthly">Monthly</option>
-              <option value="yearly">Yearly · pay 10 months</option>
-            </select>
-          </label>
-          <label className="grid gap-2 text-sm font-black text-slate-700">
+          <input type="hidden" name="billingCycle" value="monthly" />
+          <label className="grid gap-2 text-sm font-semibold text-slate-700">
             Payment method
-            <select
-              name="paymentMethod"
-              className="rounded-2xl border border-slate-300 px-4 py-3"
-            >
+            <select name="paymentMethod" className="border border-slate-300 bg-white px-3.5 py-3 font-normal outline-none focus:border-blue-600">
               <option value="upi">UPI</option>
-              <option value="bank-transfer">Bank Transfer</option>
-              <option value="manual-other">Other manual</option>
+              <option value="bank-transfer">Bank transfer</option>
+              <option value="manual-other">Other approved manual method</option>
             </select>
           </label>
-          <label className="grid gap-2 text-sm font-black text-slate-700">
-            UTR / Reference number
-            <input
-              name="paymentReference"
-              className="rounded-2xl border border-slate-300 px-4 py-3"
-              placeholder="Example: UTR123456789"
-            />
+          <label className="grid gap-2 text-sm font-semibold text-slate-700">
+            UTR / transaction reference
+            <input name="paymentReference" required className="border border-slate-300 px-3.5 py-3 font-normal outline-none focus:border-blue-600" placeholder="Example: UTR123456789" />
           </label>
-          <label className="grid gap-2 text-sm font-black text-slate-700">
+          <label className="grid gap-2 text-sm font-semibold text-slate-700">
             Payer name
-            <input
-              name="payerName"
-              className="rounded-2xl border border-slate-300 px-4 py-3"
-            />
+            <input name="payerName" required className="border border-slate-300 px-3.5 py-3 font-normal outline-none focus:border-blue-600" />
           </label>
-          <label className="grid gap-2 text-sm font-black text-slate-700">
+          <label className="grid gap-2 text-sm font-semibold text-slate-700">
             Payer email
-            <input
-              name="payerEmail"
-              type="email"
-              className="rounded-2xl border border-slate-300 px-4 py-3"
-            />
+            <input name="payerEmail" type="email" required className="border border-slate-300 px-3.5 py-3 font-normal outline-none focus:border-blue-600" />
           </label>
-          <label className="grid gap-2 text-sm font-black text-slate-700">
-            Phone optional
-            <input
-              name="payerPhone"
-              className="rounded-2xl border border-slate-300 px-4 py-3"
-            />
+          <label className="grid gap-2 text-sm font-semibold text-slate-700">
+            Phone <span className="font-normal text-slate-400">optional</span>
+            <input name="payerPhone" className="border border-slate-300 px-3.5 py-3 font-normal outline-none focus:border-blue-600" />
           </label>
-          <label className="grid gap-2 text-sm font-black text-slate-700">
-            Payment note optional
-            <input
-              name="paymentNote"
-              className="rounded-2xl border border-slate-300 px-4 py-3"
-              placeholder="Do not enter UPI PIN/password"
-            />
+          <label className="grid gap-2 text-sm font-semibold text-slate-700 md:col-span-2">
+            Note <span className="font-normal text-slate-400">optional</span>
+            <input name="paymentNote" className="border border-slate-300 px-3.5 py-3 font-normal outline-none focus:border-blue-600" placeholder="Invoice or billing context only — never payment secrets" />
           </label>
         </div>
-        <div className="mt-6 rounded-2xl bg-red-50 p-4 text-sm font-bold leading-6 text-red-900">
-          Do not submit card numbers, UPI PINs, passwords, OTPs or bank login
-          details.
+        <div className="flex flex-col justify-between gap-4 border-t border-slate-200 px-6 py-5 sm:flex-row sm:items-center">
+          <p className="max-w-2xl text-xs leading-5 text-slate-500">Submitting a reference does not activate access. An admin must verify the payment independently before the server-side entitlement changes.</p>
+          <button className="bg-blue-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-800">Submit for review</button>
         </div>
-        <button className="mt-6 rounded-full bg-slate-950 px-6 py-3 text-sm font-black text-white hover:bg-slate-800">
-          Submit for Admin Approval
-        </button>
       </form>
-      <div className="rounded-3xl border border-slate-200 bg-white p-8">
-        <h2 className="text-2xl font-black">Your payment requests</h2>
-        <div className="mt-6 grid gap-4">
-          {payments.length ? (
-            payments.map((payment) => (
-              <div
-                key={payment.id}
-                className="rounded-2xl border border-slate-200 bg-slate-50 p-5"
-              >
-                <div className="flex flex-col justify-between gap-3 md:flex-row md:items-start">
-                  <div>
-                    <p className="font-black">
-                      {payment.requested_plan_name} · ₹{payment.amount_inr}
-                    </p>
-                    <p className="mt-2 text-sm text-slate-600">
-                      Reference: {payment.payment_reference}
-                    </p>
-                    {payment.admin_review_note ? (
-                      <p className="mt-2 text-sm font-bold text-slate-700">
-                        {payment.admin_review_note}
-                      </p>
-                    ) : null}
-                  </div>
-                  <span
-                    className={`rounded-full px-3 py-1 text-xs font-black ${badgeClass(payment.request_status)}`}
-                  >
-                    {payment.request_status}
-                  </span>
-                </div>
-              </div>
-            ))
-          ) : (
-            <p className="text-slate-600">No payment requests yet.</p>
-          )}
+
+      <section className="mt-8 border border-slate-300 bg-white">
+        <div className="border-b border-slate-200 px-6 py-4">
+          <h2 className="text-lg font-semibold">Payment request history</h2>
         </div>
-      </div>
+        {payments.length ? (
+          <div className="divide-y divide-slate-200">
+            {payments.map((payment) => (
+              <div key={payment.id} className="grid gap-4 px-6 py-5 md:grid-cols-[1fr_auto] md:items-start">
+                <div>
+                  <p className="font-semibold">{payment.requested_plan_name} · ₹{payment.amount_inr.toLocaleString("en-IN")}</p>
+                  <p className="mt-1 text-sm text-slate-500">Reference {payment.payment_reference} · submitted {new Date(payment.created_at).toLocaleString()}</p>
+                  {payment.plan_expires_at ? <p className="mt-2 text-sm text-slate-600">Access through {formatDate(payment.plan_expires_at)}</p> : null}
+                  {payment.admin_review_note ? <p className="mt-2 text-sm text-slate-600">Admin note: {payment.admin_review_note}</p> : null}
+                </div>
+                <span className={`border px-2.5 py-1 text-xs font-semibold capitalize ${badgeClass(payment.request_status)}`}>{payment.request_status.replaceAll("_", " ")}</span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="px-6 py-10 text-sm text-slate-500">No payment requests yet.</div>
+        )}
+      </section>
     </section>
   );
 }
