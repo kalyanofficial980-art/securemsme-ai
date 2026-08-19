@@ -1,15 +1,13 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { CancelSubscriptionButton } from "@/components/CancelSubscriptionButton";
 import { Navbar } from "@/components/Navbar";
 import { getEffectivePlan } from "@/lib/billing/entitlements";
-import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 function formatBillingDate(value?: string | null) {
-  if (!value) return "Not available";
+  if (!value) return "Not set";
   const date = new Date(value);
-  if (!Number.isFinite(date.getTime())) return "Not available";
+  if (!Number.isFinite(date.getTime())) return "Not set";
   return date.toLocaleDateString(undefined, {
     year: "numeric",
     month: "short",
@@ -33,121 +31,132 @@ export default async function BillingPage() {
     .eq("id", user.id)
     .single();
 
-  const admin = createSupabaseAdminClient();
-  const { data: subscription } = await admin
-    .from("billing_subscriptions")
-    .select(
-      "plan, status, amount, currency, current_start, current_end, cancel_requested_at, cancel_at_cycle_end, created_at",
-    )
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
   const effectivePlan = getEffectivePlan(profile);
-  const canCancel = Boolean(
-    subscription &&
-      [
-        "created",
-        "authenticated",
-        "active",
-        "pending",
-        "halted",
-        "paused",
-      ].includes(subscription.status) &&
-      !(subscription.cancel_requested_at && subscription.cancel_at_cycle_end),
-  );
-
-  const amount = subscription?.amount
-    ? `₹${(Number(subscription.amount) / 100).toLocaleString("en-IN")}/month`
-    : null;
+  const isPaid = effectivePlan !== "free";
 
   return (
-    <main className="min-h-screen bg-slate-50 text-slate-950">
+    <main className="min-h-screen bg-[#f6f8fb] text-slate-950">
       <Navbar />
-      <section className="mx-auto max-w-4xl px-6 py-16">
-        <div className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
+
+      <section className="mx-auto max-w-6xl px-6 py-12 sm:py-16">
+        <div className="flex flex-col justify-between gap-6 border-b border-slate-300 pb-8 md:flex-row md:items-end">
           <div>
-            <p className="text-sm font-bold uppercase tracking-wide text-slate-500">
-              Billing
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-700">
+              Billing & access
             </p>
-            <h1 className="mt-2 text-4xl font-black">Plan and subscription</h1>
-            <p className="mt-3 max-w-2xl leading-7 text-slate-600">
-              Review your VeyraSec plan, paid access period and recurring billing
-              status.
-            </p>
-          </div>
-          <Link
-            href="/pricing"
-            className="inline-flex rounded-full bg-slate-950 px-5 py-3 text-sm font-black text-white hover:bg-slate-800"
-          >
-            View plans
-          </Link>
-        </div>
-
-        <div className="mt-10 grid gap-6 md:grid-cols-2">
-          <div className="rounded-3xl border border-slate-200 bg-white p-7 shadow-sm">
-            <p className="text-sm font-bold text-slate-500">Current access</p>
-            <p className="mt-2 text-3xl font-black capitalize">{effectivePlan}</p>
-            <p className="mt-4 text-sm leading-6 text-slate-600">
-              {effectivePlan === "free"
-                ? "Free evaluation limits apply."
-                : `Paid access through ${formatBillingDate(profile?.plan_expires_at)}.`}
+            <h1 className="mt-3 text-4xl font-semibold tracking-[-0.035em]">
+              Plan management
+            </h1>
+            <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-600">
+              VeyraSec is using assisted billing for the initial paid launch. Plan activation and renewal are reviewed before paid access is applied.
             </p>
           </div>
 
-          <div className="rounded-3xl border border-slate-200 bg-white p-7 shadow-sm">
-            <p className="text-sm font-bold text-slate-500">Recurring billing</p>
-            <p className="mt-2 text-3xl font-black capitalize">
-              {subscription?.status || "Not active"}
-            </p>
-            <p className="mt-4 text-sm leading-6 text-slate-600">
-              {subscription
-                ? `${subscription.plan} · ${amount || "Price unavailable"}`
-                : "No recurring subscription record is active."}
-            </p>
+          <div className="flex gap-3">
+            <Link
+              href="/pricing"
+              className="inline-flex items-center justify-center rounded-md border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:border-slate-400"
+            >
+              Compare plans
+            </Link>
+            <Link
+              href="/contact"
+              className="inline-flex items-center justify-center rounded-md bg-blue-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-800"
+            >
+              Contact billing
+            </Link>
           </div>
         </div>
 
-        {subscription ? (
-          <div className="mt-6 rounded-3xl border border-slate-200 bg-white p-7 shadow-sm">
-            <h2 className="text-xl font-black">Subscription details</h2>
-            <dl className="mt-5 grid gap-4 text-sm md:grid-cols-2">
-              <div>
-                <dt className="font-bold text-slate-500">Current period starts</dt>
-                <dd className="mt-1 font-black">
-                  {formatBillingDate(subscription.current_start)}
-                </dd>
-              </div>
-              <div>
-                <dt className="font-bold text-slate-500">Current period ends</dt>
-                <dd className="mt-1 font-black">
-                  {formatBillingDate(subscription.current_end)}
-                </dd>
-              </div>
-            </dl>
-
-            {subscription.cancel_requested_at && subscription.cancel_at_cycle_end ? (
-              <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm font-bold leading-6 text-amber-950">
-                Recurring billing is scheduled to stop at the end of the current
-                paid cycle. Access remains available through {formatBillingDate(
-                  subscription.current_end,
-                )}.
-              </div>
-            ) : null}
-
-            {canCancel ? (
-              <div className="mt-6">
-                <CancelSubscriptionButton />
-              </div>
-            ) : null}
+        <div className="mt-8 grid border border-slate-300 bg-white md:grid-cols-3">
+          <div className="border-b border-slate-200 p-6 md:border-b-0 md:border-r">
+            <p className="text-xs font-semibold uppercase tracking-[0.13em] text-slate-500">
+              Current plan
+            </p>
+            <p className="mt-3 text-3xl font-semibold capitalize">{effectivePlan}</p>
+            <p className="mt-2 text-sm leading-6 text-slate-600">
+              {isPaid ? "Paid plan access is active." : "Free evaluation limits currently apply."}
+            </p>
           </div>
-        ) : null}
 
-        <div className="mt-6 rounded-3xl border border-slate-200 bg-white p-7 text-sm leading-7 text-slate-600 shadow-sm">
-          Payments are completed in Razorpay Checkout. VeyraSec does not ask you
-          to type card details, OTPs, UPI PINs or banking passwords into a
-          VeyraSec form.
+          <div className="border-b border-slate-200 p-6 md:border-b-0 md:border-r">
+            <p className="text-xs font-semibold uppercase tracking-[0.13em] text-slate-500">
+              Access through
+            </p>
+            <p className="mt-3 text-xl font-semibold">
+              {isPaid ? formatBillingDate(profile?.plan_expires_at) : "Free plan"}
+            </p>
+            <p className="mt-2 text-sm leading-6 text-slate-600">
+              Paid access is time-bounded and renewed only after billing review.
+            </p>
+          </div>
+
+          <div className="p-6">
+            <p className="text-xs font-semibold uppercase tracking-[0.13em] text-slate-500">
+              Billing mode
+            </p>
+            <p className="mt-3 text-xl font-semibold">Assisted activation</p>
+            <p className="mt-2 text-sm leading-6 text-slate-600">
+              Automatic recurring collection is not required for the initial launch.
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_360px]">
+          <section className="border border-slate-300 bg-white">
+            <div className="border-b border-slate-200 px-6 py-5">
+              <h2 className="text-lg font-semibold">How paid activation works</h2>
+              <p className="mt-1 text-sm text-slate-500">
+                A simple launch workflow without storing sensitive payment credentials in VeyraSec.
+              </p>
+            </div>
+
+            <div className="divide-y divide-slate-200">
+              {[
+                ["01", "Choose a plan", "Select Starter, Growth or Agency from the pricing page."],
+                ["02", "Receive approved payment instructions", "Use only the payment instructions provided through the official VeyraSec billing/support channel."],
+                ["03", "Share the transaction reference", "Send only the UTR or transaction reference needed to verify payment. Never send OTPs, UPI PINs or banking passwords."],
+                ["04", "Plan is activated", "After verification, the paid plan and its server-side limits are applied to your account."],
+              ].map(([step, title, body]) => (
+                <div key={step} className="grid gap-3 px-6 py-5 sm:grid-cols-[56px_170px_1fr]">
+                  <span className="text-xs font-semibold tracking-[0.12em] text-slate-400">{step}</span>
+                  <p className="font-semibold text-slate-900">{title}</p>
+                  <p className="text-sm leading-6 text-slate-600">{body}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <aside className="border border-slate-300 bg-slate-950 p-6 text-white">
+            <p className="text-xs font-semibold uppercase tracking-[0.15em] text-blue-300">
+              Payment safety
+            </p>
+            <h2 className="mt-3 text-xl font-semibold">Never send payment secrets.</h2>
+            <p className="mt-3 text-sm leading-6 text-slate-300">
+              VeyraSec support should never need your OTP, UPI PIN, card PIN, bank password, private key or session cookie.
+            </p>
+            <div className="mt-6 border-t border-slate-700 pt-5 text-sm leading-6 text-slate-300">
+              Need a plan activation, renewal or refund review? Use the contact channel so the request stays traceable.
+            </div>
+            <Link
+              href="/contact"
+              className="mt-6 inline-flex text-sm font-semibold text-blue-300 hover:text-blue-200"
+            >
+              Open billing support →
+            </Link>
+          </aside>
+        </div>
+
+        <div className="mt-8 flex flex-col justify-between gap-4 border-t border-slate-300 pt-6 text-sm text-slate-600 sm:flex-row sm:items-center">
+          <p>Renewal is not automatic during the assisted-billing launch phase.</p>
+          <div className="flex gap-5">
+            <Link href="/legal/refund" className="font-semibold text-slate-800 hover:text-blue-700">
+              Refund policy
+            </Link>
+            <Link href="/legal/terms" className="font-semibold text-slate-800 hover:text-blue-700">
+              Terms
+            </Link>
+          </div>
         </div>
       </section>
     </main>
