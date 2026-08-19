@@ -4,6 +4,15 @@ const SAFE_SCAN_ERROR =
 const TEMPORARY_DNS_ERROR =
   "DNS lookup is temporarily busy. Please wait a few seconds and try again.";
 
+const CLIENT_SAFE_SCAN_ERRORS = new Set([
+  "Please login before scanning a website.",
+  "Please enter a valid website URL.",
+  "Saved website was not found.",
+  "Please enter a website URL or select a saved website.",
+  "Free daily scan limit reached. Please try again tomorrow or upgrade.",
+  "Monthly scan limit reached for your current plan.",
+]);
+
 export function toSafeScanErrorMessage(
   error: unknown,
   fallback = SAFE_SCAN_ERROR,
@@ -41,5 +50,11 @@ export function toSafeScanErrorMessage(
 }
 
 export function toClientSafeScanError(message?: string) {
+  const text = message?.trim() || "";
+
+  if (CLIENT_SAFE_SCAN_ERRORS.has(text)) {
+    return text;
+  }
+
   return toSafeScanErrorMessage(message);
 }
