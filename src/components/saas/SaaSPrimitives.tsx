@@ -14,10 +14,10 @@ export function SaaSCard({
 }) {
   return (
     <div
-      className={`rounded-3xl border border-slate-200 bg-white p-6 shadow-sm ${className}`}
+      className={`border border-slate-200 bg-white p-6 ${className}`}
     >
       {title ? (
-        <h2 className="text-xl font-black tracking-tight text-slate-950">
+        <h2 className="text-lg font-bold tracking-[-0.02em] text-slate-950">
           {title}
         </h2>
       ) : null}
@@ -39,15 +39,15 @@ export function SaaSBadge({
   tone?: "slate" | "green" | "amber" | "red" | "blue";
 }) {
   const tones = {
-    slate: "bg-slate-100 text-slate-700",
-    green: "bg-emerald-100 text-emerald-950",
-    amber: "bg-amber-100 text-amber-950",
-    red: "bg-red-100 text-red-950",
-    blue: "bg-blue-100 text-blue-950",
+    slate: "border-slate-200 bg-slate-50 text-slate-700",
+    green: "border-emerald-200 bg-emerald-50 text-emerald-800",
+    amber: "border-amber-200 bg-amber-50 text-amber-800",
+    red: "border-red-200 bg-red-50 text-red-800",
+    blue: "border-blue-200 bg-blue-50 text-blue-800",
   };
   return (
     <span
-      className={`rounded-full px-3 py-1 text-xs font-black ${tones[tone]}`}
+      className={`inline-flex border px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.08em] ${tones[tone]}`}
     >
       {children}
     </span>
@@ -65,10 +65,10 @@ export function SaaSMetric({
 }) {
   return (
     <SaaSCard>
-      <p className="text-sm font-black text-slate-500">{label}</p>
-      <p className="mt-2 text-4xl font-black">{value}</p>
+      <p className="text-xs font-bold uppercase tracking-[0.08em] text-slate-500">{label}</p>
+      <p className="mt-2 text-3xl font-semibold tracking-[-0.04em]">{value}</p>
       {hint ? (
-        <p className="mt-2 text-xs font-bold text-slate-500">{hint}</p>
+        <p className="mt-2 text-xs text-slate-500">{hint}</p>
       ) : null}
     </SaaSCard>
   );
@@ -84,15 +84,15 @@ export function SaaSEmptyState({
   action?: { href: string; label: string };
 }) {
   return (
-    <div className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center">
-      <h3 className="font-black">{title}</h3>
+    <div className="border border-dashed border-slate-300 bg-white p-8 text-center">
+      <h3 className="font-semibold">{title}</h3>
       {description ? (
         <p className="mt-2 text-sm leading-6 text-slate-600">{description}</p>
       ) : null}
       {action ? (
         <Link
           href={action.href}
-          className="mt-5 inline-flex rounded-full bg-slate-950 px-5 py-3 text-sm font-black text-white hover:bg-slate-800"
+          className="mt-5 inline-flex bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700"
         >
           {action.label}
         </Link>
