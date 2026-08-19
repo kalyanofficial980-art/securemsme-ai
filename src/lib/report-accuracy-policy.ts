@@ -1,6 +1,6 @@
 import type {
   InbuiltAdvancedAudit,
-  InbuiltAuditEvidence,
+  InbuiltEvidence as InbuiltAuditEvidence,
   InbuiltAuditModule,
   InbuiltAuditStatus,
 } from "@/lib/inbuilt-advanced-audit";
