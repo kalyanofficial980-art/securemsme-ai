@@ -1,8 +1,8 @@
 import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
 import {
-  selfServePlans,
   shouldActivatePlan,
+  unixSecondsToIso,
   verifyWebhookSignature,
   type SelfServePlan,
 } from "@/lib/billing/razorpay";
@@ -19,11 +19,23 @@ type WebhookEntity = {
   status?: string;
 };
 
+type WebhookSubscriptionEntity = {
+  id?: string;
+  plan_id?: string;
+  status?: string;
+  current_start?: number | null;
+  current_end?: number | null;
+  ended_at?: number | null;
+  paid_count?: number;
+  total_count?: number;
+};
+
 type WebhookPayload = {
   event?: string;
   payload?: {
     payment?: { entity?: WebhookEntity };
     order?: { entity?: WebhookEntity };
+    subscription?: { entity?: WebhookSubscriptionEntity };
   };
 };
 
@@ -45,6 +57,147 @@ async function markEvent(
     .eq("event_id", eventId);
 }
 
+function entitlementEndFor(subscription: WebhookSubscriptionEntity) {
+  const terminal = ["cancelled", "completed", "expired"].includes(
+    subscription.status || "",
+  );
+
+  if (terminal && subscription.ended_at) {
+    return unixSecondsToIso(subscription.ended_at);
+  }
+
+  return unixSecondsToIso(subscription.current_end);
+}
+
+async function syncSubscriptionProfile(
+  admin: ReturnType<typeof createSupabaseAdminClient>,
+  record: { user_id: string; plan: string },
+  subscription: WebhookSubscriptionEntity,
+) {
+  const entitlementEnd = entitlementEndFor(subscription);
+  const activeThroughFuture =
+    subscription.status === "active" &&
+    Boolean(entitlementEnd) &&
+    new Date(entitlementEnd as string).getTime() > Date.now();
+
+  const { data: profile } = await admin
+    .from("profiles")
+    .select("plan")
+    .eq("id", record.user_id)
+    .single();
+
+  if (activeThroughFuture) {
+    const paidPlan = record.plan as SelfServePlan;
+    if (shouldActivatePlan(profile?.plan, paidPlan)) {
+      const { error: profileError } = await admin
+        .from("profiles")
+        .update({
+          plan: paidPlan,
+          plan_expires_at: entitlementEnd,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", record.user_id);
+
+      if (profileError) throw profileError;
+    }
+    return;
+  }
+
+  if (profile?.plan !== record.plan) return;
+
+  if (entitlementEnd && new Date(entitlementEnd).getTime() > Date.now()) {
+    const { error: profileError } = await admin
+      .from("profiles")
+      .update({
+        plan_expires_at: entitlementEnd,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", record.user_id);
+
+    if (profileError) throw profileError;
+    return;
+  }
+
+  if (["halted", "cancelled", "completed", "expired"].includes(subscription.status || "")) {
+    const { error: profileError } = await admin
+      .from("profiles")
+      .update({
+        plan: "free",
+        plan_expires_at: null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", record.user_id)
+      .eq("plan", record.plan);
+
+    if (profileError) throw profileError;
+  }
+}
+
+async function processSubscriptionEvent(
+  admin: ReturnType<typeof createSupabaseAdminClient>,
+  eventType: string,
+  subscription: WebhookSubscriptionEntity,
+  payment?: WebhookEntity,
+) {
+  if (!subscription.id || !subscription.plan_id || !subscription.status) {
+    throw new Error("Subscription webhook payload is incomplete.");
+  }
+
+  const { data: record, error: recordError } = await admin
+    .from("billing_subscriptions")
+    .select(
+      "id, user_id, plan, amount, currency, razorpay_subscription_id, razorpay_plan_id",
+    )
+    .eq("razorpay_subscription_id", subscription.id)
+    .single();
+
+  if (recordError || !record) {
+    throw new Error("Razorpay subscription is not known to VeyraSec.");
+  }
+
+  if (record.razorpay_plan_id !== subscription.plan_id) {
+    throw new Error("Subscription plan id did not match VeyraSec records.");
+  }
+
+  if (eventType === "subscription.charged" && payment) {
+    if (
+      Number(payment.amount || 0) !== Number(record.amount) ||
+      payment.currency !== record.currency ||
+      payment.status !== "captured"
+    ) {
+      throw new Error(
+        "Recurring payment amount, currency or capture status did not match VeyraSec records.",
+      );
+    }
+  }
+
+  const entitlementEnd = entitlementEndFor(subscription);
+  const { error: updateError } = await admin
+    .from("billing_subscriptions")
+    .update({
+      status: subscription.status,
+      latest_payment_id: payment?.id || null,
+      current_start: unixSecondsToIso(subscription.current_start),
+      current_end: unixSecondsToIso(subscription.current_end),
+      ended_at: unixSecondsToIso(subscription.ended_at),
+      paid_count: subscription.paid_count ?? 0,
+      total_count: subscription.total_count ?? 120,
+      activated_at:
+        subscription.status === "active" ? new Date().toISOString() : undefined,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", record.id);
+
+  if (updateError) throw updateError;
+
+  await syncSubscriptionProfile(admin, record, {
+    ...subscription,
+    current_end: entitlementEnd
+      ? Math.floor(new Date(entitlementEnd).getTime() / 1000)
+      : subscription.current_end,
+  });
+}
+
 export async function POST(request: Request) {
   const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET?.trim();
   if (!webhookSecret) {
@@ -59,7 +212,10 @@ export async function POST(request: Request) {
     !signature ||
     !verifyWebhookSignature({ rawBody, signature, webhookSecret })
   ) {
-    return NextResponse.json({ error: "Invalid webhook signature." }, { status: 401 });
+    return NextResponse.json(
+      { error: "Invalid webhook signature." },
+      { status: 401 },
+    );
   }
 
   const eventId = eventIdForRequest(request, rawBody);
@@ -68,7 +224,10 @@ export async function POST(request: Request) {
   try {
     parsed = JSON.parse(rawBody) as WebhookPayload;
   } catch {
-    return NextResponse.json({ error: "Invalid webhook payload." }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid webhook payload." },
+      { status: 400 },
+    );
   }
 
   const eventType = parsed.event || "unknown";
@@ -92,30 +251,44 @@ export async function POST(request: Request) {
       updated_at: new Date().toISOString(),
     });
   } else {
-    const { error: insertError } = await admin.from("payment_webhook_events").insert({
-      event_id: eventId,
-      event_type: eventType,
-      status: "processing",
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    });
+    const { error: insertError } = await admin
+      .from("payment_webhook_events")
+      .insert({
+        event_id: eventId,
+        event_type: eventType,
+        status: "processing",
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      });
 
     if (insertError && insertError.code !== "23505") {
       console.error("webhook event persistence failed", {
         eventId,
         code: insertError.code,
       });
-      return NextResponse.json({ error: "Webhook could not be recorded." }, { status: 500 });
+      return NextResponse.json(
+        { error: "Webhook could not be recorded." },
+        { status: 500 },
+      );
     }
   }
 
   try {
+    const subscriptionEntity = parsed.payload?.subscription?.entity;
     const paymentEntity = parsed.payload?.payment?.entity;
     const orderEntity = parsed.payload?.order?.entity;
-    const orderId = paymentEntity?.order_id || orderEntity?.id || null;
 
-    if (eventType === "payment.failed") {
-      if (orderId) {
+    if (eventType.startsWith("subscription.") && subscriptionEntity) {
+      await processSubscriptionEvent(
+        admin,
+        eventType,
+        subscriptionEntity,
+        paymentEntity,
+      );
+    } else {
+      const orderId = paymentEntity?.order_id || orderEntity?.id || null;
+
+      if (eventType === "payment.failed" && orderId) {
         await admin
           .from("payments")
           .update({
@@ -124,71 +297,42 @@ export async function POST(request: Request) {
             updated_at: new Date().toISOString(),
           })
           .eq("razorpay_order_id", orderId);
-      }
-    } else if (eventType === "payment.captured" || eventType === "order.paid") {
-      if (!orderId) {
-        throw new Error("Captured payment webhook did not contain an order id.");
-      }
-
-      const { data: paymentRecord, error: paymentRecordError } = await admin
-        .from("payments")
-        .select("id, user_id, plan, amount, currency")
-        .eq("razorpay_order_id", orderId)
-        .single();
-
-      if (paymentRecordError || !paymentRecord) {
-        throw new Error("Captured Razorpay order is not known to VeyraSec.");
-      }
-
-      const amount = Number(paymentEntity?.amount ?? orderEntity?.amount ?? 0);
-      const currency = paymentEntity?.currency || orderEntity?.currency || "";
-      const paymentId = paymentEntity?.id || null;
-
-      if (
-        amount !== Number(paymentRecord.amount) ||
-        currency !== paymentRecord.currency
+      } else if (
+        (eventType === "payment.captured" || eventType === "order.paid") &&
+        orderId
       ) {
-        await admin
+        const { data: paymentRecord } = await admin
           .from("payments")
-          .update({
-            status: "webhook_mismatch",
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", paymentRecord.id);
-        throw new Error("Captured payment amount or currency did not match the stored order.");
-      }
+          .select("id, amount, currency")
+          .eq("razorpay_order_id", orderId)
+          .maybeSingle();
 
-      if (!selfServePlans.includes(paymentRecord.plan as SelfServePlan)) {
-        throw new Error("Captured order does not contain a valid self-serve plan.");
-      }
+        if (paymentRecord) {
+          const amount = Number(
+            paymentEntity?.amount ?? orderEntity?.amount ?? 0,
+          );
+          const currency =
+            paymentEntity?.currency || orderEntity?.currency || "";
 
-      await admin
-        .from("payments")
-        .update({
-          razorpay_payment_id: paymentId,
-          status: "captured",
-          captured_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", paymentRecord.id);
+          if (
+            amount !== Number(paymentRecord.amount) ||
+            currency !== paymentRecord.currency
+          ) {
+            throw new Error(
+              "Captured legacy payment amount or currency did not match the stored order.",
+            );
+          }
 
-      const paidPlan = paymentRecord.plan as SelfServePlan;
-      const { data: profile } = await admin
-        .from("profiles")
-        .select("plan")
-        .eq("id", paymentRecord.user_id)
-        .single();
-
-      if (shouldActivatePlan(profile?.plan, paidPlan)) {
-        const { error: profileError } = await admin
-          .from("profiles")
-          .update({
-            plan: paidPlan,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", paymentRecord.user_id);
-
-        if (profileError) throw profileError;
+          await admin
+            .from("payments")
+            .update({
+              razorpay_payment_id: paymentEntity?.id || null,
+              status: "captured",
+              captured_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", paymentRecord.id);
+        }
       }
     }
 
@@ -200,8 +344,15 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ ok: true });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown webhook processing error";
-    console.error("Razorpay webhook processing failed", { eventId, eventType, message });
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Unknown webhook processing error";
+    console.error("Razorpay webhook processing failed", {
+      eventId,
+      eventType,
+      message,
+    });
 
     await markEvent(admin, eventId, {
       status: "failed",
@@ -209,6 +360,9 @@ export async function POST(request: Request) {
       updated_at: new Date().toISOString(),
     });
 
-    return NextResponse.json({ error: "Webhook processing failed." }, { status: 500 });
+    return NextResponse.json(
+      { error: "Webhook processing failed." },
+      { status: 500 },
+    );
   }
 }
