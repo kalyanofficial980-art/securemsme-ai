@@ -123,8 +123,8 @@ async function createPdfBuffer(scan: ScanReportRecord) {
     size: "A4",
     margin: 50,
     info: {
-      Title: `SecureMSME AI Report - ${title}`,
-      Author: "SecureMSME AI",
+      Title: `VeyraSec Report - ${title}`,
+      Author: "VeyraSec",
       Subject: "Public website security report",
     },
   });
@@ -138,7 +138,7 @@ async function createPdfBuffer(scan: ScanReportRecord) {
     doc.on("error", reject);
   });
 
-  doc.fontSize(11).fillColor("#64748b").text("SecureMSME AI", {
+  doc.fontSize(11).fillColor("#64748b").text("VeyraSec", {
     align: "right",
   });
 

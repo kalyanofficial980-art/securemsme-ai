@@ -5,7 +5,6 @@ import { Navbar } from "@/components/Navbar";
 import { RiskBadge } from "@/components/RiskBadge";
 import { createClient } from "@/lib/supabase/server";
 import { formatDate } from "@/lib/monitoring";
-import { signOut } from "@/app/auth/actions";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -106,11 +105,6 @@ export default async function DashboardPage() {
             >
               Run scan
             </Link>
-            <form action={signOut}>
-              <button className="rounded-full border border-slate-300 bg-white px-5 py-3 font-bold hover:bg-slate-100">
-                Logout
-              </button>
-            </form>
           </div>
         </div>
 
@@ -133,36 +127,25 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        <div className="mt-10 grid gap-6 lg:grid-cols-3">
-          <div className="rounded-3xl border border-slate-200 bg-white p-8 lg:col-span-2">
-            <h2 className="text-2xl font-black">Monitoring overview</h2>
-            <div className="mt-6 grid gap-4 md:grid-cols-3">
-              <div className="rounded-2xl bg-slate-50 p-5">
-                <p className="text-sm text-slate-500">Active monitoring</p>
-                <p className="mt-2 text-3xl font-black">
-                  {activeMonitoringCount}
-                </p>
-              </div>
-              <div className="rounded-2xl bg-slate-50 p-5">
-                <p className="text-sm text-slate-500">High risk recent</p>
-                <p className="mt-2 text-3xl font-black">{highRiskCount}</p>
-              </div>
-              <div className="rounded-2xl bg-slate-50 p-5">
-                <p className="text-sm text-slate-500">Plan</p>
-                <p className="mt-2 text-3xl font-black capitalize">
-                  {profile?.plan || "free"}
-                </p>
-              </div>
+        <div className="mt-10 rounded-3xl border border-slate-200 bg-white p-8">
+          <h2 className="text-2xl font-black">Monitoring overview</h2>
+          <div className="mt-6 grid gap-4 md:grid-cols-3">
+            <div className="rounded-2xl bg-slate-50 p-5">
+              <p className="text-sm text-slate-500">Active monitoring</p>
+              <p className="mt-2 text-3xl font-black">
+                {activeMonitoringCount}
+              </p>
             </div>
-          </div>
-
-          <div className="rounded-3xl border border-amber-200 bg-amber-50 p-8">
-            <h2 className="text-2xl font-black text-amber-950">
-              Development note
-            </h2>
-            <p className="mt-3 text-sm leading-6 text-amber-900">
-              Manual rescan is added. Real cron and email alerts come later.
-            </p>
+            <div className="rounded-2xl bg-slate-50 p-5">
+              <p className="text-sm text-slate-500">High risk recent</p>
+              <p className="mt-2 text-3xl font-black">{highRiskCount}</p>
+            </div>
+            <div className="rounded-2xl bg-slate-50 p-5">
+              <p className="text-sm text-slate-500">Plan</p>
+              <p className="mt-2 text-3xl font-black capitalize">
+                {profile?.plan || "free"}
+              </p>
+            </div>
           </div>
         </div>
 

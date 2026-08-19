@@ -4,9 +4,18 @@ import { createClient } from "@/lib/supabase/server";
 
 export async function Navbar() {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  let userEmail: string | null = null;
+
+  try {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    userEmail = user?.email ?? null;
+  } catch (error) {
+    console.warn("navbar auth lookup failed", {
+      message: error instanceof Error ? error.message : "Unknown auth error",
+    });
+  }
 
   return (
     <header className="border-b border-slate-200 bg-white/90 backdrop-blur">
@@ -28,10 +37,10 @@ export async function Navbar() {
         </div>
 
         <div className="flex items-center gap-3">
-          {user ? (
+          {userEmail ? (
             <>
               <span className="hidden max-w-52 truncate text-sm font-bold text-slate-500 lg:inline">
-                {user.email}
+                {userEmail}
               </span>
               <form action={signOut}>
                 <button className="rounded-full border border-slate-300 px-4 py-2 text-sm font-bold hover:bg-slate-100">
