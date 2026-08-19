@@ -15,6 +15,13 @@ const findings = [
   ["Referrer policy", "Low", "Review"],
 ] as const;
 
+const deliverables = [
+  ["Prioritized findings", "Focus on actionable issues instead of raw scanner noise."],
+  ["Developer-ready fixes", "Give implementation guidance that can move directly into remediation work."],
+  ["Retest comparison", "Show resolved, persistent and new findings after changes are deployed."],
+  ["Client-ready evidence", "Keep score, findings, ownership state and report history attached to each website."],
+] as const;
+
 type HomeProps = {
   searchParams?: Promise<{
     code?: string;
@@ -185,27 +192,77 @@ export default async function Home({ searchParams }: HomeProps) {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-6 py-14">
-        <div className="flex flex-col justify-between gap-6 border-l-2 border-blue-700 pl-6 md:flex-row md:items-center">
+      <section className="mx-auto max-w-7xl px-6 py-18">
+        <div className="grid gap-10 lg:grid-cols-[300px_1fr]">
           <div>
-            <p className="text-sm font-semibold text-slate-950">Security boundaries are part of the product.</p>
-            <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
-              Standard VeyraSec workflows do not use brute force, login bypass, destructive exploitation, or private-data access.
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-700">Deliverables</p>
+            <h2 className="mt-3 text-3xl font-semibold tracking-[-0.03em] text-slate-950">
+              Useful output after every review.
+            </h2>
+            <p className="mt-4 text-sm leading-7 text-slate-600">
+              The result should help a developer fix the site and help a client understand what changed.
             </p>
           </div>
-          <Link href="/trust" className="text-sm font-semibold text-blue-700 hover:text-blue-800">
-            Review trust & safety →
-          </Link>
+
+          <div className="grid border-t border-slate-300 sm:grid-cols-2">
+            {deliverables.map(([title, body], index) => (
+              <div
+                key={title}
+                className={`py-6 sm:p-6 ${index % 2 === 0 ? "sm:border-r sm:border-slate-200" : ""} ${index < 2 ? "border-b border-slate-200" : ""}`}
+              >
+                <h3 className="text-base font-semibold text-slate-950">{title}</h3>
+                <p className="mt-2 text-sm leading-6 text-slate-600">{body}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
-      <footer className="border-t border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-6 py-8 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between">
+      <section className="border-y border-slate-200 bg-white">
+        <div className="mx-auto max-w-7xl px-6 py-14">
+          <div className="flex flex-col justify-between gap-6 border-l-2 border-blue-700 pl-6 md:flex-row md:items-center">
+            <div>
+              <p className="text-sm font-semibold text-slate-950">Security boundaries are part of the product.</p>
+              <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
+                Standard VeyraSec workflows do not use brute force, login bypass, destructive exploitation, or private-data access.
+              </p>
+            </div>
+            <Link href="/trust" className="text-sm font-semibold text-blue-700 hover:text-blue-800">
+              Review trust & safety →
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-slate-950 text-white">
+        <div className="mx-auto flex max-w-7xl flex-col justify-between gap-7 px-6 py-14 lg:flex-row lg:items-center">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-300">Start with one website</p>
+            <h2 className="mt-3 max-w-3xl text-3xl font-semibold tracking-[-0.03em]">
+              Turn the next security review into a fix-and-retest workflow.
+            </h2>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-300">
+              Run the first public review, keep findings with the website, and build evidence as remediation progresses.
+            </p>
+          </div>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <Link href="/signup" className="inline-flex items-center justify-center rounded-md bg-blue-600 px-5 py-3 text-sm font-semibold text-white hover:bg-blue-500">
+              Start free
+            </Link>
+            <Link href="/pricing" className="inline-flex items-center justify-center rounded-md border border-slate-600 px-5 py-3 text-sm font-semibold text-slate-200 hover:border-slate-400 hover:bg-slate-900">
+              Compare plans
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <footer className="border-t border-slate-800 bg-slate-950">
+        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-6 py-8 text-xs text-slate-400 sm:flex-row sm:items-center sm:justify-between">
           <p>© 2026 VeyraSec. Authorized website security review workflow.</p>
-          <div className="flex gap-5">
-            <Link href="/pricing" className="hover:text-slate-900">Pricing</Link>
-            <Link href="/trust" className="hover:text-slate-900">Trust</Link>
-            <Link href="/login" className="hover:text-slate-900">Login</Link>
+          <div className="flex flex-wrap gap-5">
+            <Link href="/pricing" className="hover:text-white">Pricing</Link>
+            <Link href="/trust" className="hover:text-white">Trust & safety</Link>
+            <Link href="/login" className="hover:text-white">Login</Link>
           </div>
         </div>
       </footer>
