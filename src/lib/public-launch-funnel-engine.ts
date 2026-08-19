@@ -60,9 +60,9 @@ export const pricingPlans: PricingPlan[] = [
       "Client-safe report and PDF",
       "Fix checklist and retest comparison",
     ],
-    cta: "Subscribe to Starter",
+    cta: "Request Starter",
     safetyNote:
-      "Recurring monthly plan. Security review only; not a compliance certificate.",
+      "Monthly access is activated after assisted payment verification. Security review only; not a compliance certificate.",
   },
   {
     plan: "growth",
@@ -78,9 +78,9 @@ export const pricingPlans: PricingPlan[] = [
       "Technology and attack-surface evidence",
       "Retest comparison history",
     ],
-    cta: "Subscribe to Growth",
+    cta: "Request Growth",
     safetyNote:
-      "Deep scans require current ownership proof and permission. No exploitation or destructive testing.",
+      "Monthly access is activated after assisted payment verification. Deep scans still require current ownership proof and permission.",
   },
   {
     plan: "agency",
@@ -96,9 +96,9 @@ export const pricingPlans: PricingPlan[] = [
       "Reusable client-ready reports",
       "Ownership and permission controls for client websites",
     ],
-    cta: "Subscribe to Agency",
+    cta: "Request Agency",
     safetyNote:
-      "Every client website still requires ownership or written permission before authorized deep scanning.",
+      "Monthly access is activated after assisted payment verification. Every client website still requires ownership or written permission before authorized deep scanning.",
   },
   {
     plan: "enterprise-review",
