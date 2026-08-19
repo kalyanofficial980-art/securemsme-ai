@@ -9,8 +9,8 @@ import {
 
 describe("launch ready legal payment engine", () => {
   it("calculates yearly amount", () => {
-    expect(calculatePlanAmount(getLaunchPlan("business"), "yearly")).toBe(
-      29990,
+    expect(calculatePlanAmount(getLaunchPlan("growth"), "yearly")).toBe(
+      24990,
     );
   });
 
