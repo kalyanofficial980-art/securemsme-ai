@@ -8,268 +8,136 @@ import { formatDate } from "@/lib/monitoring";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login?message=Please login to view dashboard");
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login?message=Please login to view dashboard");
-  }
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("full_name, plan")
-    .eq("id", user.id)
-    .single();
-
-  const { data: websites } = await supabase
-    .from("websites")
-    .select(
-      "id, name, url, created_at, monitoring_enabled, scan_frequency, last_scan_at, next_scan_at, latest_score, latest_risk_level, latest_scan_id",
-    )
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false })
-    .limit(8);
-
-  const { data: scans } = await supabase
-    .from("scans")
-    .select("id, website_url, score, risk_level, created_at")
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false })
-    .limit(12);
-
-  const { count: totalScans } = await supabase
-    .from("scans")
-    .select("id", { count: "exact", head: true })
-    .eq("user_id", user.id);
-
-  const { count: totalWebsites } = await supabase
-    .from("websites")
-    .select("id", { count: "exact", head: true })
-    .eq("user_id", user.id);
+  const { data: profile } = await supabase.from("profiles").select("full_name, plan").eq("id", user.id).single();
+  const { data: websites } = await supabase.from("websites").select("id, name, url, created_at, monitoring_enabled, scan_frequency, last_scan_at, next_scan_at, latest_score, latest_risk_level, latest_scan_id").eq("user_id", user.id).order("created_at", { ascending: false }).limit(8);
+  const { data: scans } = await supabase.from("scans").select("id, website_url, score, risk_level, created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(12);
+  const { count: totalScans } = await supabase.from("scans").select("id", { count: "exact", head: true }).eq("user_id", user.id);
+  const { count: totalWebsites } = await supabase.from("websites").select("id", { count: "exact", head: true }).eq("user_id", user.id);
 
   const latestScans = scans ?? [];
   const savedWebsites = websites ?? [];
-
-  const averageScore = latestScans.length
-    ? Math.round(
-        latestScans.reduce(
-          (total, scan) => total + Number(scan.score || 0),
-          0,
-        ) / latestScans.length,
-      )
-    : 0;
-
-  const highRiskCount = latestScans.filter(
-    (scan) => scan.risk_level === "High",
-  ).length;
-
-  const dueWebsites = savedWebsites.filter((website) => {
-    if (!website.monitoring_enabled || !website.next_scan_at) return false;
-    return new Date(website.next_scan_at).getTime() <= Date.now();
-  });
-
-  const activeMonitoringCount = savedWebsites.filter(
-    (website) => website.monitoring_enabled,
-  ).length;
+  const averageScore = latestScans.length ? Math.round(latestScans.reduce((total, scan) => total + Number(scan.score || 0), 0) / latestScans.length) : 0;
+  const highRiskCount = latestScans.filter((scan) => scan.risk_level === "High").length;
+  const dueWebsites = savedWebsites.filter((website) => website.monitoring_enabled && website.next_scan_at && new Date(website.next_scan_at).getTime() <= Date.now());
+  const activeMonitoringCount = savedWebsites.filter((website) => website.monitoring_enabled).length;
+  const displayName = profile?.full_name || user.email?.split("@")[0] || "Workspace";
+  const plan = profile?.plan || "free";
 
   return (
-    <main className="min-h-screen bg-slate-50 text-slate-950">
+    <main className="min-h-screen bg-white text-slate-950">
       <Navbar />
-
-      <section className="mx-auto max-w-6xl px-6 py-16">
-        <div className="flex flex-col justify-between gap-6 md:flex-row md:items-start">
+      <section className="mx-auto max-w-7xl px-6 py-10">
+        <div className="flex flex-col justify-between gap-6 border-b border-slate-200 pb-8 lg:flex-row lg:items-end">
           <div>
-            <p className="text-sm font-bold text-slate-500">
-              Monitoring dashboard
-            </p>
-            <h1 className="mt-2 text-4xl font-black">
-              {profile?.full_name || user.email}
-            </h1>
-            <p className="mt-3 max-w-2xl text-slate-600">
-              Track websites, monitoring status, latest risk, and scan history.
-            </p>
+            <p className="text-xs font-bold uppercase tracking-[0.14em] text-blue-700">Security operations</p>
+            <h1 className="mt-2 text-3xl font-semibold tracking-[-0.04em]">{displayName}</h1>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">Monitor website posture, review findings, and track remediation evidence.</p>
           </div>
-
-          <div className="flex flex-wrap gap-3">
-            <Link
-              href="/websites/new"
-              className="rounded-full bg-slate-950 px-5 py-3 font-bold text-white hover:bg-slate-800"
-            >
-              Add website
-            </Link>
-            <Link
-              href="/scan"
-              className="rounded-full border border-slate-300 bg-white px-5 py-3 font-bold hover:bg-slate-100"
-            >
-              Run scan
-            </Link>
+          <div className="flex gap-2">
+            <Link href="/scan" className="border border-slate-300 px-4 py-2.5 text-sm font-semibold hover:bg-slate-50">Run scan</Link>
+            <Link href="/websites/new" className="bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700">Add website</Link>
           </div>
         </div>
 
-        <div className="mt-10 grid gap-4 md:grid-cols-4">
-          <div className="rounded-3xl border border-slate-200 bg-white p-6">
-            <p className="text-sm text-slate-500">Saved websites</p>
-            <p className="mt-2 text-4xl font-black">{totalWebsites ?? 0}</p>
-          </div>
-          <div className="rounded-3xl border border-slate-200 bg-white p-6">
-            <p className="text-sm text-slate-500">Total scans</p>
-            <p className="mt-2 text-4xl font-black">{totalScans ?? 0}</p>
-          </div>
-          <div className="rounded-3xl border border-slate-200 bg-white p-6">
-            <p className="text-sm text-slate-500">Recent avg score</p>
-            <p className="mt-2 text-4xl font-black">{averageScore}</p>
-          </div>
-          <div className="rounded-3xl border border-slate-200 bg-white p-6">
-            <p className="text-sm text-slate-500">Due rescans</p>
-            <p className="mt-2 text-4xl font-black">{dueWebsites.length}</p>
-          </div>
+        <div className="grid border-x border-b border-slate-200 sm:grid-cols-2 xl:grid-cols-4">
+          {[
+            ["Websites", totalWebsites ?? 0, "Tracked assets"],
+            ["Scans", totalScans ?? 0, "Reports generated"],
+            ["Average score", averageScore || "—", latestScans.length ? "Recent scans" : "No scans yet"],
+            ["Due rescans", dueWebsites.length, dueWebsites.length ? "Needs review" : "Up to date"],
+          ].map(([label, value, helper], index) => (
+            <div key={label} className={`p-5 ${index < 3 ? "xl:border-r xl:border-slate-200" : ""} ${index % 2 === 0 ? "sm:border-r sm:border-slate-200 xl:border-r" : ""}`}>
+              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">{label}</p>
+              <p className="mt-2 text-3xl font-semibold tracking-[-0.04em]">{value}</p>
+              <p className="mt-1 text-xs text-slate-500">{helper}</p>
+            </div>
+          ))}
         </div>
 
-        <div className="mt-10 rounded-3xl border border-slate-200 bg-white p-8">
-          <h2 className="text-2xl font-black">Monitoring overview</h2>
-          <div className="mt-6 grid gap-4 md:grid-cols-3">
-            <div className="rounded-2xl bg-slate-50 p-5">
-              <p className="text-sm text-slate-500">Active monitoring</p>
-              <p className="mt-2 text-3xl font-black">
-                {activeMonitoringCount}
-              </p>
+        <div className="mt-8 grid gap-8 xl:grid-cols-[1.4fr_0.6fr]">
+          <section>
+            <div className="flex items-end justify-between gap-4 border-b border-slate-200 pb-3">
+              <div>
+                <h2 className="text-lg font-semibold">Website posture</h2>
+                <p className="mt-1 text-sm text-slate-500">Latest score, risk and next review.</p>
+              </div>
+              <Link href="/websites" className="text-sm font-semibold text-blue-700">View all →</Link>
             </div>
-            <div className="rounded-2xl bg-slate-50 p-5">
-              <p className="text-sm text-slate-500">High risk recent</p>
-              <p className="mt-2 text-3xl font-black">{highRiskCount}</p>
-            </div>
-            <div className="rounded-2xl bg-slate-50 p-5">
-              <p className="text-sm text-slate-500">Plan</p>
-              <p className="mt-2 text-3xl font-black capitalize">
-                {profile?.plan || "free"}
-              </p>
-            </div>
-          </div>
-        </div>
 
-        <div className="mt-10 rounded-3xl border border-slate-200 bg-white p-8">
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <h2 className="text-2xl font-black">Website monitoring</h2>
-              <p className="mt-2 text-slate-600">
-                Latest score, risk, frequency, and next scan date.
-              </p>
-            </div>
-            <Link href="/websites" className="text-sm font-black">
-              View all
-            </Link>
-          </div>
-
-          {savedWebsites.length ? (
-            <div className="mt-6 grid gap-4">
-              {savedWebsites.map((website) => (
-                <div
-                  key={website.id}
-                  className="rounded-2xl border border-slate-200 p-5"
-                >
-                  <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
-                    <div>
-                      <h3 className="font-black">
-                        {website.name || "Website"}
-                      </h3>
-                      <p className="mt-2 break-all text-sm text-slate-600">
-                        {website.url}
-                      </p>
-                      <p className="mt-2 text-xs font-bold text-slate-500">
-                        Frequency: {website.scan_frequency || "weekly"} · Next:{" "}
-                        {formatDate(website.next_scan_at)}
-                      </p>
+            {savedWebsites.length ? (
+              <div className="divide-y divide-slate-200 border-x border-b border-slate-200">
+                {savedWebsites.map((website) => (
+                  <div key={website.id} className="grid gap-4 px-5 py-4 lg:grid-cols-[1fr_auto] lg:items-center">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-3">
+                        <div className="h-2.5 w-2.5 shrink-0 bg-blue-600" />
+                        <div className="min-w-0">
+                          <p className="truncate font-semibold">{website.name || "Website"}</p>
+                          <p className="mt-0.5 truncate text-sm text-slate-500">{website.url}</p>
+                        </div>
+                      </div>
+                      <p className="mt-2 pl-5 text-xs text-slate-500">{website.scan_frequency || "weekly"} · next {formatDate(website.next_scan_at)}</p>
                     </div>
-                    <div className="flex flex-wrap gap-3">
-                      <MonitoringBadge
-                        monitoringEnabled={website.monitoring_enabled}
-                        lastScanAt={website.last_scan_at}
-                        nextScanAt={website.next_scan_at}
-                      />
-                      {website.latest_risk_level ? (
-                        <RiskBadge riskLevel={website.latest_risk_level} />
-                      ) : null}
+                    <div className="flex flex-wrap items-center gap-2 lg:justify-end">
+                      <span className="border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-semibold">Score {website.latest_score ?? "—"}</span>
+                      <MonitoringBadge monitoringEnabled={website.monitoring_enabled} lastScanAt={website.last_scan_at} nextScanAt={website.next_scan_at} />
+                      {website.latest_risk_level ? <RiskBadge riskLevel={website.latest_risk_level} /> : null}
+                      <Link href={`/websites/${website.id}`} className="text-xs font-semibold text-blue-700">Open →</Link>
                     </div>
                   </div>
+                ))}
+              </div>
+            ) : (
+              <div className="border border-slate-200 p-8">
+                <p className="font-semibold">No websites yet</p>
+                <p className="mt-2 text-sm text-slate-500">Add a public website to start a security history.</p>
+                <Link href="/websites/new" className="mt-4 inline-flex bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white">Add website</Link>
+              </div>
+            )}
+          </section>
 
-                  <div className="mt-5 flex flex-wrap items-center gap-3">
-                    <span className="rounded-full bg-slate-100 px-4 py-2 text-sm font-black">
-                      Score {website.latest_score ?? "--"}
-                    </span>
-                    <Link
-                      href={`/websites/${website.id}`}
-                      className="rounded-full border border-slate-300 px-4 py-2 text-sm font-black hover:bg-slate-100"
-                    >
-                      Open
-                    </Link>
-                    <Link
-                      href={`/scan?websiteId=${website.id}`}
-                      className="rounded-full border border-slate-300 px-4 py-2 text-sm font-black hover:bg-slate-100"
-                    >
-                      Scan
-                    </Link>
-                    {website.latest_scan_id ? (
-                      <Link
-                        href={`/report/${website.latest_scan_id}`}
-                        className="rounded-full border border-slate-300 px-4 py-2 text-sm font-black hover:bg-slate-100"
-                      >
-                        Report
-                      </Link>
-                    ) : null}
-                  </div>
-                </div>
-              ))}
+          <aside>
+            <div className="border border-slate-200">
+              <div className="border-b border-slate-200 bg-slate-50 px-5 py-3">
+                <h2 className="text-sm font-semibold">Workspace status</h2>
+              </div>
+              <dl className="divide-y divide-slate-200 text-sm">
+                <div className="flex justify-between px-5 py-4"><dt className="text-slate-500">Plan</dt><dd className="font-semibold capitalize">{plan}</dd></div>
+                <div className="flex justify-between px-5 py-4"><dt className="text-slate-500">Active monitoring</dt><dd className="font-semibold">{activeMonitoringCount}</dd></div>
+                <div className="flex justify-between px-5 py-4"><dt className="text-slate-500">High-risk recent</dt><dd className="font-semibold">{highRiskCount}</dd></div>
+              </dl>
+              <Link href="/pricing" className="block border-t border-slate-200 px-5 py-3 text-sm font-semibold text-blue-700">Review plan limits →</Link>
             </div>
-          ) : (
-            <div className="mt-6 rounded-2xl border border-dashed border-slate-300 p-8 text-center">
-              <p className="font-bold">No websites saved yet.</p>
-              <Link
-                href="/websites/new"
-                className="mt-4 inline-flex rounded-full bg-slate-950 px-5 py-3 font-bold text-white"
-              >
-                Add first website
-              </Link>
-            </div>
-          )}
+          </aside>
         </div>
 
-        <div className="mt-10 rounded-3xl border border-slate-200 bg-white p-8">
-          <h2 className="text-2xl font-black">Recent scan timeline</h2>
-
+        <section className="mt-8">
+          <div className="border-b border-slate-200 pb-3">
+            <h2 className="text-lg font-semibold">Recent scan activity</h2>
+          </div>
           {latestScans.length ? (
-            <div className="mt-6 space-y-4">
+            <div className="divide-y divide-slate-200 border-x border-b border-slate-200">
               {latestScans.map((scan) => (
-                <div
-                  key={scan.id}
-                  className="flex flex-col justify-between gap-4 rounded-2xl border border-slate-200 p-5 md:flex-row md:items-center"
-                >
-                  <div>
-                    <p className="break-all font-black">{scan.website_url}</p>
-                    <p className="mt-1 text-sm text-slate-500">
-                      {new Date(scan.created_at).toLocaleString()}
-                    </p>
+                <div key={scan.id} className="grid gap-3 px-5 py-4 md:grid-cols-[1fr_auto] md:items-center">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold">{scan.website_url}</p>
+                    <p className="mt-1 text-xs text-slate-500">{new Date(scan.created_at).toLocaleString()}</p>
                   </div>
-                  <div className="flex flex-wrap items-center gap-3">
-                    <span className="rounded-full bg-slate-100 px-4 py-2 text-sm font-black">
-                      Score {scan.score}
-                    </span>
+                  <div className="flex items-center gap-2">
+                    <span className="border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-semibold">Score {scan.score}</span>
                     <RiskBadge riskLevel={scan.risk_level} />
-                    <Link
-                      href={`/report/${scan.id}`}
-                      className="rounded-full border border-slate-300 px-4 py-2 text-sm font-black hover:bg-slate-100"
-                    >
-                      View report
-                    </Link>
+                    <Link href={`/report/${scan.id}`} className="text-xs font-semibold text-blue-700">Report →</Link>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="mt-4 text-slate-600">No scans yet.</p>
+            <div className="border border-slate-200 p-5 text-sm text-slate-500">No scan activity yet.</div>
           )}
-        </div>
+        </section>
       </section>
     </main>
   );

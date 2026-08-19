@@ -1,6 +1,11 @@
 import { toSafeScanErrorMessage } from "@/lib/security/scan-error";
 import type { NextRequest } from "next/server";
 import { buildAdvancedSecurityAudit } from "@/lib/advanced-security-audit";
+import {
+  getEffectivePlan,
+  getPlanScanLimit,
+  getScanWindowStart,
+} from "@/lib/billing/entitlements";
 import { runInbuiltAdvancedAudit } from "@/lib/inbuilt-advanced-audit";
 import { getNextScanDate } from "@/lib/monitoring";
 import { normalizeScanReport } from "@/lib/report-normalization";
@@ -15,13 +20,6 @@ import {
 } from "@/lib/ownership-verification";
 
 export const runtime = "nodejs";
-
-const PLAN_SCAN_LIMITS: Record<string, number> = {
-  free: 3,
-  starter: 20,
-  growth: 100,
-  agency: 500,
-};
 
 export async function POST(
   request: NextRequest,
@@ -116,20 +114,13 @@ export async function POST(
 
     const { data: profile } = await supabase
       .from("profiles")
-      .select("plan")
+      .select("plan, plan_expires_at")
       .eq("id", user.id)
       .single();
 
-    const plan = profile?.plan || "free";
-    const scanLimit = PLAN_SCAN_LIMITS[plan] ?? PLAN_SCAN_LIMITS.free;
-    const windowStart = new Date();
-
-    if (plan === "free") {
-      windowStart.setHours(0, 0, 0, 0);
-    } else {
-      windowStart.setDate(1);
-      windowStart.setHours(0, 0, 0, 0);
-    }
+    const plan = getEffectivePlan(profile);
+    const scanLimit = getPlanScanLimit(plan);
+    const windowStart = getScanWindowStart(plan);
 
     const { count } = await supabase
       .from("scans")

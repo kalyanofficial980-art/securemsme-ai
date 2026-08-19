@@ -1,18 +1,18 @@
 import type { Metadata } from "next";
 import { Navbar } from "@/components/Navbar";
-import { PublicLandingPricingDemoPanel } from "@/components/PublicLandingPricingDemoPanel";
+import { PublicPricingPlans } from "@/components/PublicPricingPlans";
 
 export const metadata: Metadata = {
-  title: "VeyraSec Pricing — Manual Billing Plans",
+  title: "VeyraSec Pricing — Monthly Security Plans",
   description:
-    "View launch pricing options for Starter, Growth, Agency and Enterprise Review. Manual billing only during launch.",
+    "Monthly VeyraSec plans for authorized website security scans, reports, ownership-verified deep passive review and retests.",
   alternates: {
     canonical: "/pricing",
   },
   openGraph: {
     title: "VeyraSec Pricing",
     description:
-      "Manual billing launch plans for authorized security review workflows.",
+      "Monthly launch plans for authorized website security review workflows.",
     url: "/pricing",
     siteName: "VeyraSec",
     type: "website",
@@ -30,7 +30,7 @@ export default async function PricingPage({
     <main className="min-h-screen bg-slate-50 text-slate-950">
       <Navbar />
       <section className="mx-auto max-w-7xl px-6 py-16">
-        <PublicLandingPricingDemoPanel mode="pricing" message={message} />
+        <PublicPricingPlans message={message} />
       </section>
     </main>
   );
