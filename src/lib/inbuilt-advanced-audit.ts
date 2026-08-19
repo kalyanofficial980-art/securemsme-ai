@@ -1,4 +1,4 @@
-import { validatePublicHttpUrl } from "@/lib/security/ssrf";
+import { safeFetchPublicUrl } from "@/lib/security/ssrf";
 export type InbuiltAuditStatus = "pass" | "warning" | "fail" | "info";
 export type InbuiltAuditSeverity =
   "Critical" | "High" | "Medium" | "Low" | "Info";
@@ -55,7 +55,6 @@ type FetchResult = {
 };
 
 const MAX_BODY_CHARS = 500_000;
-const FETCH_TIMEOUT_MS = 10_000;
 
 function normalizeUrl(input: string) {
   const trimmed = input.trim();
@@ -91,24 +90,23 @@ function toHeaderMap(headers: Headers): Record<string, string> {
   return map;
 }
 
-async function safeFetch(url: string): Promise<FetchResult> {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
-
+async function safeFetch(
+  url: string,
+): Promise<FetchResult> {
   try {
-    await validatePublicHttpUrl(url);
-    const response = await fetch(url, {
+    const response = await safeFetchPublicUrl(url, {
       method: "GET",
       redirect: "follow",
-      signal: controller.signal,
       headers: {
-        "User-Agent": "SecureMSME-AI-Inbuilt-Audit/1.0",
+        "User-Agent": "VeyraSec-Inbuilt-Audit/1.0",
         Accept:
           "text/html,text/plain,application/xml,application/json,*/*;q=0.8",
       },
     });
 
-    const contentType = response.headers.get("content-type") || "";
+    const contentType =
+      response.headers.get("content-type") || "";
+
     let body = "";
 
     if (
@@ -118,7 +116,10 @@ async function safeFetch(url: string): Promise<FetchResult> {
       contentType.includes("xml") ||
       contentType === ""
     ) {
-      body = (await response.text()).slice(0, MAX_BODY_CHARS);
+      body = (await response.text()).slice(
+        0,
+        MAX_BODY_CHARS,
+      );
     }
 
     return {
@@ -135,10 +136,11 @@ async function safeFetch(url: string): Promise<FetchResult> {
       status: 0,
       headers: {},
       body: "",
-      error: error instanceof Error ? error.message : "Fetch failed",
+      error:
+        error instanceof Error
+          ? error.message
+          : "Fetch failed",
     };
-  } finally {
-    clearTimeout(timeout);
   }
 }
 

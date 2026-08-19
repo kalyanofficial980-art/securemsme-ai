@@ -1,6 +1,11 @@
 import dns from "node:dns/promises";
 import net from "node:net";
 import tls from "node:tls";
+import {
+  resolvePublicHttpUrl,
+  safeFetchPublicUrl,
+  type PublicAddress,
+} from "@/lib/security/ssrf";
 
 export type ScanFinding = {
   name: string;
@@ -66,20 +71,6 @@ const IMPORTANT_SECURITY_HEADERS = [
   "referrer-policy",
 ];
 
-const PRIVATE_HOSTS = new Set(["localhost", "127.0.0.1", "::1", "0.0.0.0"]);
-
-const BLOCKED_HOST_SUFFIXES = [
-  ".localhost",
-  ".local",
-  ".internal",
-];
-
-const BLOCKED_HOSTNAMES = new Set([
-  "metadata.google.internal",
-]);
-
-const MAX_SAFE_REDIRECTS = 3;
-
 const SENSITIVE_PUBLIC_PATHS = [
   "/.env",
   "/.git/config",
@@ -123,140 +114,11 @@ function getEmailDomain(hostname: string) {
   return lowerHost;
 }
 
-function isPrivateIp(ip: string) {
-  if (net.isIP(ip) === 4) {
-    const parts = ip.split(".").map(Number);
-    const [a, b, c] = parts;
-
-    return (
-      a === 0 ||
-      a === 10 ||
-      a === 127 ||
-      (a === 169 && b === 254) ||
-      (a === 172 && b >= 16 && b <= 31) ||
-      (a === 192 && b === 168) ||
-      (a === 100 && b >= 64 && b <= 127) ||
-      (a === 192 && b === 0 && c === 0) ||
-      (a === 198 && (b === 18 || b === 19)) ||
-      (a === 192 && b === 0 && c === 2) ||
-      (a === 198 && b === 51 && c === 100) ||
-      (a === 203 && b === 0 && c === 113) ||
-      (a >= 224 && a <= 239) ||
-      a >= 240
-    );
-  }
-
-  if (net.isIP(ip) === 6) {
-    const lowered = ip.toLowerCase();
-
-    return (
-      lowered === "::" ||
-      lowered === "::1" ||
-      lowered.startsWith("fc") ||
-      lowered.startsWith("fd") ||
-      lowered.startsWith("fe80") ||
-      lowered.startsWith("::ffff:127.") ||
-      lowered.startsWith("::ffff:10.") ||
-      lowered.startsWith("::ffff:192.168.") ||
-      lowered.startsWith("::ffff:169.254.")
-    );
-  }
-
-  return false;
-}
-
-function isBlockedHostname(hostname: string) {
-  const lower = hostname.toLowerCase().replace(/\.$/, "");
-
-  return (
-    PRIVATE_HOSTS.has(lower) ||
-    BLOCKED_HOSTNAMES.has(lower) ||
-    BLOCKED_HOST_SUFFIXES.some((suffix) => lower.endsWith(suffix))
-  );
-}
-
-async function validatePublicHost(url: URL) {
-  if (!["http:", "https:"].includes(url.protocol)) {
-    throw new Error("Only HTTP and HTTPS websites are allowed");
-  }
-
-  if (url.username || url.password) {
-    throw new Error("URLs with username/password are not allowed");
-  }
-
-  if (url.port && !["80", "443"].includes(url.port)) {
-    throw new Error("Only standard website ports 80 and 443 are allowed");
-  }
-
-  const hostname = url.hostname.toLowerCase();
-
-  if (isBlockedHostname(hostname)) {
-    throw new Error("Local/private websites are not allowed");
-  }
-
-  const records = await dns.lookup(hostname, { all: true });
-
-  if (!records.length) {
-    throw new Error("Could not resolve website hostname");
-  }
-
-  for (const record of records) {
-    if (isPrivateIp(record.address)) {
-      throw new Error("Private/internal network targets are not allowed");
-    }
-  }
-}
-
-function isRedirectStatus(status: number) {
-  return [301, 302, 303, 307, 308].includes(status);
-}
-
-async function fetchOnceWithTimeout(url: string, options?: RequestInit) {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 8000);
-
-  try {
-    return await fetch(url, {
-      ...options,
-      signal: controller.signal,
-      redirect: "manual",
-      headers: {
-        "user-agent": "SecureMSME-AI-Safety-Checker/0.4",
-        ...(options?.headers || {}),
-      },
-    });
-  } finally {
-    clearTimeout(timeout);
-  }
-}
-
-async function fetchWithTimeout(url: string, options?: RequestInit) {
-  let currentUrl = new URL(url);
-  await validatePublicHost(currentUrl);
-
-  if (options?.redirect === "manual") {
-    return fetchOnceWithTimeout(currentUrl.toString(), options);
-  }
-
-  for (let redirectCount = 0; redirectCount <= MAX_SAFE_REDIRECTS; redirectCount++) {
-    const response = await fetchOnceWithTimeout(currentUrl.toString(), options);
-
-    if (!isRedirectStatus(response.status)) {
-      return response;
-    }
-
-    const location = response.headers.get("location");
-
-    if (!location) {
-      return response;
-    }
-
-    const nextUrl = new URL(location, currentUrl);
-    await validatePublicHost(nextUrl);
-    currentUrl = nextUrl;
-  }
-
-  throw new Error("Too many redirects while checking website");
+async function fetchWithTimeout(
+  url: string,
+  options?: RequestInit,
+) {
+  return safeFetchPublicUrl(url, options);
 }
 
 async function pageExists(baseUrl: URL, path: string) {
@@ -315,15 +177,31 @@ async function checkHttpsRedirect(url: URL) {
   }
 }
 
-function getSslCertificate(
+function getSslCertificateAtAddress(
   hostname: string,
+  target: PublicAddress,
 ): Promise<SslCertificateInfo | null> {
   return new Promise((resolve) => {
+    let finished = false;
+
+    const finish = (value: SslCertificateInfo | null) => {
+      if (finished) return;
+      finished = true;
+      resolve(value);
+    };
+
+    const tlsHostname = hostname
+      .replace(/^\[/, "")
+      .replace(/\]$/, "");
+
     const socket = tls.connect(
       {
-        host: hostname,
+        host: target.address,
+        family: target.family,
         port: 443,
-        servername: hostname,
+        ...(net.isIP(tlsHostname) === 0
+          ? { servername: tlsHostname }
+          : {}),
         rejectUnauthorized: false,
         timeout: 8000,
       },
@@ -333,17 +211,19 @@ function getSslCertificate(
         socket.end();
 
         if (!certificate || !certificate.valid_to) {
-          resolve(null);
+          finish(null);
           return;
         }
 
         const validToDate = new Date(certificate.valid_to);
         const now = new Date();
+
         const daysRemaining = Math.ceil(
-          (validToDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
+          (validToDate.getTime() - now.getTime()) /
+            (1000 * 60 * 60 * 24),
         );
 
-        resolve({
+        finish({
           validTo: certificate.valid_to,
           daysRemaining,
           subject:
@@ -360,12 +240,32 @@ function getSslCertificate(
       },
     );
 
-    socket.on("error", () => resolve(null));
+    socket.on("error", () => finish(null));
+
     socket.on("timeout", () => {
       socket.destroy();
-      resolve(null);
+      finish(null);
     });
   });
+}
+
+async function getSslCertificate(
+  hostname: string,
+  addresses: PublicAddress[],
+): Promise<SslCertificateInfo | null> {
+  for (const target of addresses.slice(0, 4)) {
+    const certificate =
+      await getSslCertificateAtAddress(
+        hostname,
+        target,
+      );
+
+    if (certificate) {
+      return certificate;
+    }
+  }
+
+  return null;
 }
 
 async function resolveTxtRecords(domain: string) {
@@ -460,7 +360,8 @@ function countMixedContent(html: string) {
 export async function scanWebsite(inputUrl: string): Promise<ScanReport> {
   const url = normalizeUrl(inputUrl);
 
-  await validatePublicHost(url);
+  const { addresses: targetAddresses } =
+    await resolvePublicHttpUrl(url.toString());
 
   const startedAt = Date.now();
   let response: Response | null = null;
@@ -483,7 +384,7 @@ export async function scanWebsite(inputUrl: string): Promise<ScanReport> {
   if (!response) {
     const httpsPass = url.protocol === "https:";
     const sslInfo =
-      url.protocol === "https:" ? await getSslCertificate(url.hostname) : null;
+      url.protocol === "https:" ? await getSslCertificate(url.hostname, targetAddresses) : null;
     const emailSecurity = await checkEmailSecurity(url.hostname);
     const httpsRedirect = await checkHttpsRedirect(url);
 
@@ -572,7 +473,7 @@ export async function scanWebsite(inputUrl: string): Promise<ScanReport> {
   });
 
   const sslInfo =
-    url.protocol === "https:" ? await getSslCertificate(url.hostname) : null;
+    url.protocol === "https:" ? await getSslCertificate(url.hostname, targetAddresses) : null;
 
   if (!sslInfo) {
     findings.push({

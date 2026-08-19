@@ -10,7 +10,6 @@ import { createClient } from "@/lib/supabase/server";
 import { runVulnerabilityIntelligence } from "@/lib/vulnerability-intelligence";
 import { getWebsiteNameFromUrl } from "@/lib/websites";
 import { enforceRateLimit } from "@/lib/security/request-guard";
-import { validatePublicHttpUrl } from "@/lib/security/ssrf";
 
 export const runtime = "nodejs";
 
@@ -103,8 +102,6 @@ export async function POST(request: Request) {
         { status: 400 },
       );
     }
-
-    await validatePublicHttpUrl(websiteUrl);
 
     const { data: profile } = await supabase
       .from("profiles")
