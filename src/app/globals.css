@@ -73,3 +73,5 @@ textarea:focus-visible {
 .shadow-2xl {
   box-shadow: none !important;
 }
+
+/* Production deployment marker: enterprise launch UI. */
