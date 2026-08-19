@@ -1,10 +1,10 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "SecureMSME AI",
+  title: "VeyraSec",
   description:
-    "Website safety and privacy reports for Indian small businesses.",
+    "Website security reports, fix roadmaps, and retests for agencies and small businesses.",
 };
 
 export default function RootLayout({
