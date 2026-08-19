@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { CancelSubscriptionButton } from "@/components/CancelSubscriptionButton";
 import { Navbar } from "@/components/Navbar";
 import { getEffectivePlan } from "@/lib/billing/entitlements";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 function formatBillingDate(value?: string | null) {
@@ -32,7 +33,8 @@ export default async function BillingPage() {
     .eq("id", user.id)
     .single();
 
-  const { data: subscription } = await supabase
+  const admin = createSupabaseAdminClient();
+  const { data: subscription } = await admin
     .from("billing_subscriptions")
     .select(
       "plan, status, amount, currency, current_start, current_end, cancel_requested_at, cancel_at_cycle_end, created_at",
