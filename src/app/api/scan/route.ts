@@ -6,6 +6,7 @@ import { runInbuiltAdvancedAudit } from "@/lib/inbuilt-advanced-audit";
 import { getNextScanDate } from "@/lib/monitoring";
 import { scanWebsite } from "@/lib/scanner";
 import { calculateScore } from "@/lib/score";
+import { normalizeScanReport } from "@/lib/report-normalization";
 import { createClient } from "@/lib/supabase/server";
 import { runVulnerabilityIntelligence } from "@/lib/vulnerability-intelligence";
 import { getWebsiteNameFromUrl } from "@/lib/websites";
@@ -24,25 +25,6 @@ const PLAN_SCAN_LIMITS: Record<string, number> = {
   growth: 100,
   agency: 500,
 };
-
-function mergedRiskLevel(
-  baseRisk: string,
-  intelRisk: "Low" | "Medium" | "High" | "Critical",
-) {
-  if (
-    baseRisk === "High" ||
-    intelRisk === "High" ||
-    intelRisk === "Critical"
-  ) {
-    return "High";
-  }
-
-  if (baseRisk === "Medium" || intelRisk === "Medium") {
-    return "Medium";
-  }
-
-  return baseRisk;
-}
 
 export async function POST(request: Request) {
   const rateLimited = enforceRateLimit(request, "scan-api", 10, 60_000);
@@ -138,12 +120,19 @@ export async function POST(request: Request) {
     }
 
     const report = await scanWebsite(websiteUrl);
-    const [inbuiltAdvancedAudit, vulnerabilityIntelligence, scoreResult] =
+
+    const [inbuiltAdvancedAudit, vulnerabilityIntelligence] =
       await Promise.all([
         runInbuiltAdvancedAudit(report.normalizedUrl),
         runVulnerabilityIntelligence(report.normalizedUrl),
-        Promise.resolve(calculateScore(report)),
       ]);
+
+    const normalizedReport = normalizeScanReport(
+      report,
+      vulnerabilityIntelligence,
+    );
+
+    const scoreResult = calculateScore(normalizedReport);
 
     if (!savedWebsiteId) {
       const { data: existingWebsite } = await supabase
@@ -176,7 +165,7 @@ export async function POST(request: Request) {
     }
 
     const baseReport = {
-      ...report,
+      ...normalizedReport,
       findings: scoreResult.enhancedFindings,
       score: scoreResult.score,
       rawScore: scoreResult.rawScore,
@@ -192,6 +181,13 @@ export async function POST(request: Request) {
       topFixes: scoreResult.topFixes,
       inbuiltAdvancedAudit,
       vulnerabilityIntelligence,
+      diagnosticScores: {
+        inbuiltAudit: inbuiltAdvancedAudit.overallScore,
+        vulnerabilityIntelligence:
+          vulnerabilityIntelligence.intelligenceScore,
+        note:
+          "Diagnostic module scores are supporting signals only and do not replace the canonical customer-facing score.",
+      },
     };
 
     const fullReport = {
@@ -199,17 +195,10 @@ export async function POST(request: Request) {
       advancedAudit: buildAdvancedSecurityAudit(baseReport),
     };
 
-    const finalScore = Math.round(
-      (scoreResult.score +
-        inbuiltAdvancedAudit.overallScore +
-        vulnerabilityIntelligence.intelligenceScore) /
-        3,
-    );
-
-    const finalRiskLevel = mergedRiskLevel(
-      scoreResult.riskLevel,
-      vulnerabilityIntelligence.riskLevel,
-    );
+    // One customer-facing source of truth.
+    // Auxiliary engines remain diagnostic evidence only.
+    const finalScore = scoreResult.score;
+    const finalRiskLevel = scoreResult.riskLevel;
 
     const { data: scan, error: insertError } = await supabase
       .from("scans")

@@ -78,6 +78,14 @@ export default async function InbuiltReportPage({
           </Link>
         </div>
 
+        <div className="mb-8 rounded-3xl border border-slate-200 bg-white p-6">
+          <p className="font-black">Diagnostic module — not the overall score</p>
+          <p className="mt-2 text-slate-600">
+            Canonical customer score: {scan.score}/100 · {scan.risk_level}.
+            The module score below is supporting evidence only.
+          </p>
+        </div>
+
         {inbuiltAudit ? (
           <InbuiltAuditPanel audit={inbuiltAudit} />
         ) : (

@@ -49,21 +49,12 @@ export default async function FixRoadmapPage({
       <Navbar />
 
       <section className="mx-auto max-w-6xl px-6 py-16">
-        <div className="mb-8 flex flex-wrap gap-3">
-          <Link href={`/report/${scan.id}`} className="font-bold underline">
-            Normal report
-          </Link>
+        <div className="mb-8">
           <Link
-            href={`/report/${scan.id}/vulnerability-intelligence`}
+            href={`/report/${scan.id}`}
             className="font-bold underline"
           >
-            Vulnerability intelligence
-          </Link>
-          <Link
-            href={`/report/${scan.id}/inbuilt`}
-            className="font-bold underline"
-          >
-            Inbuilt audit
+            Back to security report
           </Link>
         </div>
 

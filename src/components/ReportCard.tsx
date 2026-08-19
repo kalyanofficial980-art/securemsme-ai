@@ -49,7 +49,7 @@ export function ReportCard({
         <div className="flex flex-col justify-between gap-6 md:flex-row md:items-start">
           <div>
             <p className="text-sm font-bold uppercase tracking-wide text-slate-500">
-              SecureMSME AI public security report
+              VeyraSec public security report
             </p>
             <h1 className="mt-2 break-all text-4xl font-black">{title}</h1>
             <p className="mt-3 break-all text-slate-600">{scan.website_url}</p>

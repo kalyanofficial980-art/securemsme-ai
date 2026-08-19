@@ -9,6 +9,7 @@ type CategoryScore = {
   label?: string;
   name?: string;
   score?: number;
+  percentage?: number;
   rawScore?: number;
   maxScore?: number;
   grade?: string;
@@ -54,6 +55,10 @@ function getCategoryScores(report: Record<string, unknown>): CategoryScore[] {
         return {
           label: String(item.label || key),
           score: typeof item.score === "number" ? item.score : undefined,
+          percentage:
+            typeof item.percentage === "number"
+              ? item.percentage
+              : undefined,
           rawScore:
             typeof item.rawScore === "number" ? item.rawScore : undefined,
           maxScore:
@@ -130,6 +135,10 @@ export default async function ReportPage({
 
   const report = getReportObject(scan.report);
   const findings = getFindings(report);
+  const actionableFindings = findings.filter(
+    (finding) =>
+      String(finding.status || "").toLowerCase() !== "pass",
+  );
   const categoryScores = getCategoryScores(report);
 
   const severityCounts =
@@ -152,8 +161,9 @@ export default async function ReportPage({
                 {scan.website_url}
               </h1>
               <p className="mt-3 max-w-3xl leading-7 text-slate-600">
-                This report combines public security posture, inbuilt audit,
-                vulnerability intelligence, and business-readable fixes.
+                This is the canonical customer-facing security score from
+                normalized safe public checks. Diagnostic modules provide
+                supporting evidence but do not replace this score.
               </p>
 
               <div className="mt-5 flex flex-wrap gap-3">
@@ -196,8 +206,10 @@ export default async function ReportPage({
             </p>
           </div>
           <div className="rounded-3xl border border-slate-200 bg-white p-6">
-            <p className="text-sm text-slate-500">Findings</p>
-            <p className="mt-2 text-3xl font-black">{findings.length}</p>
+            <p className="text-sm text-slate-500">Action items</p>
+            <p className="mt-2 text-3xl font-black">
+              {actionableFindings.length}
+            </p>
           </div>
         </section>
 
@@ -207,11 +219,14 @@ export default async function ReportPage({
             <div className="mt-6 grid gap-4 md:grid-cols-2">
               {categoryScores.map((item) => {
                 const label = item.label || item.name || "Category";
-                const width = scoreWidth(
-                  item.score,
-                  item.rawScore,
-                  item.maxScore,
-                );
+                const width =
+                  typeof item.percentage === "number"
+                    ? Math.max(0, Math.min(100, item.percentage))
+                    : scoreWidth(
+                        item.score,
+                        item.rawScore,
+                        item.maxScore,
+                      );
 
                 return (
                   <div
@@ -261,8 +276,8 @@ export default async function ReportPage({
           </div>
 
           <div className="mt-6 grid gap-5">
-            {findings.length ? (
-              findings.slice(0, 12).map((finding, index) => (
+            {actionableFindings.length ? (
+              actionableFindings.slice(0, 12).map((finding, index) => (
                 <div
                   key={`${finding.name || finding.title}-${index}`}
                   className="rounded-2xl border border-slate-200 p-6"
@@ -305,7 +320,9 @@ export default async function ReportPage({
                 </div>
               ))
             ) : (
-              <p className="text-slate-600">No findings were saved.</p>
+              <p className="text-slate-600">
+                No actionable findings were identified by this safe public scan.
+              </p>
             )}
           </div>
         </section>

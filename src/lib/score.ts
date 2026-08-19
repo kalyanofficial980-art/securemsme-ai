@@ -79,6 +79,12 @@ function getSeverity(finding: ScanFinding): EnhancedFinding["severity"] {
 
   if (finding.status === "pass") return "Info";
 
+  if (finding.name.toLowerCase().includes("admin")) {
+    if (finding.status === "fail") return "Medium";
+    if (finding.status === "warning") return "Low";
+    return "Info";
+  }
+
   if (finding.name.includes("Sensitive public files")) {
     return "Critical";
   }

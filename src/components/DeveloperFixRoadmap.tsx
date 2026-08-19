@@ -59,7 +59,7 @@ export function DeveloperFixRoadmap({
     .filter((item) => String(item.status || "").toLowerCase() !== "pass")
     .sort((a, b) => severityRank(b.severity) - severityRank(a.severity));
 
-  const visible = actionable.length ? actionable : findings.slice(0, 10);
+  const visible = actionable;
 
   return (
     <section className="space-y-8">

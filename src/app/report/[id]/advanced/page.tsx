@@ -85,6 +85,15 @@ export default async function AdvancedReportPage({
           </Link>
         </div>
 
+        <div className="mb-8 rounded-3xl border border-slate-200 bg-white p-6">
+          <p className="font-black">Control-mapping diagnostic</p>
+          <p className="mt-2 text-slate-600">
+            Canonical customer score: {scan.score}/100 · {scan.risk_level}.
+            The maturity/control scores below are diagnostic mappings, not a
+            second overall website score.
+          </p>
+        </div>
+
         <AdvancedAuditPanel audit={advancedAudit} />
       </section>
     </main>
