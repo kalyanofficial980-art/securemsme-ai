@@ -112,6 +112,37 @@ export async function signUp(formData: FormData) {
   );
 }
 
+export async function resendConfirmation(formData: FormData) {
+  const email = getFormValue(formData, "email").toLowerCase();
+
+  if (!email) {
+    redirect("/login?message=Enter your email to request a new confirmation link.");
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.resend({
+    type: "signup",
+    email,
+    options: {
+      emailRedirectTo: getAuthRedirectUrl(),
+    },
+  });
+
+  if (error) {
+    const normalized = error.message.toLowerCase();
+
+    if (normalized.includes("rate limit") || normalized.includes("too many")) {
+      redirect(
+        "/login?message=Confirmation email limit reached. Please wait a few minutes before trying again.",
+      );
+    }
+  }
+
+  redirect(
+    "/login?message=If that email has an unconfirmed account, a new confirmation email has been requested.",
+  );
+}
+
 export async function signIn(formData: FormData) {
   const email = getFormValue(formData, "email").toLowerCase();
   const password = getFormValue(formData, "password");
