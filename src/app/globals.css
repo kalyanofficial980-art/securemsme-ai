@@ -55,3 +55,21 @@ textarea:focus-visible {
   outline: 2px solid #2563eb;
   outline-offset: 2px;
 }
+
+/* Keep the product visually closer to enterprise security tooling than a
+   consumer/startup template. These overrides also normalize older screens
+   that still use legacy rounded Tailwind utilities. */
+.rounded-full,
+.rounded-3xl,
+.rounded-2xl,
+.rounded-xl {
+  border-radius: 4px !important;
+}
+
+.shadow-sm,
+.shadow-md,
+.shadow-lg,
+.shadow-xl,
+.shadow-2xl {
+  box-shadow: none !important;
+}
