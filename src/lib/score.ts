@@ -76,17 +76,36 @@ function getSeverity(finding: ScanFinding): EnhancedFinding["severity"] {
     finding.maxPoints > 0
       ? Math.round((lostPoints / finding.maxPoints) * 100)
       : 0;
+  const lowerName = finding.name.toLowerCase();
 
   if (finding.status === "pass") return "Info";
 
-  if (finding.name.toLowerCase().includes("admin")) {
+  if (lowerName.includes("admin")) {
     if (finding.status === "fail") return "Medium";
     if (finding.status === "warning") return "Low";
     return "Info";
   }
 
   if (finding.name.includes("Sensitive public files")) {
-    return "Critical";
+    return finding.status === "fail" ? "Critical" : "High";
+  }
+
+  // Trust, disclosure and crawlability checks are useful customer-readiness
+  // signals, but they are not evidence of a high-severity security flaw.
+  if (
+    finding.name.includes("Privacy") ||
+    finding.name.includes("Terms") ||
+    finding.name.includes("Contact") ||
+    finding.name.includes("robots") ||
+    finding.name.includes("sitemap") ||
+    finding.name.includes("security.txt")
+  ) {
+    return finding.status === "fail" ? "Medium" : "Low";
+  }
+
+  // Fingerprinting alone does not prove a vulnerable/outdated component.
+  if (finding.name.includes("Server technology")) {
+    return finding.status === "fail" ? "Medium" : "Low";
   }
 
   if (
@@ -173,8 +192,8 @@ function getBusinessImpact(finding: ScanFinding) {
     return "Without security.txt, ethical researchers may not know how to report security issues safely.";
   }
 
-  if (finding.name.includes("admin")) {
-    return "Public admin/login paths can increase automated attack attempts against the website.";
+  if (finding.name.toLowerCase().includes("admin")) {
+    return "A publicly accessible administrative endpoint can attract automated login and credential attacks.";
   }
 
   return "This issue can reduce website trust, reliability, or security posture.";
@@ -261,8 +280,8 @@ function getFixRecommendation(finding: ScanFinding) {
     return "Add a contact page with email, phone, or business enquiry form.";
   }
 
-  if (finding.name.includes("admin")) {
-    return "Avoid exposing predictable admin paths. Add strong authentication and rate limiting.";
+  if (finding.name.toLowerCase().includes("admin")) {
+    return "Require strong authentication, rate limiting, and access controls for administrative endpoints.";
   }
 
   return "Ask a developer or security professional to review and fix this item.";
@@ -292,19 +311,32 @@ export function calculateScore(report: ScanReport) {
   );
 
   const percentage = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0;
+  const actionableFindings = enhancedFindings.filter(
+    (finding) => finding.status !== "pass",
+  );
+  const hasCriticalOrHigh = actionableFindings.some(
+    (finding) =>
+      finding.severity === "Critical" || finding.severity === "High",
+  );
 
   let riskLevel: "Low" | "Medium" | "High" = "High";
   let executiveSummary =
     "This website has important security, email, exposure, or trust gaps that should be fixed soon.";
 
-  if (percentage >= 80) {
+  // The score is the primary posture signal, but a confirmed actionable
+  // Critical/High finding places a floor on risk so reports cannot say Low.
+  if (hasCriticalOrHigh) {
+    riskLevel = "High";
+    executiveSummary =
+      "This website has at least one high-impact actionable finding. Fix the highest-severity issue before treating the public posture as low risk.";
+  } else if (percentage >= 80) {
     riskLevel = "Low";
     executiveSummary =
-      "This website passed most public security, email, exposure, and trust checks. Continue monitoring regularly.";
+      "This website passed most applicable public security and readiness checks. Continue monitoring and address the remaining lower-severity items.";
   } else if (percentage >= 50) {
     riskLevel = "Medium";
     executiveSummary =
-      "This website has some security, email, exposure, or trust gaps. Fixing the top issues can improve customer trust and reduce basic risk.";
+      "This website has some security, exposure, or readiness gaps. Fixing the top issues can improve customer trust and reduce basic risk.";
   }
 
   const categoryMap = new Map<string, { score: number; maxScore: number }>();
@@ -364,8 +396,7 @@ export function calculateScore(report: ScanReport) {
     (finding) => finding.status === "pass",
   ).length;
 
-  const topFixes = enhancedFindings
-    .filter((finding) => finding.status !== "pass")
+  const topFixes = actionableFindings
     .sort((a, b) => {
       const severityWeight = {
         Critical: 5,
@@ -390,7 +421,9 @@ export function calculateScore(report: ScanReport) {
           ? "Critical priority"
           : finding.severity === "High"
             ? "High priority"
-            : "Medium priority",
+            : finding.severity === "Medium"
+              ? "Medium priority"
+              : "Low priority",
       severity: finding.severity,
       businessImpact: finding.businessImpact,
       fixRecommendation: finding.fixRecommendation,
