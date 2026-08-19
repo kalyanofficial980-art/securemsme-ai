@@ -24,70 +24,53 @@ export async function Navbar() {
     });
   }
 
-  const initial = userEmail?.trim().charAt(0).toUpperCase() || "V";
-
   return (
-    <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/88 backdrop-blur-xl">
-      <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
-        <Link href="/" className="group flex items-center gap-2.5" aria-label="VeyraSec home">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-950 text-sm font-black text-white shadow-sm ring-1 ring-slate-900/10 group-hover:-translate-y-0.5">
-            V
+    <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur">
+      <nav className="mx-auto flex h-15 max-w-7xl items-center justify-between px-5 sm:px-6">
+        <Link href="/" className="flex items-center gap-2.5" aria-label="VeyraSec home">
+          <span className="flex h-8 w-8 items-center justify-center rounded-md bg-slate-950 text-xs font-black tracking-tight text-white">
+            VS
           </span>
-          <span className="text-lg font-black tracking-[-0.03em] text-slate-950">
+          <span className="text-[17px] font-semibold tracking-[-0.02em] text-slate-950">
             VeyraSec
           </span>
         </Link>
 
-        <div className="hidden items-center gap-1 rounded-full border border-slate-200 bg-slate-50/90 p-1 md:flex">
+        <div className="hidden items-center gap-7 md:flex">
           {primaryLinks.map(([label, href]) => (
             <Link
               key={href}
               href={href}
-              className="rounded-full px-3.5 py-2 text-sm font-bold text-slate-600 hover:bg-white hover:text-slate-950 hover:shadow-sm"
+              className="text-sm font-medium text-slate-600 hover:text-blue-700"
             >
               {label}
             </Link>
           ))}
           {userEmail ? (
-            <Link
-              href="/billing"
-              className="rounded-full px-3.5 py-2 text-sm font-bold text-slate-600 hover:bg-white hover:text-slate-950 hover:shadow-sm"
-            >
+            <Link href="/billing" className="text-sm font-medium text-slate-600 hover:text-blue-700">
               Billing
             </Link>
           ) : null}
         </div>
 
-        <div className="hidden items-center gap-2 sm:flex">
+        <div className="hidden items-center gap-3 sm:flex">
           {userEmail ? (
             <>
-              <Link
-                href="/dashboard"
-                className="hidden items-center gap-2 rounded-full border border-slate-200 bg-white py-1.5 pl-1.5 pr-3 text-sm font-bold text-slate-600 shadow-sm lg:flex"
-              >
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-sky-100 text-xs font-black text-sky-900">
-                  {initial}
-                </span>
-                <span className="max-w-44 truncate">{userEmail}</span>
-              </Link>
+              <span className="hidden max-w-48 truncate text-xs font-medium text-slate-500 lg:inline">
+                {userEmail}
+              </span>
               <form action={signOut}>
-                <button className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm hover:border-slate-300 hover:bg-slate-50">
+                <button className="rounded-md border border-slate-300 bg-white px-3.5 py-2 text-sm font-semibold text-slate-700 hover:border-slate-400 hover:bg-slate-50">
                   Log out
                 </button>
               </form>
             </>
           ) : (
             <>
-              <Link
-                href="/login"
-                className="rounded-full px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-100"
-              >
+              <Link href="/login" className="px-2 py-2 text-sm font-medium text-slate-600 hover:text-slate-950">
                 Log in
               </Link>
-              <Link
-                href="/signup"
-                className="rounded-full bg-slate-950 px-4 py-2 text-sm font-black text-white shadow-sm hover:-translate-y-0.5 hover:bg-slate-800"
-              >
+              <Link href="/signup" className="rounded-md bg-blue-700 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800">
                 Start free
               </Link>
             </>
@@ -95,25 +78,18 @@ export async function Navbar() {
         </div>
 
         <details className="relative sm:hidden">
-          <summary className="flex h-10 w-10 cursor-pointer list-none items-center justify-center rounded-xl border border-slate-200 bg-white text-lg font-black text-slate-700 shadow-sm">
+          <summary className="flex h-9 w-9 cursor-pointer list-none items-center justify-center rounded-md border border-slate-300 bg-white text-base font-semibold text-slate-700">
             ≡
           </summary>
-          <div className="absolute right-0 mt-3 w-64 rounded-2xl border border-slate-200 bg-white p-2 shadow-xl">
-            <div className="grid gap-1">
+          <div className="absolute right-0 mt-2 w-60 rounded-lg border border-slate-200 bg-white p-2 shadow-lg">
+            <div className="grid">
               {primaryLinks.map(([label, href]) => (
-                <Link
-                  key={href}
-                  href={href}
-                  className="rounded-xl px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50"
-                >
+                <Link key={href} href={href} className="rounded-md px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50">
                   {label}
                 </Link>
               ))}
               {userEmail ? (
-                <Link
-                  href="/billing"
-                  className="rounded-xl px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50"
-                >
+                <Link href="/billing" className="rounded-md px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50">
                   Billing
                 </Link>
               ) : null}
@@ -121,15 +97,12 @@ export async function Navbar() {
             <div className="mt-2 border-t border-slate-100 pt-2">
               {userEmail ? (
                 <form action={signOut}>
-                  <button className="w-full rounded-xl px-4 py-3 text-left text-sm font-bold text-slate-700 hover:bg-slate-50">
+                  <button className="w-full rounded-md px-3 py-2.5 text-left text-sm font-medium text-slate-700 hover:bg-slate-50">
                     Log out
                   </button>
                 </form>
               ) : (
-                <Link
-                  href="/login"
-                  className="block rounded-xl bg-slate-950 px-4 py-3 text-center text-sm font-black text-white"
-                >
+                <Link href="/login" className="block rounded-md bg-blue-700 px-3 py-2.5 text-center text-sm font-semibold text-white">
                   Continue with Google
                 </Link>
               )}
