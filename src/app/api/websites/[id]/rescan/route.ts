@@ -1,31 +1,33 @@
-import { toSafeScanErrorMessage } from "@/lib/security/scan-error";
 import type { NextRequest } from "next/server";
 import { buildAdvancedSecurityAudit } from "@/lib/advanced-security-audit";
+import { normalizeAdvancedSecurityAudit } from "@/lib/advanced-audit-normalization";
 import { runInbuiltAdvancedAudit } from "@/lib/inbuilt-advanced-audit";
 import { getNextScanDate } from "@/lib/monitoring";
+import { normalizeScanReport } from "@/lib/report-normalization";
+import { buildRetestComparison } from "@/lib/retest-comparison";
 import { scanWebsite } from "@/lib/scanner";
 import { calculateScore } from "@/lib/score";
+import { enforceRateLimit } from "@/lib/security/request-guard";
+import { toSafeScanErrorMessage } from "@/lib/security/scan-error";
 import { createClient } from "@/lib/supabase/server";
 import { runVulnerabilityIntelligence } from "@/lib/vulnerability-intelligence";
 
 export const runtime = "nodejs";
 
-const TEMP_DEV_FREE_SCAN_LIMIT = 999;
-
-function mergedRiskLevel(
-  baseRisk: string,
-  intelRisk: "Low" | "Medium" | "High" | "Critical",
-) {
-  if (intelRisk === "Critical") return "High";
-  if (intelRisk === "High") return "High";
-  if (baseRisk === "High" || intelRisk === "Medium") return "Medium";
-  return baseRisk;
-}
+const PLAN_SCAN_LIMITS: Record<string, number> = {
+  free: 3,
+  starter: 20,
+  growth: 100,
+  agency: 500,
+};
 
 export async function POST(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ): Promise<Response> {
+  const rateLimited = enforceRateLimit(request, "retest-api", 10, 60_000);
+  if (rateLimited) return rateLimited;
+
   try {
     const { id } = await params;
     const supabase = await createClient();
@@ -37,7 +39,7 @@ export async function POST(
 
     if (userError || !user) {
       return Response.json(
-        { error: "Please login before rescanning a website." },
+        { error: "Please login before retesting a website." },
         { status: 401 },
       );
     }
@@ -61,42 +63,78 @@ export async function POST(
       .select("plan")
       .eq("id", user.id)
       .single();
+    const plan = profile?.plan || "free";
+    const scanLimit = PLAN_SCAN_LIMITS[plan] ?? PLAN_SCAN_LIMITS.free;
+    const windowStart = new Date();
+
+    if (plan === "free") {
+      windowStart.setHours(0, 0, 0, 0);
+    } else {
+      windowStart.setDate(1);
+      windowStart.setHours(0, 0, 0, 0);
+    }
 
     const { count } = await supabase
       .from("scans")
       .select("id", { count: "exact", head: true })
-      .eq("user_id", user.id);
+      .eq("user_id", user.id)
+      .gte("created_at", windowStart.toISOString());
 
-    if (
-      (profile?.plan || "free") === "free" &&
-      (count || 0) >= TEMP_DEV_FREE_SCAN_LIMIT
-    ) {
+    if ((count || 0) >= scanLimit) {
       return Response.json(
         {
           error:
-            "Temporary free development limit reached. Razorpay paid limits will be added at the end.",
+            plan === "free"
+              ? "Free daily scan limit reached. Please try again tomorrow or upgrade."
+              : "Monthly scan limit reached for your current plan.",
         },
         { status: 402 },
       );
     }
 
+    const { data: previousScan } = await supabase
+      .from("scans")
+      .select("id, created_at, score, risk_level, report")
+      .eq("website_id", website.id)
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
     const report = await scanWebsite(website.url);
-    const [inbuiltAdvancedAudit, vulnerabilityIntelligence, scoreResult] =
+    const [inbuiltAdvancedAudit, vulnerabilityIntelligence] =
       await Promise.all([
         runInbuiltAdvancedAudit(report.normalizedUrl),
         runVulnerabilityIntelligence(report.normalizedUrl),
-        Promise.resolve(calculateScore(report)),
       ]);
 
+    const normalizedReport = normalizeScanReport(
+      report,
+      vulnerabilityIntelligence,
+    );
+    const scoreResult = calculateScore(normalizedReport);
+    const canonicalRiskLevel: "Low" | "Medium" | "High" =
+      scoreResult.severityCounts.critical > 0 || scoreResult.severityCounts.high > 0
+        ? "High"
+        : scoreResult.severityCounts.medium > 0
+          ? "Medium"
+          : scoreResult.riskLevel;
+    const canonicalSummary =
+      canonicalRiskLevel === "High"
+        ? "This website has at least one high-impact actionable finding. Fix the highest-severity issue before treating the public posture as low risk."
+        : canonicalRiskLevel === "Medium"
+          ? "This website has one or more medium-severity actionable findings. Address them before treating the public posture as low risk."
+          : scoreResult.executiveSummary;
+
     const baseReport = {
-      ...report,
+      ...normalizedReport,
       findings: scoreResult.enhancedFindings,
       score: scoreResult.score,
       rawScore: scoreResult.rawScore,
       maxScore: scoreResult.maxScore,
-      riskLevel: scoreResult.riskLevel,
-      summary: scoreResult.summary,
-      executiveSummary: scoreResult.executiveSummary,
+      riskLevel: canonicalRiskLevel,
+      summary: canonicalSummary,
+      executiveSummary: canonicalSummary,
       categoryScores: scoreResult.categoryScores,
       severityCounts: scoreResult.severityCounts,
       passedChecks: scoreResult.passedChecks,
@@ -105,24 +143,33 @@ export async function POST(
       topFixes: scoreResult.topFixes,
       inbuiltAdvancedAudit,
       vulnerabilityIntelligence,
+      diagnosticScores: {
+        inbuiltAudit: inbuiltAdvancedAudit.overallScore,
+        vulnerabilityIntelligence:
+          vulnerabilityIntelligence.intelligenceScore,
+        note:
+          "Diagnostic module scores are supporting signals only and do not replace the canonical customer-facing score.",
+      },
     };
+
+    const advancedAudit = normalizeAdvancedSecurityAudit(
+      buildAdvancedSecurityAudit(baseReport),
+      scoreResult.enhancedFindings,
+    );
+    const finalScore = scoreResult.score;
+    const finalRiskLevel = canonicalRiskLevel;
+    const retestComparison = buildRetestComparison({
+      previousScan,
+      currentScore: finalScore,
+      currentRiskLevel: finalRiskLevel,
+      currentFindings: scoreResult.enhancedFindings,
+    });
 
     const fullReport = {
       ...baseReport,
-      advancedAudit: buildAdvancedSecurityAudit(baseReport),
+      advancedAudit,
+      retestComparison,
     };
-
-    const finalScore = Math.round(
-      (scoreResult.score +
-        inbuiltAdvancedAudit.overallScore +
-        vulnerabilityIntelligence.intelligenceScore) /
-        3,
-    );
-
-    const finalRiskLevel = mergedRiskLevel(
-      scoreResult.riskLevel,
-      vulnerabilityIntelligence.riskLevel,
-    );
 
     const { data: scan, error: insertError } = await supabase
       .from("scans")
@@ -141,7 +188,7 @@ export async function POST(
 
     if (insertError || !scan) {
       return Response.json(
-        { error: "Scan completed but could not save report." },
+        { error: "Retest completed but could not save the comparison report." },
         { status: 500 },
       );
     }
@@ -161,11 +208,11 @@ export async function POST(
       .eq("id", website.id)
       .eq("user_id", user.id);
 
-    return Response.json({ scan });
+    return Response.json({ scan, retestComparison });
   } catch (error) {
     const message = toSafeScanErrorMessage(
       error,
-      "Rescan could not be completed safely. Please check the website URL and try again.",
+      "Retest could not be completed safely. Please check the website URL and try again.",
     );
 
     return Response.json({ error: message }, { status: 500 });
