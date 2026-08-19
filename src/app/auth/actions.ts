@@ -24,8 +24,8 @@ function getAuthBaseUrl() {
     process.env.VERCEL_URL?.trim() ||
     process.env.NEXT_PUBLIC_VERCEL_URL?.trim();
 
-  // A Vercel branch URL is stable across preview redeploys, so confirmation
-  // emails do not point at an obsolete deployment hostname.
+  // A Vercel branch URL is stable across preview redeploys, so auth callbacks
+  // do not point at an obsolete deployment hostname.
   if (branchUrl) {
     return withHttps(branchUrl);
   }
@@ -74,6 +74,28 @@ function friendlyAuthMessage(message: string, flow: "signup" | "login") {
   return flow === "signup"
     ? "We could not create your account right now. Please try again shortly."
     : "We could not sign you in right now. Please try again shortly.";
+}
+
+export async function signInWithGoogle() {
+  const supabase = await createClient();
+  const callbackUrl = `${getAuthBaseUrl()}/auth/callback?next=/dashboard`;
+
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: callbackUrl,
+    },
+  });
+
+  if (error || !data.url) {
+    redirect(
+      `/login?message=${encodeURIComponent(
+        "Google sign-in could not start. Please try again.",
+      )}`,
+    );
+  }
+
+  redirect(data.url);
 }
 
 export async function signUp(formData: FormData) {
