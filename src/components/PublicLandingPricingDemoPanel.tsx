@@ -13,9 +13,7 @@ function PlanCard({ plan }: { plan: (typeof pricingPlans)[number] }) {
       <div className="flex items-start justify-between gap-4">
         <div>
           <h3 className="text-2xl font-black">{plan.name}</h3>
-          <p className="mt-2 text-sm font-bold text-slate-500">
-            {plan.bestFor}
-          </p>
+          <p className="mt-2 text-sm font-bold text-slate-500">{plan.bestFor}</p>
         </div>
         <SaaSBadge tone="blue">{plan.priceLabel}</SaaSBadge>
       </div>
@@ -27,10 +25,7 @@ function PlanCard({ plan }: { plan: (typeof pricingPlans)[number] }) {
           </li>
         ))}
       </ul>
-      <form
-        action={submitPricingInterestAction}
-        className="mt-auto grid gap-3 pt-6"
-      >
+      <form action={submitPricingInterestAction} className="mt-auto grid gap-3 pt-6">
         <input type="hidden" name="selectedPlan" value={plan.plan} />
         <select
           name="expectedUsage"
@@ -39,16 +34,13 @@ function PlanCard({ plan }: { plan: (typeof pricingPlans)[number] }) {
           <option value="single-website">Single website</option>
           <option value="multiple-websites">Multiple websites</option>
           <option value="agency-clients">Agency clients</option>
-          <option value="enterprise-review">Enterprise review</option>
           <option value="not-sure">Not sure</option>
         </select>
         <button className="rounded-full bg-slate-950 px-5 py-3 text-sm font-black text-white hover:bg-slate-800">
           {plan.cta}
         </button>
       </form>
-      <p className="mt-4 text-xs font-bold leading-5 text-slate-500">
-        {plan.safetyNote}
-      </p>
+      <p className="mt-4 text-xs font-bold leading-5 text-slate-500">{plan.safetyNote}</p>
     </SaaSCard>
   );
 }
@@ -103,15 +95,9 @@ export function PublicLandingPricingDemoPanel({
           </div>
           <div className="grid gap-6 md:grid-cols-3">
             {[
-              [
-                "Scan",
-                "Run safe authorized checks on owned or approved websites.",
-              ],
+              ["Scan", "Run safe authorized checks on owned or approved websites."],
               ["Report", "Create client-ready reports with fix priorities."],
-              [
-                "Operate",
-                "Manage support, leads, monitoring and beta customers.",
-              ],
+              ["Operate", "Manage support, leads, monitoring and beta customers."],
             ].map(([title, body]) => (
               <SaaSCard key={title} title={title} description={body} />
             ))}
@@ -131,11 +117,8 @@ export function PublicLandingPricingDemoPanel({
 
       {mode === "pricing" ? (
         <>
-          <SaaSCard
-            title={saasCopy.pricing.title}
-            description={saasCopy.pricing.description}
-          />
-          <div className="grid gap-6 lg:grid-cols-4">
+          <SaaSCard title={saasCopy.pricing.title} description={saasCopy.pricing.description} />
+          <div className="grid gap-6 lg:grid-cols-3">
             {pricingPlans.map((plan) => (
               <PlanCard key={plan.plan} plan={plan} />
             ))}
@@ -150,9 +133,7 @@ export function PublicLandingPricingDemoPanel({
             className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm"
           >
             <h1 className="text-4xl font-black">{saasCopy.demo.title}</h1>
-            <p className="mt-4 leading-7 text-slate-600">
-              {saasCopy.demo.description}
-            </p>
+            <p className="mt-4 leading-7 text-slate-600">{saasCopy.demo.description}</p>
             <div className="mt-6 grid gap-4 md:grid-cols-2">
               <input
                 name="fullName"
@@ -179,9 +160,7 @@ export function PublicLandingPricingDemoPanel({
                 name="primaryNeed"
                 className="rounded-2xl border border-slate-300 bg-white px-4 py-3"
               >
-                <option value="first-security-check">
-                  First security check
-                </option>
+                <option value="first-security-check">First security check</option>
                 <option value="client-report">Client report</option>
                 <option value="developer-fixes">Developer fixes</option>
                 <option value="scheduled-monitoring">Monitoring</option>
@@ -197,7 +176,6 @@ export function PublicLandingPricingDemoPanel({
                 <option value="starter">Starter</option>
                 <option value="growth">Growth</option>
                 <option value="agency">Agency</option>
-                <option value="enterprise-review">Enterprise review</option>
                 <option value="not-sure">Not sure</option>
               </select>
               <select
@@ -208,7 +186,7 @@ export function PublicLandingPricingDemoPanel({
                 <option value="startup">Startup</option>
                 <option value="agency">Agency</option>
                 <option value="freelancer">Freelancer</option>
-                <option value="enterprise">Enterprise</option>
+                <option value="enterprise">Enterprise business</option>
               </select>
               <select
                 name="urgency"
@@ -234,8 +212,7 @@ export function PublicLandingPricingDemoPanel({
               <label className="flex gap-3 rounded-2xl bg-red-50 p-4 text-sm font-bold text-red-900">
                 <input name="noSensitiveDataConfirmed" type="checkbox" />
                 <span>
-                  I confirm I am not sending passwords, OTPs, payment data,
-                  tokens or private keys.
+                  I confirm I am not sending passwords, OTPs, payment data, tokens or private keys.
                 </span>
               </label>
             </div>
@@ -262,12 +239,9 @@ export function PublicLandingPricingDemoPanel({
 
       {mode === "success" ? (
         <SaaSCard>
-          <h1 className="text-4xl font-black text-emerald-950">
-            Demo request submitted
-          </h1>
+          <h1 className="text-4xl font-black text-emerald-950">Demo request submitted</h1>
           <p className="mt-4 max-w-3xl leading-7 text-slate-600">
-            Start onboarding when you are ready to prepare the first authorized
-            scan.
+            Start onboarding when you are ready to prepare the first authorized scan.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link
