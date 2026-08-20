@@ -67,6 +67,23 @@ export async function submitPaymentVerificationAction(formData: FormData) {
   const paymentMethod = clean(formData.get("paymentMethod"), "upi");
   const paymentReference = clean(formData.get("paymentReference"));
 
+  const { data: legalAcceptance, error: legalAcceptanceError } = await supabase
+    .from("user_legal_acceptances_v2")
+    .select("id")
+    .eq("user_id", user.id)
+    .eq("acceptance_status", "accepted")
+    .order("accepted_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (legalAcceptanceError || !legalAcceptance?.id) {
+    redirect(
+      `/legal-acceptance?message=${encodeURIComponent(
+        "Accept the required Terms, Privacy, Acceptable Use, Refund, Data Processing and Security Disclaimer documents before submitting a paid-plan payment.",
+      )}`,
+    );
+  }
+
   if (paymentReference.length > 256) {
     paymentError(requestedPlan, "Transaction reference must be 256 characters or fewer.");
   }
@@ -159,6 +176,7 @@ export async function submitPaymentVerificationAction(formData: FormData) {
         selectedPaymentMethod: paymentMethod,
         paymentProofAttached: true,
         trustedProofUpload: true,
+        legalAcceptancePersisted: true,
         paymentSettingsUpdatedAt: checkout.settingsUpdatedAt,
       },
     })
@@ -199,6 +217,7 @@ export async function submitPaymentVerificationAction(formData: FormData) {
       paymentMethod,
       paymentProofAttached: true,
       trustedProofUpload: true,
+      legalAcceptancePersisted: true,
     },
   });
 
