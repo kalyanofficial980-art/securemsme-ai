@@ -2,9 +2,8 @@ import { toSafeScanErrorMessage } from "@/lib/security/scan-error";
 import type { NextRequest } from "next/server";
 import { buildAdvancedSecurityAudit } from "@/lib/advanced-security-audit";
 import {
+  canUseDeepScan,
   getEffectivePlan,
-  getPlanScanLimit,
-  getScanWindowStart,
 } from "@/lib/billing/entitlements";
 import { runInbuiltAdvancedAudit } from "@/lib/inbuilt-advanced-audit";
 import { getNextScanDate } from "@/lib/monitoring";
@@ -21,12 +20,18 @@ import {
 
 export const runtime = "nodejs";
 
+type ScanQuotaReservation = {
+  reservation_id?: string;
+};
+
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ): Promise<Response> {
   const rateLimited = enforceRateLimit(request, "deep-scan-api", 5, 60_000);
   if (rateLimited) return rateLimited;
+
+  let releaseQuotaReservation: (() => Promise<void>) | null = null;
 
   try {
     const { id } = await params;
@@ -71,6 +76,20 @@ export async function POST(
       );
     }
 
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("plan, plan_expires_at")
+      .eq("id", user.id)
+      .single();
+
+    const plan = getEffectivePlan(profile);
+    if (!canUseDeepScan(plan)) {
+      return Response.json(
+        { error: "Deep scan requires an active Growth or Agency plan." },
+        { status: 402 },
+      );
+    }
+
     const verificationMethod: VerificationMethod =
       website.verification_method === "html_file" ||
       website.verification_method === "meta_tag"
@@ -112,33 +131,39 @@ export async function POST(
       );
     }
 
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("plan, plan_expires_at")
-      .eq("id", user.id)
-      .single();
+    const { data: quotaData, error: quotaError } = await supabase.rpc(
+      "reserve_scan_quota_v1",
+    );
 
-    const plan = getEffectivePlan(profile);
-    const scanLimit = getPlanScanLimit(plan);
-    const windowStart = getScanWindowStart(plan);
+    if (quotaError) {
+      const quotaMessage = quotaError.message || "Scan quota could not be reserved.";
+      const normalizedMessage = quotaMessage.toLowerCase();
+      const status = normalizedMessage.includes("too many")
+        ? 429
+        : normalizedMessage.includes("limit reached")
+          ? 402
+          : 500;
 
-    const { count } = await supabase
-      .from("scans")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", user.id)
-      .gte("created_at", windowStart.toISOString());
+      return Response.json({ error: quotaMessage }, { status });
+    }
 
-    if ((count || 0) >= scanLimit) {
+    const quotaRow = (
+      Array.isArray(quotaData) ? quotaData[0] : quotaData
+    ) as ScanQuotaReservation | null;
+    const reservationId = quotaRow?.reservation_id;
+
+    if (!reservationId) {
       return Response.json(
-        {
-          error:
-            plan === "free"
-              ? "Free daily scan limit reached. Please try again tomorrow or upgrade."
-              : "Monthly scan limit reached for your current plan.",
-        },
-        { status: 402 },
+        { error: "Scan quota could not be reserved safely." },
+        { status: 500 },
       );
     }
+
+    releaseQuotaReservation = async () => {
+      await supabase.rpc("release_scan_quota_v1", {
+        p_reservation_id: reservationId,
+      });
+    };
 
     const report = await scanWebsite(website.url);
     const [inbuiltAdvancedAudit, vulnerabilityIntelligence] =
@@ -257,5 +282,16 @@ export async function POST(
     );
 
     return Response.json({ error: message }, { status: 500 });
+  } finally {
+    if (releaseQuotaReservation) {
+      try {
+        await releaseQuotaReservation();
+      } catch (releaseError) {
+        console.error("deep scan quota reservation release failed", {
+          route: "./src/app/api/websites/[id]/deep-scan/route.ts",
+          name: releaseError instanceof Error ? releaseError.name : "UnknownError",
+        });
+      }
+    }
   }
 }
