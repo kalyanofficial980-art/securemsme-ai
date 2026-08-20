@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import {
+  deletePaymentProofTrusted,
   getPaymentCheckout,
   uploadPaymentProofTrusted,
 } from "@/lib/billing/payment-checkout";
@@ -65,6 +66,23 @@ export async function submitPaymentVerificationAction(formData: FormData) {
   const requestedPlan = clean(formData.get("planKey"), "starter");
   const paymentMethod = clean(formData.get("paymentMethod"), "upi");
   const paymentReference = clean(formData.get("paymentReference"));
+
+  const { data: legalAcceptance, error: legalAcceptanceError } = await supabase
+    .from("user_legal_acceptances_v2")
+    .select("id")
+    .eq("user_id", user.id)
+    .eq("acceptance_status", "accepted")
+    .order("accepted_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (legalAcceptanceError || !legalAcceptance?.id) {
+    redirect(
+      `/legal-acceptance?message=${encodeURIComponent(
+        "Accept the required Terms, Privacy, Acceptable Use, Refund, Data Processing and Security Disclaimer documents before submitting a paid-plan payment.",
+      )}`,
+    );
+  }
 
   if (paymentReference.length > 256) {
     paymentError(requestedPlan, "Transaction reference must be 256 characters or fewer.");
@@ -158,6 +176,7 @@ export async function submitPaymentVerificationAction(formData: FormData) {
         selectedPaymentMethod: paymentMethod,
         paymentProofAttached: true,
         trustedProofUpload: true,
+        legalAcceptancePersisted: true,
         paymentSettingsUpdatedAt: checkout.settingsUpdatedAt,
       },
     })
@@ -165,6 +184,17 @@ export async function submitPaymentVerificationAction(formData: FormData) {
     .single();
 
   if (error || !request?.id) {
+    const cleanedUp = await deletePaymentProofTrusted({
+      userId: user.id,
+      path: paymentProofPath,
+    });
+    if (!cleanedUp) {
+      console.error("payment proof cleanup failed after request insert failure", {
+        route: "./src/app/manual-billing/actions.ts",
+        userId: user.id,
+      });
+    }
+
     const duplicate = error?.message?.toLowerCase().includes("duplicate");
     paymentError(
       decision.plan.key,
@@ -187,6 +217,7 @@ export async function submitPaymentVerificationAction(formData: FormData) {
       paymentMethod,
       paymentProofAttached: true,
       trustedProofUpload: true,
+      legalAcceptancePersisted: true,
     },
   });
 

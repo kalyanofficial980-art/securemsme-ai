@@ -65,6 +65,14 @@ function json(status: number, value: unknown) {
   });
 }
 
+function validUserId(value: string) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+}
+
+function validOwnedProofPath(userId: string, path: string) {
+  return path.startsWith(`${userId}/`) && !path.includes("..") && !path.startsWith("/");
+}
+
 function decodePayload(token: string): Record<string, unknown> | null {
   const parts = token.split(".");
   if (parts.length !== 3) return null;
@@ -174,27 +182,47 @@ async function validateProof(file: File) {
   };
 }
 
-async function uploadPaymentProof(req: Request) {
+async function handlePaymentProofOperation(req: Request) {
   const form = await req.formData();
-  if (String(form.get("operation") || "") !== "upload_payment_proof") {
-    return json(400, { error: "Invalid trusted operation." });
-  }
+  const operation = String(form.get("operation") || "");
   const userId = String(form.get("userId") || "").trim();
-  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(userId)) {
-    return json(400, { error: "Invalid proof owner." });
-  }
-  const file = form.get("file");
-  if (!(file instanceof File)) return json(400, { error: "Payment proof file required." });
+  if (!validUserId(userId)) return json(400, { error: "Invalid proof owner." });
 
-  const proof = await validateProof(file);
-  const path = `${userId}/${crypto.randomUUID()}.${proof.extension}`;
-  const { error } = await adminClient().storage.from(PAYMENT_PROOF_BUCKET).upload(path, file, {
-    contentType: proof.mimeType,
-    cacheControl: "0",
-    upsert: false,
-  });
-  if (error) throw new Error("Trusted payment proof upload failed.");
-  return json(200, { path });
+  if (operation === "upload_payment_proof") {
+    const file = form.get("file");
+    if (!(file instanceof File)) return json(400, { error: "Payment proof file required." });
+
+    const proof = await validateProof(file);
+    const path = `${userId}/${crypto.randomUUID()}.${proof.extension}`;
+    const { error } = await adminClient().storage.from(PAYMENT_PROOF_BUCKET).upload(path, file, {
+      contentType: proof.mimeType,
+      cacheControl: "0",
+      upsert: false,
+    });
+    if (error) throw new Error("Trusted payment proof upload failed.");
+    return json(200, { path });
+  }
+
+  if (operation === "delete_payment_proof") {
+    const path = String(form.get("path") || "").trim();
+    if (!validOwnedProofPath(userId, path)) {
+      return json(400, { error: "Invalid proof path." });
+    }
+    const { data: referenced, error: referenceError } = await adminClient()
+      .from("manual_payment_requests_v2")
+      .select("id")
+      .eq("payment_proof_path", path)
+      .limit(1);
+    if (referenceError) throw new Error("Payment proof reference check failed.");
+    if (referenced?.length) {
+      return json(409, { error: "Referenced payment proof cannot be deleted." });
+    }
+    const { error } = await adminClient().storage.from(PAYMENT_PROOF_BUCKET).remove([path]);
+    if (error) throw new Error("Trusted payment proof cleanup failed.");
+    return json(200, { deleted: true });
+  }
+
+  return json(400, { error: "Invalid trusted operation." });
 }
 
 Deno.serve(async (req: Request) => {
@@ -205,7 +233,7 @@ Deno.serve(async (req: Request) => {
     await verifyVercelOidc(req);
     const contentType = req.headers.get("content-type") || "";
     if (contentType.toLowerCase().startsWith("multipart/form-data")) {
-      return await uploadPaymentProof(req);
+      return await handlePaymentProofOperation(req);
     }
 
     const body = (await req.json()) as { planKey?: string };

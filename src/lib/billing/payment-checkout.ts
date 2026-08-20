@@ -115,3 +115,24 @@ export async function uploadPaymentProofTrusted(input: {
     return null;
   }
 }
+
+export async function deletePaymentProofTrusted(input: {
+  userId: string;
+  path: string;
+}): Promise<boolean> {
+  if (!input.path.startsWith(`${input.userId}/`) || input.path.includes("..")) return false;
+
+  const form = new FormData();
+  form.set("operation", "delete_payment_proof");
+  form.set("userId", input.userId);
+  form.set("path", input.path);
+
+  try {
+    const response = await trustedPaymentRequest(form);
+    if (!response?.ok) return false;
+    const data = (await response.json()) as { deleted?: unknown };
+    return data.deleted === true;
+  } catch {
+    return false;
+  }
+}
