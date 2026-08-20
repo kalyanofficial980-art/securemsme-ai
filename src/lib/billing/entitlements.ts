@@ -30,6 +30,14 @@ export function getEffectivePlan(profile?: {
   return plan;
 }
 
+export function canUseRetest(plan: VeyraSecPlan) {
+  return plan !== "free";
+}
+
+export function canUseDeepScan(plan: VeyraSecPlan) {
+  return plan === "growth" || plan === "agency";
+}
+
 export function getPlanScanLimit(plan: VeyraSecPlan) {
   return PLAN_SCAN_LIMITS[plan];
 }

@@ -2,9 +2,8 @@ import type { NextRequest } from "next/server";
 import { buildAdvancedSecurityAudit } from "@/lib/advanced-security-audit";
 import { normalizeAdvancedSecurityAudit } from "@/lib/advanced-audit-normalization";
 import {
+  canUseRetest,
   getEffectivePlan,
-  getPlanScanLimit,
-  getScanWindowStart,
 } from "@/lib/billing/entitlements";
 import { runInbuiltAdvancedAudit } from "@/lib/inbuilt-advanced-audit";
 import { getNextScanDate } from "@/lib/monitoring";
@@ -20,12 +19,18 @@ import { runVulnerabilityIntelligence } from "@/lib/vulnerability-intelligence";
 
 export const runtime = "nodejs";
 
+type ScanQuotaReservation = {
+  reservation_id?: string;
+};
+
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ): Promise<Response> {
   const rateLimited = enforceRateLimit(request, "retest-api", 10, 60_000);
   if (rateLimited) return rateLimited;
+
+  let releaseQuotaReservation: (() => Promise<void>) | null = null;
 
   try {
     const { id } = await params;
@@ -63,26 +68,47 @@ export async function POST(
       .eq("id", user.id)
       .single();
     const plan = getEffectivePlan(profile);
-    const scanLimit = getPlanScanLimit(plan);
-    const windowStart = getScanWindowStart(plan);
 
-    const { count } = await supabase
-      .from("scans")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", user.id)
-      .gte("created_at", windowStart.toISOString());
-
-    if ((count || 0) >= scanLimit) {
+    if (!canUseRetest(plan)) {
       return Response.json(
-        {
-          error:
-            plan === "free"
-              ? "Free daily scan limit reached. Please try again tomorrow or upgrade."
-              : "Monthly scan limit reached for your current plan.",
-        },
+        { error: "Retest requires an active Starter, Growth or Agency plan." },
         { status: 402 },
       );
     }
+
+    const { data: quotaData, error: quotaError } = await supabase.rpc(
+      "reserve_scan_quota_v1",
+    );
+
+    if (quotaError) {
+      const quotaMessage = quotaError.message || "Scan quota could not be reserved.";
+      const normalizedMessage = quotaMessage.toLowerCase();
+      const status = normalizedMessage.includes("too many")
+        ? 429
+        : normalizedMessage.includes("limit reached")
+          ? 402
+          : 500;
+
+      return Response.json({ error: quotaMessage }, { status });
+    }
+
+    const quotaRow = (
+      Array.isArray(quotaData) ? quotaData[0] : quotaData
+    ) as ScanQuotaReservation | null;
+    const reservationId = quotaRow?.reservation_id;
+
+    if (!reservationId) {
+      return Response.json(
+        { error: "Scan quota could not be reserved safely." },
+        { status: 500 },
+      );
+    }
+
+    releaseQuotaReservation = async () => {
+      await supabase.rpc("release_scan_quota_v1", {
+        p_reservation_id: reservationId,
+      });
+    };
 
     const { data: previousScan } = await supabase
       .from("scans")
@@ -215,5 +241,16 @@ export async function POST(
     );
 
     return Response.json({ error: message }, { status: 500 });
+  } finally {
+    if (releaseQuotaReservation) {
+      try {
+        await releaseQuotaReservation();
+      } catch (releaseError) {
+        console.error("retest quota reservation release failed", {
+          route: "./src/app/api/websites/[id]/rescan/route.ts",
+          name: releaseError instanceof Error ? releaseError.name : "UnknownError",
+        });
+      }
+    }
   }
 }
