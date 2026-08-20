@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { submitPaymentVerificationAction } from "@/app/manual-billing/actions";
 import type { PaymentCheckout } from "@/lib/billing/payment-checkout";
+import { PAYMENT_PROOF_MAX_BYTES } from "@/lib/billing/payment-proof";
 import { launchPlans } from "@/lib/launch-ready-legal-payment-engine";
 
 type Payment = {
@@ -11,6 +12,7 @@ type Payment = {
   amount_inr: number;
   payment_method: string;
   payment_reference: string;
+  payment_proof_path: string | null;
   request_status: string;
   admin_review_note: string | null;
   plan_activated_at: string | null;
@@ -67,7 +69,7 @@ function requestStatus(status: string) {
   return {
     label: "Verification pending",
     className: "border-amber-200 bg-amber-50 text-amber-800",
-    description: "Your payment reference is waiting for VeyraSec admin verification.",
+    description: "Your transaction reference and screenshot are waiting for admin verification.",
   };
 }
 
@@ -96,27 +98,23 @@ export function ManualBillingPanel({
   return (
     <section>
       {message ? (
-        <div className="mb-6 border border-blue-200 bg-blue-50 px-4 py-3 text-sm font-medium text-blue-950">
+        <div className="mb-6 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm font-medium text-blue-950">
           {message}
         </div>
       ) : null}
 
       <div className="grid gap-6 border-b border-slate-300 pb-8 lg:grid-cols-[1fr_auto] lg:items-end">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-blue-700">
-            Subscription
-          </p>
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-blue-700">Subscription</p>
           <h1 className="mt-2 text-4xl font-semibold tracking-[-0.045em]">
-            Choose a plan. Pay once. Verify securely.
+            Choose a plan. Pay securely. Submit proof.
           </h1>
           <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600">
-            Monthly assisted billing for the paid launch. The QR and bank instructions come from VeyraSec admin settings, while plan access activates only after the transaction reference is verified.
+            The selected plan amount is fixed by VeyraSec. After payment, submit the full transaction reference and a payment confirmation screenshot. Paid access starts only after admin verification.
           </p>
         </div>
-        <div className="min-w-[230px] border border-slate-300 bg-white px-5 py-4">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-500">
-            Current plan
-          </p>
+        <div className="min-w-[240px] rounded-xl border border-slate-300 bg-white px-5 py-4 shadow-sm">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-500">Current plan</p>
           <div className="mt-2 flex items-baseline justify-between gap-4">
             <p className="text-2xl font-semibold capitalize">{currentPlan}</p>
             {currentPlan !== "free" && currentPlanExpiresAt ? (
@@ -134,8 +132,8 @@ export function ManualBillingPanel({
             <Link
               key={plan.key}
               href={`/manual-billing?plan=${plan.key}`}
-              className={`relative border bg-white p-5 transition hover:border-slate-500 ${
-                selectedCard ? "border-blue-700 ring-1 ring-blue-700" : "border-slate-300"
+              className={`relative rounded-2xl border bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${
+                selectedCard ? "border-blue-700 ring-1 ring-blue-700" : "border-slate-200"
               }`}
             >
               <div className="flex items-start justify-between gap-4">
@@ -147,7 +145,7 @@ export function ManualBillingPanel({
                   </p>
                 </div>
                 {recommended ? (
-                  <span className="border border-blue-200 bg-blue-50 px-2 py-1 text-[11px] font-semibold text-blue-800">
+                  <span className="rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-[11px] font-semibold text-blue-800">
                     Recommended
                   </span>
                 ) : null}
@@ -156,47 +154,46 @@ export function ManualBillingPanel({
                 {plan.monthlyScans} scans · {plan.websites} website{plan.websites === 1 ? "" : "s"}
               </p>
               <p className="mt-2 text-xs text-slate-500">{plan.bestFor}</p>
-              <div className={`mt-5 text-sm font-semibold ${selectedCard ? "text-blue-700" : "text-slate-700"}`}>
+              <p className={`mt-5 text-sm font-semibold ${selectedCard ? "text-blue-700" : "text-slate-700"}`}>
                 {selectedCard ? "Selected" : `Choose ${plan.name}`}
-              </div>
+              </p>
             </Link>
           );
         })}
       </div>
 
       {latestRequest ? (
-        <section className="mt-8 border border-slate-300 bg-white p-5">
+        <section className="mt-8 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
             <div>
               <div className="flex flex-wrap items-center gap-3">
                 <p className="text-sm font-semibold">Latest payment</p>
-                <span className={`border px-2.5 py-1 text-xs font-semibold ${latestState?.className}`}>
+                <span className={`rounded-full border px-2.5 py-1 text-xs font-semibold ${latestState?.className}`}>
                   {latestState?.label}
                 </span>
+                {latestRequest.payment_proof_path ? (
+                  <span className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-600">
+                    Proof attached
+                  </span>
+                ) : null}
               </div>
               <p className="mt-2 text-sm text-slate-600">{latestState?.description}</p>
-              <p className="mt-2 text-xs text-slate-500">
-                {latestRequest.requested_plan_name} · ₹{Number(latestRequest.amount_inr).toLocaleString("en-IN")} · Reference {latestRequest.payment_reference}
+              <p className="mt-2 max-w-3xl break-all font-mono text-xs text-slate-500">
+                {latestRequest.requested_plan_name} · ₹{Number(latestRequest.amount_inr).toLocaleString("en-IN")} · {latestRequest.payment_reference}
               </p>
               {latestRequest.admin_review_note ? (
-                <p className="mt-2 text-sm text-slate-700">
-                  Admin note: {latestRequest.admin_review_note}
-                </p>
+                <p className="mt-2 text-sm text-slate-700">Admin note: {latestRequest.admin_review_note}</p>
               ) : null}
             </div>
-            <p className="text-xs text-slate-400">
-              Submitted {new Date(latestRequest.created_at).toLocaleString()}
-            </p>
+            <p className="text-xs text-slate-400">Submitted {new Date(latestRequest.created_at).toLocaleString()}</p>
           </div>
         </section>
       ) : null}
 
-      <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(360px,0.95fr)]">
-        <section className="border border-slate-300 bg-white">
+      <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(480px,1.1fr)]">
+        <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
           <div className="border-b border-slate-200 px-6 py-5">
-            <p className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">
-              Step 1
-            </p>
+            <p className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">Step 1</p>
             <h2 className="mt-1 text-xl font-semibold">Pay ₹{selected.amountInr.toLocaleString("en-IN")}</h2>
             <p className="mt-1 text-sm text-slate-500">
               {selected.name} · one month · amount is fixed by the server-side plan definition.
@@ -204,29 +201,25 @@ export function ManualBillingPanel({
           </div>
 
           {paymentReady ? (
-            <div className="grid gap-6 p-6 md:grid-cols-2">
+            <div className="grid gap-6 p-6 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
               {checkout?.upiEnabled && checkout.qrSvg && checkout.upiId ? (
                 <div>
                   <p className="text-sm font-semibold">UPI</p>
-                  <div className="mt-4 inline-flex border border-slate-200 bg-white p-3">
+                  <div className="mt-4 inline-flex rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
                     <div
-                      className="h-64 w-64 max-w-full [&_svg]:h-full [&_svg]:w-full"
+                      className="h-56 w-56 max-w-full [&_svg]:h-full [&_svg]:w-full"
                       aria-label={`UPI QR for ${selected.name}`}
                       dangerouslySetInnerHTML={{ __html: checkout.qrSvg }}
                     />
                   </div>
-                  <p className="mt-4 text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">
-                    Payee
-                  </p>
+                  <p className="mt-4 text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">Payee</p>
                   <p className="mt-1 text-sm font-semibold">{checkout.payeeName || "VeyraSec"}</p>
-                  <p className="mt-3 text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">
-                    UPI ID
-                  </p>
+                  <p className="mt-3 text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">UPI ID</p>
                   <p className="mt-1 break-all text-sm font-semibold">{checkout.upiId}</p>
                   {checkout.upiUri ? (
                     <a
                       href={checkout.upiUri}
-                      className="mt-4 inline-flex bg-blue-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-800"
+                      className="mt-4 inline-flex rounded-lg bg-blue-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-800"
                     >
                       Open UPI app
                     </a>
@@ -235,59 +228,52 @@ export function ManualBillingPanel({
               ) : null}
 
               {checkout?.bankEnabled ? (
-                <div className="border-t border-slate-200 pt-5 md:border-l md:border-t-0 md:pl-6 md:pt-0">
+                <div className="border-t border-slate-200 pt-5 md:border-l md:border-t-0 md:pl-6 md:pt-0 lg:border-l-0 lg:border-t lg:pl-0 lg:pt-5 xl:border-l xl:border-t-0 xl:pl-6 xl:pt-0">
                   <p className="text-sm font-semibold">Bank transfer</p>
                   <dl className="mt-4 divide-y divide-slate-200 border-y border-slate-200 text-sm">
-                    <div className="grid grid-cols-[120px_1fr] gap-3 py-3">
-                      <dt className="text-slate-500">Account name</dt>
-                      <dd className="font-semibold">{checkout.bankAccountName}</dd>
-                    </div>
-                    <div className="grid grid-cols-[120px_1fr] gap-3 py-3">
-                      <dt className="text-slate-500">Bank</dt>
-                      <dd className="font-semibold">{checkout.bankName}</dd>
-                    </div>
-                    <div className="grid grid-cols-[120px_1fr] gap-3 py-3">
-                      <dt className="text-slate-500">Account</dt>
-                      <dd className="break-all font-semibold">{checkout.bankAccountNumber}</dd>
-                    </div>
-                    <div className="grid grid-cols-[120px_1fr] gap-3 py-3">
-                      <dt className="text-slate-500">IFSC</dt>
-                      <dd className="font-semibold">{checkout.bankIfsc}</dd>
-                    </div>
+                    {[
+                      ["Account name", checkout.bankAccountName],
+                      ["Bank", checkout.bankName],
+                      ["Account", checkout.bankAccountNumber],
+                      ["IFSC", checkout.bankIfsc],
+                    ].map(([label, value]) => (
+                      <div key={label} className="grid grid-cols-[110px_1fr] gap-3 py-3">
+                        <dt className="text-slate-500">{label}</dt>
+                        <dd className="break-all font-semibold">{value}</dd>
+                      </div>
+                    ))}
                   </dl>
                 </div>
               ) : null}
             </div>
           ) : (
             <div className="p-6">
-              <div className="border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900">
+              <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900">
                 Payments are temporarily unavailable because the VeyraSec admin has not enabled an official UPI or bank destination yet.
               </div>
             </div>
           )}
 
           <div className="border-t border-slate-200 bg-slate-50 px-6 py-4 text-xs leading-5 text-slate-500">
-            Never enter an OTP, UPI PIN, card PIN, bank password, private key or session cookie in VeyraSec.
+            Never enter an OTP, UPI PIN, card PIN, bank password, private key, or session cookie in VeyraSec.
           </div>
         </section>
 
-        <section className="border border-slate-300 bg-white">
+        <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
           <div className="border-b border-slate-200 px-6 py-5">
-            <p className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">
-              Step 2
-            </p>
-            <h2 className="mt-1 text-xl font-semibold">Submit transaction reference</h2>
+            <p className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">Step 2</p>
+            <h2 className="mt-1 text-xl font-semibold">Submit payment for verification</h2>
             <p className="mt-1 text-sm text-slate-500">
-              Payment does not activate access automatically. Admin verification is mandatory.
+              Add the full transaction ID and payment confirmation screenshot. Neither one activates access automatically.
             </p>
           </div>
 
           {pending ? (
             <div className="p-6">
-              <div className="border border-amber-200 bg-amber-50 p-4">
+              <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
                 <p className="text-sm font-semibold text-amber-950">Verification already pending</p>
                 <p className="mt-2 text-sm leading-6 text-amber-900">
-                  Wait for the current payment reference to be reviewed before submitting another request.
+                  Wait for the current payment to be reviewed before submitting another request.
                 </p>
               </div>
             </div>
@@ -300,94 +286,87 @@ export function ManualBillingPanel({
                   {availableMethods.length === 1 ? (
                     <>
                       <input type="hidden" name="paymentMethod" value={availableMethods[0]} />
-                      <div className="border border-slate-300 bg-slate-50 px-3.5 py-3 font-normal capitalize">
+                      <div className="rounded-lg border border-slate-300 bg-slate-50 px-3.5 py-3 font-normal capitalize">
                         {availableMethods[0].replaceAll("-", " ")}
                       </div>
                     </>
                   ) : (
-                    <select
-                      name="paymentMethod"
-                      className="border border-slate-300 bg-white px-3.5 py-3 font-normal outline-none focus:border-blue-600"
-                    >
+                    <select name="paymentMethod" className="rounded-lg border border-slate-300 bg-white px-3.5 py-3 font-normal outline-none focus:border-blue-600">
                       {checkout?.upiEnabled ? <option value="upi">UPI</option> : null}
-                      {checkout?.bankEnabled ? (
-                        <option value="bank-transfer">Bank transfer</option>
-                      ) : null}
+                      {checkout?.bankEnabled ? <option value="bank-transfer">Bank transfer</option> : null}
                     </select>
                   )}
                 </label>
 
                 <label className="grid gap-2 text-sm font-semibold text-slate-700">
-                  UTR / transaction reference
+                  UTR / transaction ID
                   <input
                     name="paymentReference"
                     required
                     minLength={4}
-                    maxLength={120}
-                    className="border border-slate-300 px-3.5 py-3 font-normal outline-none focus:border-blue-600"
-                    placeholder="Enter the reference shown by your payment app or bank"
+                    maxLength={256}
+                    className="w-full rounded-lg border border-slate-300 px-3.5 py-3 font-mono text-sm font-normal outline-none focus:border-blue-600"
+                    placeholder="Paste the full UTR / transaction ID"
                     autoComplete="off"
+                    spellCheck={false}
                   />
+                  <span className="font-normal text-slate-400">Supports long references up to 256 characters.</span>
                 </label>
 
-                <label className="grid gap-2 text-sm font-semibold text-slate-700">
-                  Payer name
+                <label className="grid gap-2 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm font-semibold text-slate-700">
+                  Payment screenshot
                   <input
-                    name="payerName"
+                    name="paymentProof"
+                    type="file"
                     required
-                    defaultValue={payerName}
-                    className="border border-slate-300 px-3.5 py-3 font-normal outline-none focus:border-blue-600"
+                    accept="image/png,image/jpeg,image/webp"
+                    className="block w-full rounded-lg border border-slate-300 bg-white text-sm font-normal text-slate-600 file:mr-4 file:border-0 file:bg-slate-950 file:px-4 file:py-3 file:font-semibold file:text-white"
                   />
+                  <span className="font-normal leading-5 text-slate-500">
+                    PNG, JPG, or WebP · max {Math.round(PAYMENT_PROOF_MAX_BYTES / 1024 / 1024)} MB. Upload only the payment confirmation; crop unrelated account details when possible.
+                  </span>
                 </label>
 
-                <label className="grid gap-2 text-sm font-semibold text-slate-700">
-                  Payer email
-                  <input
-                    name="payerEmail"
-                    type="email"
-                    required
-                    defaultValue={payerEmail}
-                    className="border border-slate-300 px-3.5 py-3 font-normal outline-none focus:border-blue-600"
-                  />
-                </label>
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <label className="grid gap-2 text-sm font-semibold text-slate-700">
+                    Payer name
+                    <input name="payerName" required defaultValue={payerName} className="rounded-lg border border-slate-300 px-3.5 py-3 font-normal outline-none focus:border-blue-600" />
+                  </label>
+                  <label className="grid gap-2 text-sm font-semibold text-slate-700">
+                    Payer email
+                    <input name="payerEmail" type="email" required defaultValue={payerEmail} className="rounded-lg border border-slate-300 px-3.5 py-3 font-normal outline-none focus:border-blue-600" />
+                  </label>
+                </div>
 
                 <label className="grid gap-2 text-sm font-semibold text-slate-700">
                   Phone <span className="font-normal text-slate-400">optional</span>
-                  <input
-                    name="payerPhone"
-                    className="border border-slate-300 px-3.5 py-3 font-normal outline-none focus:border-blue-600"
-                  />
+                  <input name="payerPhone" className="rounded-lg border border-slate-300 px-3.5 py-3 font-normal outline-none focus:border-blue-600" />
                 </label>
 
                 <label className="grid gap-2 text-sm font-semibold text-slate-700">
                   Note <span className="font-normal text-slate-400">optional</span>
-                  <input
-                    name="paymentNote"
-                    maxLength={300}
-                    className="border border-slate-300 px-3.5 py-3 font-normal outline-none focus:border-blue-600"
-                    placeholder="Invoice context only"
-                  />
+                  <input name="paymentNote" maxLength={300} className="rounded-lg border border-slate-300 px-3.5 py-3 font-normal outline-none focus:border-blue-600" placeholder="Invoice context only" />
                 </label>
               </div>
 
               <div className="border-t border-slate-200 px-6 py-5">
-                <button className="w-full bg-blue-700 px-5 py-3 text-sm font-semibold text-white hover:bg-blue-800">
+                <button className="w-full rounded-lg bg-blue-700 px-5 py-3 text-sm font-semibold text-white hover:bg-blue-800">
                   Submit payment for verification
                 </button>
                 <p className="mt-3 text-center text-xs leading-5 text-slate-500">
-                  VeyraSec verifies the payment before server-side paid entitlements change.
+                  VeyraSec verifies the payment and private proof before server-side paid entitlements change.
                 </p>
               </div>
             </form>
           ) : (
             <div className="p-6 text-sm leading-6 text-slate-500">
-              Payment verification submission will become available after the admin enables an official payment method.
+              Payment verification submission becomes available after the admin enables an official payment method.
             </div>
           )}
         </section>
       </div>
 
-      <section className="mt-8 border border-slate-300 bg-white">
+      <section className="mt-8 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="border-b border-slate-200 px-6 py-4">
           <h2 className="text-lg font-semibold">Payment history</h2>
         </div>
@@ -401,19 +380,15 @@ export function ManualBillingPanel({
                     <p className="font-semibold">
                       {payment.requested_plan_name} · ₹{Number(payment.amount_inr).toLocaleString("en-IN")}
                     </p>
-                    <p className="mt-1 text-sm text-slate-500">
-                      {payment.payment_method.replaceAll("-", " ")} · Reference {payment.payment_reference} · {new Date(payment.created_at).toLocaleString()}
+                    <p className="mt-1 break-all font-mono text-xs text-slate-500">
+                      {payment.payment_method.replaceAll("-", " ")} · {payment.payment_reference}
                     </p>
-                    {payment.plan_expires_at ? (
-                      <p className="mt-2 text-sm text-slate-600">
-                        Access through {formatDate(payment.plan_expires_at)}
-                      </p>
-                    ) : null}
-                    {payment.admin_review_note ? (
-                      <p className="mt-2 text-sm text-slate-600">Admin note: {payment.admin_review_note}</p>
-                    ) : null}
+                    <p className="mt-1 text-xs text-slate-400">{new Date(payment.created_at).toLocaleString()}</p>
+                    {payment.payment_proof_path ? <p className="mt-2 text-xs font-semibold text-slate-500">Payment proof attached</p> : null}
+                    {payment.plan_expires_at ? <p className="mt-2 text-sm text-slate-600">Access through {formatDate(payment.plan_expires_at)}</p> : null}
+                    {payment.admin_review_note ? <p className="mt-2 text-sm text-slate-600">Admin note: {payment.admin_review_note}</p> : null}
                   </div>
-                  <span className={`border px-2.5 py-1 text-xs font-semibold ${state.className}`}>
+                  <span className={`rounded-full border px-2.5 py-1 text-xs font-semibold ${state.className}`}>
                     {state.label}
                   </span>
                 </div>

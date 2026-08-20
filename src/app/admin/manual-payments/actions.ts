@@ -3,6 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/admin";
+import {
+  PAYMENT_PROOF_BUCKET,
+  validatePaymentProofBlob,
+} from "@/lib/billing/payment-proof";
 
 function clean(value: FormDataEntryValue | null) {
   return String(value || "").trim();
@@ -75,6 +79,31 @@ export async function reviewManualPaymentAction(formData: FormData) {
 
   if (!requestId || (decision !== "approved" && decision !== "rejected")) {
     redirect("/admin/manual-payments?message=Invalid payment review request");
+  }
+
+  if (decision === "approved") {
+    const { data: payment, error: paymentError } = await supabase
+      .from("manual_payment_requests_v2")
+      .select("payment_proof_path")
+      .eq("id", requestId)
+      .single();
+
+    if (paymentError || !payment?.payment_proof_path) {
+      settingsError("A valid payment screenshot is required before approval.");
+    }
+
+    const { data: proof, error: proofError } = await supabase.storage
+      .from(PAYMENT_PROOF_BUCKET)
+      .download(payment.payment_proof_path);
+
+    if (proofError || !proof) {
+      settingsError("Payment screenshot could not be opened. Do not approve this request.");
+    }
+
+    const proofValidation = await validatePaymentProofBlob(proof);
+    if (!proofValidation.valid) {
+      settingsError("Payment screenshot failed file validation. Do not approve this request.");
+    }
   }
 
   const { error } = await supabase.rpc("admin_review_manual_payment_v2", {

@@ -2,6 +2,8 @@ import Link from "next/link";
 import { signOut } from "@/app/auth/actions";
 import { createClient } from "@/lib/supabase/server";
 
+const publicLinks = [["Pricing", "/pricing"]] as const;
+
 const customerLinks = [
   ["Dashboard", "/dashboard"],
   ["Websites", "/websites"],
@@ -43,14 +45,18 @@ export async function Navbar() {
     });
   }
 
-  const navigationLinks = isAdmin ? adminLinks : customerLinks;
+  const navigationLinks = !userEmail
+    ? publicLinks
+    : isAdmin
+      ? adminLinks
+      : customerLinks;
   const homeHref = isAdmin ? "/admin" : "/";
 
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur">
-      <nav className="mx-auto flex h-15 max-w-7xl items-center justify-between px-5 sm:px-6">
+      <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 sm:px-6">
         <Link href={homeHref} className="flex items-center gap-2.5" aria-label="VeyraSec home">
-          <span className="flex h-8 w-8 items-center justify-center rounded-md bg-slate-950 text-xs font-black tracking-tight text-white">
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-950 text-xs font-black tracking-tight text-white">
             VS
           </span>
           <span className="text-[17px] font-semibold tracking-[-0.02em] text-slate-950">
@@ -63,13 +69,18 @@ export async function Navbar() {
             <Link
               key={href}
               href={href}
-              className={`text-sm transition-colors hover:text-blue-700 ${isAdmin ? "font-semibold text-slate-800" : "font-medium text-slate-600"}`}
+              className={`text-sm transition-colors hover:text-blue-700 ${
+                isAdmin ? "font-semibold text-slate-800" : "font-medium text-slate-600"
+              }`}
             >
               {label}
             </Link>
           ))}
           {userEmail && !isAdmin ? (
-            <Link href="/billing" className="text-sm font-medium text-slate-600 transition-colors hover:text-blue-700">
+            <Link
+              href="/billing"
+              className="text-sm font-medium text-slate-600 transition-colors hover:text-blue-700"
+            >
               Billing
             </Link>
           ) : null}
@@ -82,7 +93,7 @@ export async function Navbar() {
                 {userEmail}
               </span>
               <form action={signOut}>
-                <button className="rounded-md border border-slate-300 bg-white px-3.5 py-2 text-sm font-semibold text-slate-700 transition-colors hover:border-slate-400 hover:bg-slate-50">
+                <button className="rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm font-semibold text-slate-700 transition-colors hover:border-slate-400 hover:bg-slate-50">
                   Log out
                 </button>
               </form>
@@ -92,7 +103,7 @@ export async function Navbar() {
               <Link href="/login" className="px-2 py-2 text-sm font-medium text-slate-600 hover:text-slate-950">
                 Log in
               </Link>
-              <Link href="/signup" className="rounded-md bg-blue-700 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800">
+              <Link href="/signup" className="rounded-lg bg-blue-700 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800">
                 Start free
               </Link>
             </>
@@ -100,21 +111,27 @@ export async function Navbar() {
         </div>
 
         <details className="relative sm:hidden">
-          <summary className="flex h-9 w-9 cursor-pointer list-none items-center justify-center rounded-md border border-slate-300 bg-white text-base font-semibold text-slate-700">
+          <summary className="flex h-9 w-9 cursor-pointer list-none items-center justify-center rounded-lg border border-slate-300 bg-white text-base font-semibold text-slate-700">
             ≡
           </summary>
-          <div className="absolute right-0 mt-2 w-64 border border-slate-200 bg-white p-2 shadow-lg">
+          <div className="absolute right-0 mt-2 w-64 rounded-xl border border-slate-200 bg-white p-2 shadow-xl">
             {userEmail ? (
               <p className="truncate border-b border-slate-100 px-3 py-2 text-xs font-medium text-slate-500">{userEmail}</p>
             ) : null}
             <div className="grid py-1">
               {navigationLinks.map(([label, href]) => (
-                <Link key={href} href={href} className={`px-3 py-2.5 text-sm hover:bg-slate-50 ${isAdmin ? "font-semibold text-slate-950" : "font-medium text-slate-700"}`}>
+                <Link
+                  key={href}
+                  href={href}
+                  className={`rounded-lg px-3 py-2.5 text-sm hover:bg-slate-50 ${
+                    isAdmin ? "font-semibold text-slate-950" : "font-medium text-slate-700"
+                  }`}
+                >
                   {label}
                 </Link>
               ))}
               {userEmail && !isAdmin ? (
-                <Link href="/billing" className="px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                <Link href="/billing" className="rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50">
                   Billing
                 </Link>
               ) : null}
@@ -122,12 +139,12 @@ export async function Navbar() {
             <div className="border-t border-slate-100 pt-2">
               {userEmail ? (
                 <form action={signOut}>
-                  <button className="w-full px-3 py-2.5 text-left text-sm font-medium text-slate-700 hover:bg-slate-50">
+                  <button className="w-full rounded-lg px-3 py-2.5 text-left text-sm font-medium text-slate-700 hover:bg-slate-50">
                     Log out
                   </button>
                 </form>
               ) : (
-                <Link href="/login" className="block bg-blue-700 px-3 py-2.5 text-center text-sm font-semibold text-white">
+                <Link href="/login" className="block rounded-lg bg-blue-700 px-3 py-2.5 text-center text-sm font-semibold text-white">
                   Continue with Google
                 </Link>
               )}
