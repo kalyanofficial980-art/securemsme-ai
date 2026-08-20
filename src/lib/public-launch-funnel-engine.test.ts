@@ -4,6 +4,7 @@ import {
   isLikelyEmail,
   normalizePublicWebsiteUrl,
   pricingInterestReason,
+  pricingPlans,
   selectPlanForNeed,
 } from "@/lib/public-launch-funnel-engine";
 
@@ -37,6 +38,18 @@ describe("public launch funnel engine", () => {
 
   it("selects growth for repo security", () => {
     expect(selectPlanForNeed("repo-security", "startup")).toBe("growth");
+  });
+
+  it("routes enterprise business interest to the current Agency tier", () => {
+    expect(selectPlanForNeed("agency-workflow", "enterprise")).toBe("agency");
+  });
+
+  it("publishes only Starter, Growth and Agency pricing tiers", () => {
+    expect(pricingPlans.map((plan) => plan.plan)).toEqual([
+      "starter",
+      "growth",
+      "agency",
+    ]);
   });
 
   it("creates pricing reason", () => {

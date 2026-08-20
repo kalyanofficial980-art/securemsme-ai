@@ -51,71 +51,48 @@ export const pricingPlans: PricingPlan[] = [
     plan: "starter",
     name: "Starter",
     priceLabel: "₹999/month",
-    description:
-      "For a small business that wants repeatable website checks, reports and retests without enterprise complexity.",
-    bestFor: "First paid security workflow",
+    description: "For one website that needs repeatable reviews, reports and retests.",
+    bestFor: "Small businesses starting a paid security workflow",
     features: [
       "20 scans per month",
-      "Authorized website scans",
-      "Client-safe report and PDF",
-      "Fix checklist and retest comparison",
+      "1 website",
+      "Client-ready report and PDF",
+      "Retest comparison",
     ],
-    cta: "Request Starter",
-    safetyNote:
-      "Monthly access is activated after assisted payment verification. Security review only; not a compliance certificate.",
+    cta: "Choose Starter",
+    safetyNote: "Paid access starts only after transaction verification.",
   },
   {
     plan: "growth",
     name: "Growth",
     priceLabel: "₹2,499/month",
-    description:
-      "For growing teams that need more scan capacity and ownership-verified deeper passive evidence.",
-    bestFor: "Developer remediation and repeated reviews",
+    description: "For teams that need deeper ownership-verified evidence and repeated remediation cycles.",
+    bestFor: "Growing product and engineering teams",
     features: [
       "100 scans per month",
+      "5 websites",
       "Everything in Starter",
-      "Ownership-verified deep passive scans",
-      "Technology and attack-surface evidence",
-      "Retest comparison history",
+      "Ownership-verified Deep Scan",
+      "Priority remediation workflow",
     ],
-    cta: "Request Growth",
-    safetyNote:
-      "Monthly access is activated after assisted payment verification. Deep scans still require current ownership proof and permission.",
+    cta: "Choose Growth",
+    safetyNote: "Deep Scan still requires current ownership proof.",
   },
   {
     plan: "agency",
     name: "Agency",
     priceLabel: "₹6,999/month",
-    description:
-      "For agencies operating repeatable authorized security reviews across multiple client websites.",
-    bestFor: "High-volume client reporting workflow",
+    description: "For agencies running repeatable authorized reviews across client websites.",
+    bestFor: "High-volume client security review workflows",
     features: [
       "500 scans per month",
+      "25 websites",
       "Everything in Growth",
-      "Multi-website workflow",
+      "Multi-client website workflow",
       "Reusable client-ready reports",
-      "Ownership and permission controls for client websites",
     ],
-    cta: "Request Agency",
-    safetyNote:
-      "Monthly access is activated after assisted payment verification. Every client website still requires ownership or written permission before authorized deep scanning.",
-  },
-  {
-    plan: "enterprise-review",
-    name: "Enterprise Review",
-    priceLabel: "Custom",
-    description: "For larger teams that need manual review before onboarding.",
-    bestFor: "Complex environments and custom review",
-    features: [
-      "Manual scoping",
-      "Custom onboarding",
-      "Security workflow review",
-      "Support coordination",
-      "Enterprise-safe reporting",
-    ],
-    cta: "Contact support",
-    safetyNote:
-      "Manual review is required before any enterprise security or compliance claim.",
+    cta: "Choose Agency",
+    safetyNote: "Every client website still requires ownership or written permission.",
   },
 ];
 
@@ -183,7 +160,7 @@ export function selectPlanForNeed(
   need: PublicDemoInput["primaryNeed"],
   businessType: PublicDemoInput["businessType"],
 ): PublicPlan {
-  if (businessType === "enterprise") return "enterprise-review";
+  if (businessType === "enterprise") return "agency";
   if (businessType === "agency" || need === "agency-workflow") return "agency";
   if (
     need === "developer-fixes" ||
@@ -203,5 +180,5 @@ export function pricingInterestReason(plan: PublicPlan, expectedUsage: string) {
     return "Growth interest captured for deeper remediation and repeated authorized review workflow.";
   if (plan === "agency")
     return `Agency interest captured for ${expectedUsage} usage. Confirm client authorization workflow before launch.`;
-  return "Enterprise review interest captured. Manual scoping is recommended before pricing or security claims.";
+  return "Custom interest captured. Route the lead to the standard Agency or Growth plans before payment activation.";
 }
