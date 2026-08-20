@@ -2,12 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { getPaymentCheckout } from "@/lib/billing/payment-checkout";
 import {
-  PAYMENT_PROOF_BUCKET,
-  createPaymentProofPath,
-  validatePaymentProofBlob,
-} from "@/lib/billing/payment-proof";
+  getPaymentCheckout,
+  uploadPaymentProofTrusted,
+} from "@/lib/billing/payment-checkout";
+import { validatePaymentProofBlob } from "@/lib/billing/payment-proof";
 import { validateManualPaymentRequest } from "@/lib/launch-ready-legal-payment-engine";
 import { createClient } from "@/lib/supabase/server";
 
@@ -123,19 +122,14 @@ export async function submitPaymentVerificationAction(formData: FormData) {
     );
   }
 
-  const paymentProofPath = createPaymentProofPath(user.id, proofValidation.extension);
-  const { error: proofUploadError } = await supabase.storage
-    .from(PAYMENT_PROOF_BUCKET)
-    .upload(paymentProofPath, proofEntry, {
-      contentType: proofValidation.mimeType,
-      cacheControl: "0",
-      upsert: false,
-    });
-
-  if (proofUploadError) {
+  const paymentProofPath = await uploadPaymentProofTrusted({
+    userId: user.id,
+    file: proofEntry,
+  });
+  if (!paymentProofPath) {
     paymentError(
       decision.plan.key,
-      proofUploadError.message || "Could not securely upload payment screenshot.",
+      "Could not securely upload the payment screenshot. Please try again.",
     );
   }
 
@@ -163,6 +157,7 @@ export async function submitPaymentVerificationAction(formData: FormData) {
         manualApproval: true,
         selectedPaymentMethod: paymentMethod,
         paymentProofAttached: true,
+        trustedProofUpload: true,
         paymentSettingsUpdatedAt: checkout.settingsUpdatedAt,
       },
     })
@@ -191,6 +186,7 @@ export async function submitPaymentVerificationAction(formData: FormData) {
       amountInr: decision.amountInr,
       paymentMethod,
       paymentProofAttached: true,
+      trustedProofUpload: true,
     },
   });
 
