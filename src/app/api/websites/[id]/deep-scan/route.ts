@@ -6,12 +6,15 @@ import {
   getEffectivePlan,
 } from "@/lib/billing/entitlements";
 import { runInbuiltAdvancedAudit } from "@/lib/inbuilt-advanced-audit";
-import { getNextScanDate } from "@/lib/monitoring";
 import { normalizeScanReport } from "@/lib/report-normalization";
 import { scanWebsite } from "@/lib/scanner";
 import { calculateScore } from "@/lib/score";
 import { enforceRateLimit } from "@/lib/security/request-guard";
 import { createClient } from "@/lib/supabase/server";
+import {
+  persistTrustedScan,
+  updateTrustedWebsiteVerification,
+} from "@/lib/trusted-server-writes";
 import { runVulnerabilityIntelligence } from "@/lib/vulnerability-intelligence";
 import {
   type VerificationMethod,
@@ -52,7 +55,7 @@ export async function POST(
     const { data: website } = await supabase
       .from("websites")
       .select(
-        "id, url, scan_frequency, verification_token, verification_method, verification_status, verified_at, permission_attested_at, deep_scan_enabled",
+        "id, url, verification_token, verification_method, verification_status, verified_at, permission_attested_at, deep_scan_enabled",
       )
       .eq("id", id)
       .eq("user_id", user.id)
@@ -110,17 +113,17 @@ export async function POST(
     });
 
     if (!freshVerification.verified) {
-      await supabase
-        .from("websites")
-        .update({
+      await updateTrustedWebsiteVerification({
+        userId: user.id,
+        websiteId: website.id,
+        patch: {
           verification_status: "failed",
           verified_at: null,
           verified_by: null,
           permission_attested_at: null,
           deep_scan_enabled: false,
-        })
-        .eq("id", website.id)
-        .eq("user_id", user.id);
+        },
+      });
 
       return Response.json(
         {
@@ -237,42 +240,22 @@ export async function POST(
     const finalScore = scoreResult.score;
     const finalRiskLevel = scoreResult.riskLevel;
 
-    const { data: scan, error: insertError } = await supabase
-      .from("scans")
-      .insert({
-        user_id: user.id,
-        website_id: website.id,
-        website_url: normalizedReport.normalizedUrl,
+    let scan;
+    try {
+      scan = await persistTrustedScan({
+        userId: user.id,
+        websiteId: website.id,
+        websiteUrl: normalizedReport.normalizedUrl,
         score: finalScore,
-        risk_level: finalRiskLevel,
+        riskLevel: finalRiskLevel,
         report: fullReport,
-      })
-      .select(
-        "id, website_id, website_url, score, risk_level, report, created_at",
-      )
-      .single();
-
-    if (insertError || !scan) {
+      });
+    } catch {
       return Response.json(
         { error: "Deep scan completed but could not save report." },
         { status: 500 },
       );
     }
-
-    await supabase
-      .from("websites")
-      .update({
-        last_scan_at: scan.created_at,
-        next_scan_at: getNextScanDate(
-          scan.created_at,
-          website.scan_frequency || "weekly",
-        ),
-        latest_score: finalScore,
-        latest_risk_level: finalRiskLevel,
-        latest_scan_id: scan.id,
-      })
-      .eq("id", website.id)
-      .eq("user_id", user.id);
 
     return Response.json({ scan });
   } catch (error) {
