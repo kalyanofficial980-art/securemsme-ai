@@ -24,17 +24,20 @@ const SUPPLEMENTAL_CATEGORIES = new Set([
   "Email security",
   "Website hygiene",
   "Trust and privacy",
+  "Attack surface visibility",
 ]);
 
 function getCategory(finding: ScanFinding) {
+  if (finding.name === "Common admin/login paths") {
+    return "Attack surface visibility";
+  }
   if (finding.name.includes("MX") || finding.name.includes("SPF") || finding.name.includes("DMARC")) {
     return "Email security";
   }
   if (
     finding.name.includes("Sensitive") ||
     finding.name.includes("Mixed content") ||
-    finding.name.includes("Cookie") ||
-    finding.name.toLowerCase().includes("admin")
+    finding.name.includes("Cookie")
   ) {
     return "Exposure risk";
   }
@@ -84,8 +87,8 @@ function getTruth(finding: ScanFinding): FindingTruth {
   if (explicit) return explicit;
   if (isUncertainFindingMessage(finding.message)) return "inconclusive";
 
-  // These checks historically relied on reachability/status alone. A warning or
-  // failure is not scoreable until the truth policy attaches stronger evidence.
+  // Reachability alone is not enough evidence for these findings. A warning or
+  // failure remains inconclusive until a stronger truth policy attaches proof.
   if (
     (finding.name === "Sensitive public files" ||
       finding.name === "Common admin/login paths") &&
@@ -99,12 +102,12 @@ function getTruth(finding: ScanFinding): FindingTruth {
 
 function getSeverity(finding: ScanFinding, truth: FindingTruth): EnhancedFinding["severity"] {
   if (truth !== "verified" || finding.status === "pass") return "Info";
+  if (finding.name === "Common admin/login paths") return "Info";
+
   const lostPoints = finding.maxPoints - finding.points;
   const lossPercentage = finding.maxPoints > 0 ? Math.round((lostPoints / finding.maxPoints) * 100) : 0;
-  const lowerName = finding.name.toLowerCase();
 
   if (finding.name.includes("Sensitive public files")) return "Critical";
-  if (lowerName.includes("admin")) return finding.status === "fail" ? "Medium" : "Low";
   if (
     finding.name.includes("Privacy") ||
     finding.name.includes("Terms") ||
@@ -135,6 +138,9 @@ function getBusinessImpact(finding: ScanFinding, truth: FindingTruth) {
   if (truth === "not-applicable") {
     return "This check is supplemental or not applicable to the scanned target and does not affect the Security Score.";
   }
+  if (finding.name === "Common admin/login paths") {
+    return "Public login or administration route visibility is an attack-surface observation only; visibility by itself does not prove a vulnerability.";
+  }
   if (finding.name.includes("HTTPS")) return "Transport weaknesses can expose visitor traffic or create browser trust warnings.";
   if (finding.name.includes("SSL certificate")) return "Certificate problems can break secure access and customer trust.";
   if (finding.name.includes("Security headers")) return "Missing browser controls can increase exposure to browser-side attack techniques.";
@@ -148,6 +154,9 @@ function getBusinessImpact(finding: ScanFinding, truth: FindingTruth) {
 function getFixRecommendation(finding: ScanFinding, truth: FindingTruth) {
   if (truth === "inconclusive") return "Retry from a representative public response or review the evidence manually before making a finding claim.";
   if (truth === "not-applicable") return "Review this supplemental check against the correct organizational domain or business context if needed.";
+  if (finding.name === "Common admin/login paths") {
+    return "Do not hide or rename a legitimate login route solely for scoring. Protect authentication with strong access controls, rate limiting and MFA where appropriate.";
+  }
   if (finding.status === "pass") return "No immediate fix required. Continue monitoring this verified control.";
   if (finding.name.includes("Sensitive public files")) return "Remove the verified exposed file, rotate any affected secrets, and block sensitive paths at the origin.";
   if (finding.name.includes("Security headers")) return "Add and test CSP, frame protection, X-Content-Type-Options and Referrer-Policy as appropriate.";
@@ -248,7 +257,10 @@ export function calculateScore(report: ScanReport) {
 
   const allCategoryScores = categoryScores(enhancedFindings);
   const verifiedActionable = enhancedFindings.filter(
-    (finding) => finding.truth === "verified" && finding.status !== "pass",
+    (finding) =>
+      finding.scoreScope === "security" &&
+      finding.truth === "verified" &&
+      finding.status !== "pass",
   );
   const severityWeight = { Critical: 5, High: 4, Medium: 3, Low: 2, Info: 1 } as const;
   const topFixes = verifiedActionable
