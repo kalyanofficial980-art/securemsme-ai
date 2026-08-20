@@ -98,14 +98,17 @@ export function calculatePlanAmount(
 }
 
 export function validateManualPaymentRequest(input: ManualPaymentRequestInput) {
-  const plan = getLaunchPlan(input.planKey);
-  const amountInr = calculatePlanAmount(plan, input.billingCycle);
+  const requestedPlan = launchPlans.find((plan) => plan.key === input.planKey);
+  const plan = requestedPlan || launchPlans[1];
+  const amountInr = plan.amountInr;
   const errors: string[] = [];
   const combined =
     `${input.paymentReference} ${input.paymentNote || ""}`.toLowerCase();
 
-  if (plan.key === "free")
-    errors.push("Free plan does not require a payment request.");
+  if (!requestedPlan || requestedPlan.key === "free")
+    errors.push("Select a valid paid plan.");
+  if (input.billingCycle !== "monthly")
+    errors.push("Only monthly activation is available during assisted launch.");
   if (!input.paymentReference.trim())
     errors.push("Payment reference or UTR number is required.");
   if (!input.payerName.trim()) errors.push("Payer name is required.");
@@ -125,6 +128,7 @@ export function validateManualPaymentRequest(input: ManualPaymentRequestInput) {
     valid: errors.length === 0,
     status: errors.length === 0 ? "submitted_for_review" : "pending_payment",
     plan,
+    billingCycle: "monthly" as const,
     amountInr,
     errors,
     instructions: `Pay ₹${amountInr} manually by UPI or bank transfer. Submit the UTR/reference number. Your plan activates only after admin approval.`,

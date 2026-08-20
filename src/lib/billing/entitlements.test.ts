@@ -3,6 +3,8 @@ import {
   canUseDeepScan,
   canUseRetest,
   getEffectivePlan,
+  getPlanMonitoringTargetLimit,
+  getPlanWebsiteLimit,
 } from "./entitlements";
 
 describe("billing entitlements", () => {
@@ -34,5 +36,17 @@ describe("billing entitlements", () => {
     expect(canUseDeepScan("starter")).toBe(false);
     expect(canUseDeepScan("growth")).toBe(true);
     expect(canUseDeepScan("agency")).toBe(true);
+  });
+
+  it("matches website and monitoring limits to the launch plan contract", () => {
+    expect(getPlanWebsiteLimit("free")).toBe(1);
+    expect(getPlanWebsiteLimit("starter")).toBe(1);
+    expect(getPlanWebsiteLimit("growth")).toBe(5);
+    expect(getPlanWebsiteLimit("agency")).toBe(25);
+
+    expect(getPlanMonitoringTargetLimit("free")).toBe(1);
+    expect(getPlanMonitoringTargetLimit("starter")).toBe(1);
+    expect(getPlanMonitoringTargetLimit("growth")).toBe(5);
+    expect(getPlanMonitoringTargetLimit("agency")).toBe(25);
   });
 });

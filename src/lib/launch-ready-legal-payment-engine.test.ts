@@ -8,13 +8,13 @@ import {
 } from "@/lib/launch-ready-legal-payment-engine";
 
 describe("launch ready legal payment engine", () => {
-  it("calculates yearly amount", () => {
+  it("calculates yearly amount for future pricing use", () => {
     expect(calculatePlanAmount(getLaunchPlan("growth"), "yearly")).toBe(
       24990,
     );
   });
 
-  it("validates manual payment request", () => {
+  it("validates monthly manual payment request", () => {
     const result = validateManualPaymentRequest({
       planKey: "starter",
       billingCycle: "monthly",
@@ -24,6 +24,31 @@ describe("launch ready legal payment engine", () => {
     });
     expect(result.valid).toBe(true);
     expect(result.amountInr).toBe(999);
+    expect(result.billingCycle).toBe("monthly");
+  });
+
+  it("rejects yearly activation during assisted launch", () => {
+    const result = validateManualPaymentRequest({
+      planKey: "growth",
+      billingCycle: "yearly",
+      paymentReference: "UTR123456789",
+      payerName: "Kalyan",
+      payerEmail: "kalyan@example.com",
+    });
+    expect(result.valid).toBe(false);
+    expect(result.errors.join(" ")).toContain("Only monthly activation");
+  });
+
+  it("rejects a crafted unknown plan instead of silently treating it as Starter", () => {
+    const result = validateManualPaymentRequest({
+      planKey: "enterprise" as never,
+      billingCycle: "monthly",
+      paymentReference: "UTR123456789",
+      payerName: "Kalyan",
+      payerEmail: "kalyan@example.com",
+    });
+    expect(result.valid).toBe(false);
+    expect(result.errors.join(" ")).toContain("valid paid plan");
   });
 
   it("blocks private credentials in payment fields", () => {
