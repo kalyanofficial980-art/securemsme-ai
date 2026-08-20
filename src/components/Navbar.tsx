@@ -13,6 +13,7 @@ const customerLinks = [
 
 const adminLinks = [
   ["Admin", "/admin"],
+  ["Scan Lab", "/admin/scan-lab"],
   ["Payments", "/admin/manual-payments"],
   ["Users", "/admin/users"],
   ["Websites", "/admin/websites"],
