@@ -9,7 +9,7 @@ export default async function AdminWebsitesPage() {
   const { supabase } = await requireAdmin();
 
   const { data: websites } = await supabase
-    .from("websites")
+    .from("admin_customer_websites_v1")
     .select(
       "id, user_id, name, url, monitoring_enabled, scan_frequency, last_scan_at, next_scan_at, latest_score, latest_risk_level, latest_scan_id, created_at",
     )
@@ -27,7 +27,7 @@ export default async function AdminWebsitesPage() {
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.14em] text-blue-700">Asset operations</p>
             <h1 className="mt-2 text-3xl font-semibold tracking-[-0.04em]">Websites</h1>
-            <p className="mt-2 text-sm text-slate-600">Review customer assets, monitoring state, latest score and report access.</p>
+            <p className="mt-2 text-sm text-slate-600">Review customer assets, monitoring state, latest score and report access. Admin-owned legacy assets are excluded.</p>
           </div>
           <span className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">{websites?.length ?? 0} loaded</span>
         </div>
@@ -62,7 +62,7 @@ export default async function AdminWebsitesPage() {
             ))}
           </div>
         ) : (
-          <div className="mt-8 border border-slate-300 bg-white p-8 text-sm text-slate-500">No websites yet.</div>
+          <div className="mt-8 border border-slate-300 bg-white p-8 text-sm text-slate-500">No customer websites yet.</div>
         )}
       </section>
     </main>

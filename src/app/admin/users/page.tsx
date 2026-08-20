@@ -6,7 +6,7 @@ export default async function AdminUsersPage() {
   const { supabase } = await requireAdmin();
 
   const { data: users } = await supabase
-    .from("profiles")
+    .from("admin_customer_profiles_v1")
     .select("id, full_name, plan, role, created_at")
     .order("created_at", { ascending: false })
     .limit(100);
@@ -22,7 +22,7 @@ export default async function AdminUsersPage() {
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.14em] text-blue-700">Customer operations</p>
             <h1 className="mt-2 text-3xl font-semibold tracking-[-0.04em]">Users</h1>
-            <p className="mt-2 text-sm text-slate-600">Review customer accounts, assigned plans and administrative roles.</p>
+            <p className="mt-2 text-sm text-slate-600">Review customer accounts and assigned plans. Administrative accounts are excluded.</p>
           </div>
           <span className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">{users?.length ?? 0} loaded</span>
         </div>
@@ -48,7 +48,7 @@ export default async function AdminUsersPage() {
                   <td className="max-w-xs break-all px-5 py-4 font-mono text-xs text-slate-500">{user.id}</td>
                 </tr>
               )) : (
-                <tr><td colSpan={5} className="px-5 py-10 text-center text-sm text-slate-500">No users yet.</td></tr>
+                <tr><td colSpan={5} className="px-5 py-10 text-center text-sm text-slate-500">No customer accounts yet.</td></tr>
               )}
             </tbody>
           </table>

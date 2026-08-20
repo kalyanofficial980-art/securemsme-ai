@@ -7,30 +7,30 @@ export default async function AdminPage() {
   const { supabase, profile } = await requireAdmin();
 
   const { count: totalUsers } = await supabase
-    .from("profiles")
+    .from("admin_customer_profiles_v1")
     .select("id", { count: "exact", head: true });
 
   const { count: totalWebsites } = await supabase
-    .from("websites")
+    .from("admin_customer_websites_v1")
     .select("id", { count: "exact", head: true });
 
   const { count: totalScans } = await supabase
-    .from("scans")
+    .from("admin_customer_scans_v1")
     .select("id", { count: "exact", head: true });
 
   const { count: highRiskScans } = await supabase
-    .from("scans")
+    .from("admin_customer_scans_v1")
     .select("id", { count: "exact", head: true })
     .eq("risk_level", "High");
 
   const { data: latestScans } = await supabase
-    .from("scans")
+    .from("admin_customer_scans_v1")
     .select("id, website_url, score, risk_level, created_at")
     .order("created_at", { ascending: false })
     .limit(8);
 
   const { data: latestUsers } = await supabase
-    .from("profiles")
+    .from("admin_customer_profiles_v1")
     .select("id, full_name, plan, role, created_at")
     .order("created_at", { ascending: false })
     .limit(8);
@@ -45,7 +45,7 @@ export default async function AdminPage() {
             <p className="text-xs font-bold uppercase tracking-[0.14em] text-blue-700">Admin control room</p>
             <h1 className="mt-2 text-3xl font-semibold tracking-[-0.04em]">VeyraSec operations</h1>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-              Signed in as {profile.full_name || "Admin"}. Review users, assets, scans, risk and launch operations from one workspace.
+              Signed in as {profile.full_name || "Admin"}. Customer metrics exclude administrative accounts and admin-owned legacy data.
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -61,8 +61,8 @@ export default async function AdminPage() {
         <section className="grid border-x border-b border-slate-300 bg-white sm:grid-cols-2 xl:grid-cols-4">
           {[
             ["Users", totalUsers ?? 0, "Customer accounts"],
-            ["Websites", totalWebsites ?? 0, "Tracked assets"],
-            ["Scans", totalScans ?? 0, "Stored review records"],
+            ["Websites", totalWebsites ?? 0, "Customer assets"],
+            ["Scans", totalScans ?? 0, "Customer review records"],
             ["High-risk scans", highRiskScans ?? 0, "Needs operator attention"],
           ].map(([label, value, helper], index) => (
             <div key={String(label)} className={`p-5 ${index < 3 ? "xl:border-r xl:border-slate-200" : ""} ${index % 2 === 0 ? "sm:border-r sm:border-slate-200 xl:border-r" : ""}`}>
@@ -79,9 +79,9 @@ export default async function AdminPage() {
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4">
             {[
-              ["Users", "/admin/users", "Accounts, plans and roles"],
-              ["Websites", "/admin/websites", "Assets and ownership state"],
-              ["Scans", "/admin/scans", "Review records and risk"],
+              ["Users", "/admin/users", "Customer accounts and plans"],
+              ["Websites", "/admin/websites", "Customer assets and ownership state"],
+              ["Scans", "/admin/scans", "Customer review records and risk"],
               ["Audit", "/admin/audit", "Administrative event history"],
             ].map(([label, href, helper], index) => (
               <Link key={href} href={href} className={`p-5 hover:bg-slate-50 ${index < 3 ? "border-b border-slate-200 lg:border-b-0 lg:border-r" : ""} ${index === 0 ? "sm:border-r sm:border-slate-200" : ""}`}>
@@ -119,7 +119,7 @@ export default async function AdminPage() {
                 ))}
               </div>
             ) : (
-              <div className="border border-slate-300 bg-white p-6 text-sm text-slate-500">No scans yet.</div>
+              <div className="border border-slate-300 bg-white p-6 text-sm text-slate-500">No customer scans yet.</div>
             )}
           </section>
 
@@ -150,7 +150,7 @@ export default async function AdminPage() {
                 ))}
               </div>
             ) : (
-              <div className="border border-slate-300 bg-white p-6 text-sm text-slate-500">No users yet.</div>
+              <div className="border border-slate-300 bg-white p-6 text-sm text-slate-500">No customer accounts yet.</div>
             )}
           </section>
         </div>
