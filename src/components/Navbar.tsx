@@ -2,11 +2,19 @@ import Link from "next/link";
 import { signOut } from "@/app/auth/actions";
 import { createClient } from "@/lib/supabase/server";
 
-const primaryLinks = [
+const customerLinks = [
   ["Dashboard", "/dashboard"],
   ["Websites", "/websites"],
   ["Scan", "/scan"],
   ["Pricing", "/pricing"],
+] as const;
+
+const adminLinks = [
+  ["Admin", "/admin"],
+  ["Payments", "/admin/manual-payments"],
+  ["Users", "/admin/users"],
+  ["Websites", "/admin/websites"],
+  ["Scans", "/admin/scans"],
 ] as const;
 
 export async function Navbar() {
@@ -35,10 +43,13 @@ export async function Navbar() {
     });
   }
 
+  const navigationLinks = isAdmin ? adminLinks : customerLinks;
+  const homeHref = isAdmin ? "/admin" : "/";
+
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur">
       <nav className="mx-auto flex h-15 max-w-7xl items-center justify-between px-5 sm:px-6">
-        <Link href="/" className="flex items-center gap-2.5" aria-label="VeyraSec home">
+        <Link href={homeHref} className="flex items-center gap-2.5" aria-label="VeyraSec home">
           <span className="flex h-8 w-8 items-center justify-center rounded-md bg-slate-950 text-xs font-black tracking-tight text-white">
             VS
           </span>
@@ -47,24 +58,19 @@ export async function Navbar() {
           </span>
         </Link>
 
-        <div className="hidden items-center gap-7 md:flex">
-          {primaryLinks.map(([label, href]) => (
+        <div className="hidden items-center gap-6 md:flex">
+          {navigationLinks.map(([label, href]) => (
             <Link
               key={href}
               href={href}
-              className="text-sm font-medium text-slate-600 transition-colors hover:text-blue-700"
+              className={`text-sm transition-colors hover:text-blue-700 ${isAdmin ? "font-semibold text-slate-800" : "font-medium text-slate-600"}`}
             >
               {label}
             </Link>
           ))}
-          {userEmail ? (
+          {userEmail && !isAdmin ? (
             <Link href="/billing" className="text-sm font-medium text-slate-600 transition-colors hover:text-blue-700">
               Billing
-            </Link>
-          ) : null}
-          {isAdmin ? (
-            <Link href="/admin" className="text-sm font-semibold text-slate-900 transition-colors hover:text-blue-700">
-              Admin
             </Link>
           ) : null}
         </div>
@@ -102,19 +108,14 @@ export async function Navbar() {
               <p className="truncate border-b border-slate-100 px-3 py-2 text-xs font-medium text-slate-500">{userEmail}</p>
             ) : null}
             <div className="grid py-1">
-              {primaryLinks.map(([label, href]) => (
-                <Link key={href} href={href} className="px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50">
+              {navigationLinks.map(([label, href]) => (
+                <Link key={href} href={href} className={`px-3 py-2.5 text-sm hover:bg-slate-50 ${isAdmin ? "font-semibold text-slate-950" : "font-medium text-slate-700"}`}>
                   {label}
                 </Link>
               ))}
-              {userEmail ? (
+              {userEmail && !isAdmin ? (
                 <Link href="/billing" className="px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50">
                   Billing
-                </Link>
-              ) : null}
-              {isAdmin ? (
-                <Link href="/admin" className="px-3 py-2.5 text-sm font-semibold text-slate-950 hover:bg-slate-50">
-                  Admin
                 </Link>
               ) : null}
             </div>

@@ -7,7 +7,7 @@ export default async function AdminScansPage() {
   const { supabase } = await requireAdmin();
 
   const { data: scans } = await supabase
-    .from("scans")
+    .from("admin_customer_scans_v1")
     .select(
       "id, user_id, website_id, website_url, score, risk_level, created_at",
     )
@@ -25,7 +25,7 @@ export default async function AdminScansPage() {
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.14em] text-blue-700">Review operations</p>
             <h1 className="mt-2 text-3xl font-semibold tracking-[-0.04em]">Scans</h1>
-            <p className="mt-2 text-sm text-slate-600">Inspect recent security reviews, scores, risk levels and report records.</p>
+            <p className="mt-2 text-sm text-slate-600">Inspect customer security reviews, scores, risk levels and report records. Admin-owned legacy scans are excluded.</p>
           </div>
           <span className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">{scans?.length ?? 0} loaded</span>
         </div>
@@ -54,7 +54,7 @@ export default async function AdminScansPage() {
                   <td className="px-5 py-4"><Link href={`/report/${scan.id}`} className="font-semibold text-blue-700">Open →</Link></td>
                 </tr>
               )) : (
-                <tr><td colSpan={5} className="px-5 py-10 text-center text-sm text-slate-500">No scans yet.</td></tr>
+                <tr><td colSpan={5} className="px-5 py-10 text-center text-sm text-slate-500">No customer scans yet.</td></tr>
               )}
             </tbody>
           </table>
