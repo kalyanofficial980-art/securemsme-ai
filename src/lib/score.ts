@@ -1,10 +1,13 @@
 import type { ScanFinding, ScanReport } from "./scanner";
+import { isUncertainFindingMessage, type FindingTruth } from "./scan-truth";
 
 export type EnhancedFinding = ScanFinding & {
   category: string;
   severity: "Critical" | "High" | "Medium" | "Low" | "Info";
   businessImpact: string;
   fixRecommendation: string;
+  truth: FindingTruth;
+  scoreScope: "security" | "supplemental";
 };
 
 type CategoryScore = {
@@ -13,26 +16,28 @@ type CategoryScore = {
   maxScore: number;
   percentage: number;
   grade: "A" | "B" | "C" | "D" | "F";
+  scoreScope: "security" | "supplemental";
+  evidenceCount: number;
 };
 
+const SUPPLEMENTAL_CATEGORIES = new Set([
+  "Email security",
+  "Website hygiene",
+  "Trust and privacy",
+]);
+
 function getCategory(finding: ScanFinding) {
-  if (
-    finding.name.includes("MX") ||
-    finding.name.includes("SPF") ||
-    finding.name.includes("DMARC")
-  ) {
+  if (finding.name.includes("MX") || finding.name.includes("SPF") || finding.name.includes("DMARC")) {
     return "Email security";
   }
-
   if (
     finding.name.includes("Sensitive") ||
     finding.name.includes("Mixed content") ||
     finding.name.includes("Cookie") ||
-    finding.name.includes("admin")
+    finding.name.toLowerCase().includes("admin")
   ) {
     return "Exposure risk";
   }
-
   if (
     finding.name.includes("robots") ||
     finding.name.includes("sitemap") ||
@@ -40,7 +45,6 @@ function getCategory(finding: ScanFinding) {
   ) {
     return "Website hygiene";
   }
-
   if (
     finding.name.includes("HTTPS") ||
     finding.name.includes("SSL") ||
@@ -50,7 +54,6 @@ function getCategory(finding: ScanFinding) {
   ) {
     return "Website security";
   }
-
   if (
     finding.name.includes("Privacy") ||
     finding.name.includes("Terms") ||
@@ -58,7 +61,6 @@ function getCategory(finding: ScanFinding) {
   ) {
     return "Trust and privacy";
   }
-
   return "General";
 }
 
@@ -70,44 +72,50 @@ function getGrade(percentage: number): "A" | "B" | "C" | "D" | "F" {
   return "F";
 }
 
-function getSeverity(finding: ScanFinding): EnhancedFinding["severity"] {
+function explicitTruth(finding: ScanFinding): FindingTruth | null {
+  const value = (finding as ScanFinding & { truth?: unknown }).truth;
+  return value === "verified" || value === "inconclusive" || value === "not-applicable"
+    ? value
+    : null;
+}
+
+function getTruth(finding: ScanFinding): FindingTruth {
+  const explicit = explicitTruth(finding);
+  if (explicit) return explicit;
+  if (isUncertainFindingMessage(finding.message)) return "inconclusive";
+
+  // These checks historically relied on reachability/status alone. A warning or
+  // failure is not scoreable until the truth policy attaches stronger evidence.
+  if (
+    (finding.name === "Sensitive public files" ||
+      finding.name === "Common admin/login paths") &&
+    finding.status !== "pass"
+  ) {
+    return "inconclusive";
+  }
+
+  return "verified";
+}
+
+function getSeverity(finding: ScanFinding, truth: FindingTruth): EnhancedFinding["severity"] {
+  if (truth !== "verified" || finding.status === "pass") return "Info";
   const lostPoints = finding.maxPoints - finding.points;
-  const lossPercentage =
-    finding.maxPoints > 0
-      ? Math.round((lostPoints / finding.maxPoints) * 100)
-      : 0;
+  const lossPercentage = finding.maxPoints > 0 ? Math.round((lostPoints / finding.maxPoints) * 100) : 0;
   const lowerName = finding.name.toLowerCase();
 
-  if (finding.status === "pass") return "Info";
-
-  if (lowerName.includes("admin")) {
-    if (finding.status === "fail") return "Medium";
-    if (finding.status === "warning") return "Low";
-    return "Info";
-  }
-
-  if (finding.name.includes("Sensitive public files")) {
-    return finding.status === "fail" ? "Critical" : "High";
-  }
-
-  // Trust, disclosure and crawlability checks are useful customer-readiness
-  // signals, but they are not evidence of a high-severity security flaw.
+  if (finding.name.includes("Sensitive public files")) return "Critical";
+  if (lowerName.includes("admin")) return finding.status === "fail" ? "Medium" : "Low";
   if (
     finding.name.includes("Privacy") ||
     finding.name.includes("Terms") ||
     finding.name.includes("Contact") ||
     finding.name.includes("robots") ||
     finding.name.includes("sitemap") ||
-    finding.name.includes("security.txt")
+    finding.name.includes("security.txt") ||
+    finding.name.includes("Server technology")
   ) {
     return finding.status === "fail" ? "Medium" : "Low";
   }
-
-  // Fingerprinting alone does not prove a vulnerable/outdated component.
-  if (finding.name.includes("Server technology")) {
-    return finding.status === "fail" ? "Medium" : "Low";
-  }
-
   if (
     finding.name.includes("DMARC record") ||
     finding.name.includes("SSL certificate") ||
@@ -115,332 +123,170 @@ function getSeverity(finding: ScanFinding): EnhancedFinding["severity"] {
   ) {
     return finding.status === "fail" ? "High" : "Medium";
   }
-
-  if (finding.status === "fail" && lossPercentage >= 70) {
-    return "High";
-  }
-
-  if (finding.status === "warning" || lossPercentage >= 40) {
-    return "Medium";
-  }
-
+  if (finding.status === "fail" && lossPercentage >= 70) return "High";
+  if (finding.status === "warning" || lossPercentage >= 40) return "Medium";
   return "Low";
 }
 
-function getBusinessImpact(finding: ScanFinding) {
-  if (finding.name.includes("HTTPS")) {
-    return "Visitors may see trust warnings, and customers may avoid submitting forms or payments.";
+function getBusinessImpact(finding: ScanFinding, truth: FindingTruth) {
+  if (truth === "inconclusive") {
+    return "This check did not produce enough reliable evidence to make a security claim or score penalty.";
   }
-
-  if (finding.name.includes("SSL certificate")) {
-    return "Expired or weak certificate setup can break customer trust and make the website appear unsafe.";
+  if (truth === "not-applicable") {
+    return "This check is supplemental or not applicable to the scanned target and does not affect the Security Score.";
   }
-
-  if (finding.name.includes("HTTP to HTTPS")) {
-    return "Some visitors may reach the insecure version of the website before being protected.";
-  }
-
-  if (finding.name.includes("Security headers")) {
-    return "Missing browser safety headers can increase exposure to clickjacking, content injection, and browser-side attacks.";
-  }
-
-  if (finding.name.includes("HSTS")) {
-    return "Without HSTS, browsers may not automatically prefer HTTPS for repeat visitors.";
-  }
-
-  if (finding.name.includes("Server technology")) {
-    return "Exposed server details can help attackers fingerprint the technology stack.";
-  }
-
-  if (finding.name.includes("MX records")) {
-    return "Missing mail records can affect business email reliability and customer communication.";
-  }
-
-  if (finding.name.includes("SPF")) {
-    return "Without SPF, attackers may spoof your domain in fake emails more easily.";
-  }
-
-  if (finding.name.includes("DMARC")) {
-    return "Weak or missing DMARC allows fake emails to abuse your business domain identity.";
-  }
-
-  if (finding.name.includes("Sensitive public files")) {
-    return "Public sensitive files can expose secrets, backups, or configuration data.";
-  }
-
-  if (finding.name.includes("Mixed content")) {
-    return "HTTP resources inside an HTTPS page can reduce browser trust and create security warnings.";
-  }
-
-  if (finding.name.includes("Cookie")) {
-    return "Weak cookie settings can increase risk for session theft or insecure browser storage.";
-  }
-
-  if (finding.name.includes("Privacy")) {
-    return "Missing privacy policy can reduce customer trust and create compliance risk.";
-  }
-
-  if (finding.name.includes("Terms")) {
-    return "Missing terms page can create unclear rules for users, refunds, and service responsibilities.";
-  }
-
-  if (finding.name.includes("Contact")) {
-    return "Missing contact page reduces trust and makes it harder for customers to reach the business.";
-  }
-
-  if (finding.name.includes("security.txt")) {
-    return "Without security.txt, ethical researchers may not know how to report security issues safely.";
-  }
-
-  if (finding.name.toLowerCase().includes("admin")) {
-    return "A publicly accessible administrative endpoint can attract automated login and credential attacks.";
-  }
-
-  return "This issue can reduce website trust, reliability, or security posture.";
+  if (finding.name.includes("HTTPS")) return "Transport weaknesses can expose visitor traffic or create browser trust warnings.";
+  if (finding.name.includes("SSL certificate")) return "Certificate problems can break secure access and customer trust.";
+  if (finding.name.includes("Security headers")) return "Missing browser controls can increase exposure to browser-side attack techniques.";
+  if (finding.name.includes("Sensitive public files")) return "Verified exposed configuration or backup content can disclose secrets or internal data.";
+  if (finding.name.includes("Cookie")) return "Weak cookie flags can increase session-handling risk.";
+  if (finding.name.includes("DMARC") || finding.name.includes("SPF")) return "Email-domain controls reduce spoofing and brand-abuse risk.";
+  if (finding.name.includes("Privacy") || finding.name.includes("Terms")) return "This is a trust/governance signal rather than direct vulnerability evidence.";
+  return "This observed control can affect website security, reliability, or customer trust.";
 }
 
-function getFixRecommendation(finding: ScanFinding) {
-  if (finding.status === "pass") {
-    return "No immediate fix required. Continue monitoring this check regularly.";
-  }
-
-  if (finding.name.includes("HTTPS")) {
-    return "Install a valid SSL certificate and force all traffic to HTTPS.";
-  }
-
-  if (finding.name.includes("SSL certificate")) {
-    return "Renew the SSL certificate and enable automatic renewal if possible.";
-  }
-
-  if (finding.name.includes("HTTP to HTTPS")) {
-    return "Configure a permanent 301 redirect from HTTP to HTTPS.";
-  }
-
-  if (finding.name.includes("Security headers")) {
-    return "Ask your developer to add CSP, X-Frame-Options, X-Content-Type-Options, and Referrer-Policy headers.";
-  }
-
-  if (finding.name.includes("HSTS")) {
-    return "After HTTPS is stable, add Strict-Transport-Security header with a safe max-age value.";
-  }
-
-  if (finding.name.includes("Server technology")) {
-    return "Hide or minimize Server and X-Powered-By headers in your web server/app settings.";
-  }
-
-  if (finding.name.includes("MX records")) {
-    return "Configure mail exchange records using your business email provider.";
-  }
-
-  if (finding.name.includes("SPF")) {
-    return "Add a TXT record beginning with v=spf1 for your authorized email providers.";
-  }
-
-  if (finding.name.includes("DMARC record")) {
-    return "Add a _dmarc TXT record. Start with p=none for monitoring, then move to quarantine/reject.";
-  }
-
-  if (finding.name.includes("DMARC policy strength")) {
-    return "After monitoring email reports, strengthen DMARC policy from p=none to quarantine or reject.";
-  }
-
-  if (finding.name.includes("robots")) {
-    return "Add a robots.txt file at the website root.";
-  }
-
-  if (finding.name.includes("sitemap")) {
-    return "Add sitemap.xml and submit it to search engines.";
-  }
-
-  if (finding.name.includes("security.txt")) {
-    return "Add /.well-known/security.txt with a responsible security contact email.";
-  }
-
-  if (finding.name.includes("Sensitive public files")) {
-    return "Remove exposed backup/config files and block access to sensitive paths at server level.";
-  }
-
-  if (finding.name.includes("Mixed content")) {
-    return "Replace HTTP asset links with HTTPS versions.";
-  }
-
-  if (finding.name.includes("Cookie")) {
-    return "Set Secure and HttpOnly flags on important cookies.";
-  }
-
-  if (finding.name.includes("Privacy")) {
-    return "Create a privacy policy page explaining what data is collected and how it is used.";
-  }
-
-  if (finding.name.includes("Terms")) {
-    return "Create a terms and conditions page for service rules and responsibilities.";
-  }
-
-  if (finding.name.includes("Contact")) {
-    return "Add a contact page with email, phone, or business enquiry form.";
-  }
-
-  if (finding.name.toLowerCase().includes("admin")) {
-    return "Require strong authentication, rate limiting, and access controls for administrative endpoints.";
-  }
-
-  return "Ask a developer or security professional to review and fix this item.";
+function getFixRecommendation(finding: ScanFinding, truth: FindingTruth) {
+  if (truth === "inconclusive") return "Retry from a representative public response or review the evidence manually before making a finding claim.";
+  if (truth === "not-applicable") return "Review this supplemental check against the correct organizational domain or business context if needed.";
+  if (finding.status === "pass") return "No immediate fix required. Continue monitoring this verified control.";
+  if (finding.name.includes("Sensitive public files")) return "Remove the verified exposed file, rotate any affected secrets, and block sensitive paths at the origin.";
+  if (finding.name.includes("Security headers")) return "Add and test CSP, frame protection, X-Content-Type-Options and Referrer-Policy as appropriate.";
+  if (finding.name.includes("SSL certificate")) return "Install or renew a trusted certificate and verify hostname/chain validity.";
+  if (finding.name.includes("HTTPS")) return "Serve the site over trusted HTTPS and redirect HTTP to HTTPS.";
+  if (finding.name.includes("HSTS")) return "After HTTPS is stable, configure Strict-Transport-Security with an appropriate max-age.";
+  if (finding.name.includes("Cookie")) return "Use Secure and HttpOnly on sensitive cookies and set an appropriate SameSite policy.";
+  if (finding.name.includes("DMARC")) return "Configure DMARC for the organizational email domain and strengthen policy after monitoring.";
+  if (finding.name.includes("SPF")) return "Publish an SPF record for the organizational email domain and authorized senders.";
+  return "Review the verified evidence with a developer or security professional and remediate the affected control.";
 }
 
 function enhanceFindings(findings: ScanFinding[]): EnhancedFinding[] {
-  return findings.map((finding) => ({
-    ...finding,
-    category: getCategory(finding),
-    severity: getSeverity(finding),
-    businessImpact: getBusinessImpact(finding),
-    fixRecommendation: getFixRecommendation(finding),
-  }));
+  return findings.map((finding) => {
+    const category = getCategory(finding);
+    const truth = getTruth(finding);
+    const scoreScope = SUPPLEMENTAL_CATEGORIES.has(category) ? "supplemental" : "security";
+    return {
+      ...finding,
+      category,
+      truth,
+      scoreScope,
+      severity: getSeverity(finding, truth),
+      businessImpact: getBusinessImpact(finding, truth),
+      fixRecommendation: getFixRecommendation(finding, truth),
+    };
+  });
+}
+
+function categoryScores(findings: EnhancedFinding[]): CategoryScore[] {
+  const verified = findings.filter((finding) => finding.truth === "verified" && finding.maxPoints > 0);
+  const map = new Map<string, { score: number; maxScore: number; scope: "security" | "supplemental"; count: number }>();
+  for (const finding of verified) {
+    const current = map.get(finding.category) || {
+      score: 0,
+      maxScore: 0,
+      scope: finding.scoreScope,
+      count: 0,
+    };
+    current.score += finding.points;
+    current.maxScore += finding.maxPoints;
+    current.count += 1;
+    map.set(finding.category, current);
+  }
+  return [...map.entries()].map(([name, value]) => {
+    const percentage = value.maxScore ? Math.round((value.score / value.maxScore) * 100) : 0;
+    return {
+      name,
+      score: value.score,
+      maxScore: value.maxScore,
+      percentage,
+      grade: getGrade(percentage),
+      scoreScope: value.scope,
+      evidenceCount: value.count,
+    };
+  });
 }
 
 export function calculateScore(report: ScanReport) {
   const enhancedFindings = enhanceFindings(report.findings);
-
-  const score = enhancedFindings.reduce(
-    (total, finding) => total + finding.points,
-    0,
+  const canonical = enhancedFindings.filter(
+    (finding) => finding.scoreScope === "security" && finding.truth === "verified" && finding.maxPoints > 0,
   );
-
-  const maxScore = enhancedFindings.reduce(
-    (total, finding) => total + finding.maxPoints,
-    0,
+  const canonicalInconclusive = enhancedFindings.filter(
+    (finding) => finding.scoreScope === "security" && finding.truth === "inconclusive",
   );
-
-  const percentage = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0;
-  const actionableFindings = enhancedFindings.filter(
-    (finding) => finding.status !== "pass",
-  );
-  const hasCriticalOrHigh = actionableFindings.some(
-    (finding) =>
-      finding.severity === "Critical" || finding.severity === "High",
-  );
-
-  let riskLevel: "Low" | "Medium" | "High" = "High";
-  let executiveSummary =
-    "This website has important security, email, exposure, or trust gaps that should be fixed soon.";
-
-  // The score is the primary posture signal, but a confirmed actionable
-  // Critical/High finding places a floor on risk so reports cannot say Low.
-  if (hasCriticalOrHigh) {
-    riskLevel = "High";
-    executiveSummary =
-      "This website has at least one high-impact actionable finding. Fix the highest-severity issue before treating the public posture as low risk.";
-  } else if (percentage >= 80) {
-    riskLevel = "Low";
-    executiveSummary =
-      "This website passed most applicable public security and readiness checks. Continue monitoring and address the remaining lower-severity items.";
-  } else if (percentage >= 50) {
-    riskLevel = "Medium";
-    executiveSummary =
-      "This website has some security, exposure, or readiness gaps. Fixing the top issues can improve customer trust and reduce basic risk.";
-  }
-
-  const categoryMap = new Map<string, { score: number; maxScore: number }>();
-
-  for (const finding of enhancedFindings) {
-    const existing = categoryMap.get(finding.category) ?? {
-      score: 0,
-      maxScore: 0,
-    };
-
-    existing.score += finding.points;
-    existing.maxScore += finding.maxPoints;
-
-    categoryMap.set(finding.category, existing);
-  }
-
-  const categoryScores: CategoryScore[] = Array.from(categoryMap.entries()).map(
-    ([name, value]) => {
-      const categoryPercentage =
-        value.maxScore > 0
-          ? Math.round((value.score / value.maxScore) * 100)
-          : 0;
-
-      return {
-        name,
-        score: value.score,
-        maxScore: value.maxScore,
-        percentage: categoryPercentage,
-        grade: getGrade(categoryPercentage),
-      };
-    },
-  );
+  const rawScore = canonical.reduce((sum, finding) => sum + finding.points, 0);
+  const maxScore = canonical.reduce((sum, finding) => sum + finding.maxPoints, 0);
+  const score = maxScore > 0 ? Math.round((rawScore / maxScore) * 100) : 0;
+  const actionableCanonical = canonical.filter((finding) => finding.status !== "pass");
 
   const severityCounts = {
-    critical: enhancedFindings.filter(
-      (finding) => finding.severity === "Critical",
-    ).length,
-    high: enhancedFindings.filter((finding) => finding.severity === "High")
-      .length,
-    medium: enhancedFindings.filter((finding) => finding.severity === "Medium")
-      .length,
-    low: enhancedFindings.filter((finding) => finding.severity === "Low")
-      .length,
-    info: enhancedFindings.filter((finding) => finding.severity === "Info")
-      .length,
+    critical: actionableCanonical.filter((finding) => finding.severity === "Critical").length,
+    high: actionableCanonical.filter((finding) => finding.severity === "High").length,
+    medium: actionableCanonical.filter((finding) => finding.severity === "Medium").length,
+    low: actionableCanonical.filter((finding) => finding.severity === "Low").length,
+    info: canonical.filter((finding) => finding.severity === "Info").length,
   };
 
-  const failedChecks = enhancedFindings.filter(
-    (finding) => finding.status === "fail",
-  ).length;
+  let riskLevel: "Low" | "Medium" | "High" = "Medium";
+  let executiveSummary =
+    "The scan did not collect enough verified security evidence for a low-risk conclusion. Inconclusive checks are excluded from score penalties and should be retried or reviewed.";
 
-  const warningChecks = enhancedFindings.filter(
-    (finding) => finding.status === "warning",
-  ).length;
+  if (severityCounts.critical > 0 || severityCounts.high > 0 || (maxScore > 0 && score < 50)) {
+    riskLevel = "High";
+    executiveSummary =
+      "Verified security evidence includes a high-impact issue or substantial control weakness. Fix the highest-priority verified issue first.";
+  } else if (severityCounts.medium > 0 || canonicalInconclusive.length > 0 || score < 80 || maxScore === 0) {
+    riskLevel = "Medium";
+    executiveSummary = canonicalInconclusive.length
+      ? `Verified controls are partially healthy, but ${canonicalInconclusive.length} security check(s) were inconclusive and were excluded from score penalties. Resolve those evidence gaps before treating the posture as low risk.`
+      : "Verified security evidence shows one or more medium-impact weaknesses or an incomplete control baseline. Address them before treating the posture as low risk.";
+  } else {
+    riskLevel = "Low";
+    executiveSummary =
+      "Verified security controls passed most applicable checks with no confirmed medium, high, or critical issue in this safe public scope. Continue monitoring; this is not a penetration-test certification.";
+  }
 
-  const passedChecks = enhancedFindings.filter(
-    (finding) => finding.status === "pass",
-  ).length;
-
-  const topFixes = actionableFindings
-    .sort((a, b) => {
-      const severityWeight = {
-        Critical: 5,
-        High: 4,
-        Medium: 3,
-        Low: 2,
-        Info: 1,
-      };
-
-      return (
-        severityWeight[b.severity] - severityWeight[a.severity] ||
-        b.maxPoints - b.points - (a.maxPoints - a.points)
-      );
-    })
+  const allCategoryScores = categoryScores(enhancedFindings);
+  const verifiedActionable = enhancedFindings.filter(
+    (finding) => finding.truth === "verified" && finding.status !== "pass",
+  );
+  const severityWeight = { Critical: 5, High: 4, Medium: 3, Low: 2, Info: 1 } as const;
+  const topFixes = verifiedActionable
+    .sort((a, b) =>
+      severityWeight[b.severity] - severityWeight[a.severity] ||
+      b.maxPoints - b.points - (a.maxPoints - a.points),
+    )
     .slice(0, 10)
     .map((finding) => ({
       name: finding.name,
       message: finding.message,
       lostPoints: finding.maxPoints - finding.points,
-      priority:
-        finding.severity === "Critical"
-          ? "Critical priority"
-          : finding.severity === "High"
-            ? "High priority"
-            : finding.severity === "Medium"
-              ? "Medium priority"
-              : "Low priority",
+      priority: `${finding.severity} priority`,
       severity: finding.severity,
+      category: finding.category,
+      scoreScope: finding.scoreScope,
       businessImpact: finding.businessImpact,
       fixRecommendation: finding.fixRecommendation,
     }));
 
   return {
-    score: percentage,
-    rawScore: score,
+    version: "security-score-v2",
+    score,
+    rawScore,
     maxScore,
     riskLevel,
     summary: executiveSummary,
     executiveSummary,
-    categoryScores,
+    scoreConfidence:
+      canonicalInconclusive.length === 0 && canonical.length >= 4 ? "high" : "limited",
+    securityEvidenceCount: canonical.length,
+    inconclusiveChecks: canonicalInconclusive.map((finding) => finding.name),
+    supplementalScores: allCategoryScores.filter((item) => item.scoreScope === "supplemental"),
+    categoryScores: allCategoryScores,
     severityCounts,
-    passedChecks,
-    warningChecks,
-    failedChecks,
+    passedChecks: canonical.filter((finding) => finding.status === "pass").length,
+    warningChecks: actionableCanonical.filter((finding) => finding.status === "warning").length,
+    failedChecks: actionableCanonical.filter((finding) => finding.status === "fail").length,
     enhancedFindings,
     topFixes,
   };
