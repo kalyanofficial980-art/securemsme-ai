@@ -48,9 +48,14 @@ export default async function AdminPage() {
               Signed in as {profile.full_name || "Admin"}. Review users, assets, scans, risk and launch operations from one workspace.
             </p>
           </div>
-          <Link href="/production-checklist" className="border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">
-            Production checklist
-          </Link>
+          <div className="flex flex-wrap gap-2">
+            <Link href="/admin/manual-payments" className="border border-blue-700 bg-blue-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-800">
+              Manual payments
+            </Link>
+            <Link href="/production-checklist" className="border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+              Production checklist
+            </Link>
+          </div>
         </div>
 
         <section className="grid border-x border-b border-slate-300 bg-white sm:grid-cols-2 xl:grid-cols-4">
