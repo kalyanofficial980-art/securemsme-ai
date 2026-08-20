@@ -22,8 +22,13 @@ export type DeepEvidenceReport = {
     sameOriginOnly: true;
     allowedMethods: ["GET"];
     maxPages: number;
+    anchorNavigationOnly: true;
+    queryStringsFollowed: false;
+    apiRoutesFetched: false;
+    actionLikeRoutesFetched: false;
+    authRoutesFetched: false;
     noFormSubmission: true;
-    noMutationRequests: true;
+    noMutationMethods: true;
     noPrivateBodyStorage: true;
   };
   pages: DeepEvidencePage[];
@@ -33,35 +38,45 @@ export type DeepEvidenceReport = {
     scriptsObserved: number;
     apiLikeRoutesObserved: string[];
     loginLikeRoutesObserved: string[];
+    actionLikeRoutesObserved: string[];
     inconclusivePages: number;
   };
   customerSummary: string;
 };
 
-const BLOCKED_KEYWORDS = [
+const ACTION_KEYWORDS = [
   "logout",
   "delete",
   "destroy",
   "checkout",
   "payment",
-  "order/cancel",
-  "cart/checkout",
-  "settings/password",
+  "cancel",
+  "password",
   "upload",
   "publish",
   "edit",
   "update",
+  "activate",
+  "verify",
+  "confirm",
+  "subscribe",
+  "unsubscribe",
+  "reset",
+  "revoke",
+  "invite",
+  "accept",
+  "approve",
+  "reject",
+  "download",
+  "export",
+  "webhook",
+  "callback",
 ];
 
-function isSafePath(url: URL) {
-  const text = `${url.pathname}${url.search}`.toLowerCase();
-  return !BLOCKED_KEYWORDS.some((keyword) => text.includes(keyword));
-}
-
 function isApiLike(url: URL) {
-  const value = `${url.pathname}${url.search}`.toLowerCase();
+  const value = url.pathname.toLowerCase();
   return (
-    value.includes("/api") ||
+    /(?:^|\/)api(?:\/|$)/.test(value) ||
     value.includes("graphql") ||
     value.includes("swagger") ||
     value.includes("openapi") ||
@@ -71,7 +86,63 @@ function isApiLike(url: URL) {
 
 function isLoginLike(url: URL) {
   const value = url.pathname.toLowerCase();
-  return value.includes("login") || value.includes("signin") || value.includes("auth");
+  return /(?:^|\/)(?:login|signin|sign-in|signup|sign-up|auth)(?:\/|$)/.test(value);
+}
+
+function isActionLike(url: URL) {
+  const value = url.pathname.toLowerCase();
+  return ACTION_KEYWORDS.some((keyword) => value.includes(keyword));
+}
+
+function isLikelyNavigationDocument(url: URL) {
+  const lastSegment = url.pathname.split("/").filter(Boolean).at(-1) || "";
+  if (!lastSegment || !lastSegment.includes(".")) return true;
+  return /\.(?:html?|xhtml)$/i.test(lastSegment);
+}
+
+function normalizeObservedUrl(base: URL, rawHref: string) {
+  try {
+    const candidate = new URL(rawHref, base);
+    candidate.hash = "";
+    if (candidate.origin !== base.origin) return null;
+    if (!["http:", "https:"].includes(candidate.protocol)) return null;
+    if (candidate.username || candidate.password) return null;
+    return candidate;
+  } catch {
+    return null;
+  }
+}
+
+function canFetchNavigation(url: URL) {
+  if (url.search) return false;
+  if (isApiLike(url) || isLoginLike(url) || isActionLike(url)) return false;
+  return isLikelyNavigationDocument(url);
+}
+
+export function discoverDeepNavigation(base: URL, html: string) {
+  const crawlable: URL[] = [];
+  const apiLikeRoutesObserved = new Set<string>();
+  const loginLikeRoutesObserved = new Set<string>();
+  const actionLikeRoutesObserved = new Set<string>();
+
+  for (const match of html.matchAll(/<a\b[^>]{0,1200}?\bhref\s*=\s*["']([^"']{1,700})["'][^>]*>/gi)) {
+    const candidate = normalizeObservedUrl(base, match[1]);
+    if (!candidate) continue;
+
+    const path = `${candidate.pathname}${candidate.search}`;
+    if (isApiLike(candidate)) apiLikeRoutesObserved.add(path);
+    if (isLoginLike(candidate)) loginLikeRoutesObserved.add(path);
+    if (isActionLike(candidate)) actionLikeRoutesObserved.add(path);
+
+    if (canFetchNavigation(candidate)) crawlable.push(candidate);
+  }
+
+  return {
+    crawlable: [...new Map(crawlable.map((url) => [url.toString(), url])).values()],
+    apiLikeRoutesObserved: [...apiLikeRoutesObserved],
+    loginLikeRoutesObserved: [...loginLikeRoutesObserved],
+    actionLikeRoutesObserved: [...actionLikeRoutesObserved],
+  };
 }
 
 async function readPrefix(response: Response, maxBytes = 120_000) {
@@ -92,6 +163,7 @@ async function readPrefix(response: Response, maxBytes = 120_000) {
   } finally {
     await reader.cancel().catch(() => undefined);
   }
+
   const merged = new Uint8Array(total);
   let offset = 0;
   for (const chunk of chunks) {
@@ -101,37 +173,23 @@ async function readPrefix(response: Response, maxBytes = 120_000) {
   return new TextDecoder("utf-8", { fatal: false }).decode(merged);
 }
 
-function discoveredLinks(base: URL, html: string) {
-  const urls: URL[] = [];
-  for (const match of html.matchAll(/\s(?:href|src)=["']([^"']{1,700})["']/gi)) {
-    try {
-      const candidate = new URL(match[1], base);
-      candidate.hash = "";
-      if (candidate.origin !== base.origin) continue;
-      if (!["http:", "https:"].includes(candidate.protocol)) continue;
-      if (!isSafePath(candidate)) continue;
-      urls.push(candidate);
-    } catch {
-      // Ignore malformed discovery strings.
-    }
-  }
-  return [...new Map(urls.map((url) => [url.toString(), url])).values()];
-}
-
-async function fetchEvidencePage(url: URL): Promise<{ page: DeepEvidencePage; links: URL[] }> {
+async function fetchEvidencePage(url: URL): Promise<{
+  page: DeepEvidencePage;
+  discovery: ReturnType<typeof discoverDeepNavigation>;
+}> {
   try {
     const response = await safeFetchPublicUrl(url.toString(), {
       method: "GET",
       redirect: "manual",
       headers: {
-        Accept: "text/html,application/json,text/plain,*/*;q=0.5",
+        Accept: "text/html,text/plain,*/*;q=0.3",
         Range: "bytes=0-119999",
         "User-Agent": "VeyraSec-Deep-Evidence/2.0",
       },
     });
     const contentType = response.headers.get("content-type") || "";
     const body =
-      contentType.includes("text") || contentType.includes("html") || contentType.includes("json")
+      contentType.includes("text") || contentType.includes("html")
         ? await readPrefix(response)
         : "";
     const headers: Record<string, string> = {};
@@ -139,9 +197,10 @@ async function fetchEvidencePage(url: URL): Promise<{ page: DeepEvidencePage; li
       headers[key.toLowerCase()] = value;
     });
     const truth = classifyResponseTruth({ status: response.status, headers, body });
-    const title = body.match(/<title[^>]*>([^<]{1,180})<\/title>/i)?.[1]?.trim() || null;
-    const formsObserved = [...body.matchAll(/<form\b/gi)].length;
-    const scriptsObserved = [...body.matchAll(/<script\b/gi)].length;
+    const isHtml = contentType.includes("html");
+    const title = isHtml ? body.match(/<title[^>]*>([^<]{1,180})<\/title>/i)?.[1]?.trim() || null : null;
+    const formsObserved = isHtml ? [...body.matchAll(/<form\b/gi)].length : 0;
+    const scriptsObserved = isHtml ? [...body.matchAll(/<script\b/gi)].length : 0;
     return {
       page: {
         url: url.toString(),
@@ -154,7 +213,15 @@ async function fetchEvidencePage(url: URL): Promise<{ page: DeepEvidencePage; li
         scriptsObserved,
         apiSurface: isApiLike(url),
       },
-      links: truth.truth === "verified" && body ? discoveredLinks(url, body) : [],
+      discovery:
+        truth.truth === "verified" && isHtml && body
+          ? discoverDeepNavigation(url, body)
+          : {
+              crawlable: [],
+              apiLikeRoutesObserved: [],
+              loginLikeRoutesObserved: [],
+              actionLikeRoutesObserved: [],
+            },
     };
   } catch {
     return {
@@ -169,24 +236,46 @@ async function fetchEvidencePage(url: URL): Promise<{ page: DeepEvidencePage; li
         scriptsObserved: 0,
         apiSurface: isApiLike(url),
       },
-      links: [],
+      discovery: {
+        crawlable: [],
+        apiLikeRoutesObserved: [],
+        loginLikeRoutesObserved: [],
+        actionLikeRoutesObserved: [],
+      },
     };
   }
 }
 
+function safeStartUrl(targetUrl: string) {
+  const candidate = new URL(targetUrl);
+  candidate.hash = "";
+  candidate.search = "";
+  if (isApiLike(candidate) || isLoginLike(candidate) || isActionLike(candidate) || !isLikelyNavigationDocument(candidate)) {
+    candidate.pathname = "/";
+  }
+  return candidate;
+}
+
 export async function runDeepEvidenceV2(targetUrl: string): Promise<DeepEvidenceReport> {
-  const base = new URL(targetUrl);
-  base.hash = "";
+  const base = safeStartUrl(targetUrl);
   const maxPages = 8;
   const queue: URL[] = [base];
   const queued = new Set([base.toString()]);
   const pages: DeepEvidencePage[] = [];
+  const apiLikeRoutesObserved = new Set<string>();
+  const loginLikeRoutesObserved = new Set<string>();
+  const actionLikeRoutesObserved = new Set<string>();
 
   while (queue.length && pages.length < maxPages) {
     const current = queue.shift()!;
     const result = await fetchEvidencePage(current);
     pages.push(result.page);
-    for (const link of result.links) {
+
+    for (const path of result.discovery.apiLikeRoutesObserved) apiLikeRoutesObserved.add(path);
+    for (const path of result.discovery.loginLikeRoutesObserved) loginLikeRoutesObserved.add(path);
+    for (const path of result.discovery.actionLikeRoutesObserved) actionLikeRoutesObserved.add(path);
+
+    for (const link of result.discovery.crawlable) {
       if (pages.length + queue.length >= maxPages) break;
       if (queued.has(link.toString())) continue;
       queued.add(link.toString());
@@ -194,12 +283,6 @@ export async function runDeepEvidenceV2(targetUrl: string): Promise<DeepEvidence
     }
   }
 
-  const apiLikeRoutesObserved = pages
-    .filter((page) => page.apiSurface && page.truth === "verified")
-    .map((page) => page.path);
-  const loginLikeRoutesObserved = pages
-    .filter((page) => isLoginLike(new URL(page.url)) && page.truth === "verified")
-    .map((page) => page.path);
   const formsObserved = pages.reduce((sum, page) => sum + page.formsObserved, 0);
   const scriptsObserved = pages.reduce((sum, page) => sum + page.scriptsObserved, 0);
   const inconclusivePages = pages.filter((page) => page.truth === "inconclusive").length;
@@ -213,8 +296,13 @@ export async function runDeepEvidenceV2(targetUrl: string): Promise<DeepEvidence
       sameOriginOnly: true,
       allowedMethods: ["GET"],
       maxPages,
+      anchorNavigationOnly: true,
+      queryStringsFollowed: false,
+      apiRoutesFetched: false,
+      actionLikeRoutesFetched: false,
+      authRoutesFetched: false,
       noFormSubmission: true,
-      noMutationRequests: true,
+      noMutationMethods: true,
       noPrivateBodyStorage: true,
     },
     pages,
@@ -222,12 +310,13 @@ export async function runDeepEvidenceV2(targetUrl: string): Promise<DeepEvidence
       pagesObserved: pages.length,
       formsObserved,
       scriptsObserved,
-      apiLikeRoutesObserved,
-      loginLikeRoutesObserved,
+      apiLikeRoutesObserved: [...apiLikeRoutesObserved],
+      loginLikeRoutesObserved: [...loginLikeRoutesObserved],
+      actionLikeRoutesObserved: [...actionLikeRoutesObserved],
       inconclusivePages,
     },
     customerSummary: inconclusivePages
-      ? `Deep evidence reviewed ${pages.length} same-origin page(s); ${inconclusivePages} page(s) were inconclusive and were not treated as vulnerabilities.`
-      : `Deep evidence reviewed ${pages.length} same-origin page(s) using read-only GET requests without submitting forms or mutating the target.`,
+      ? `Deep evidence reviewed ${pages.length} same-origin navigation page(s); ${inconclusivePages} page(s) were inconclusive. API, auth, action-like and query-string routes were observed only and not followed.`
+      : `Deep evidence reviewed ${pages.length} same-origin navigation page(s) using GET only. Forms were not submitted, and API, auth, action-like and query-string routes were observed only and not followed.`,
   };
 }
