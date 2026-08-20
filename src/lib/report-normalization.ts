@@ -123,6 +123,19 @@ export function normalizeScanReport(
     );
   }
 
+  // A missing DMARC record is already the root-cause failure. Without a
+  // record there is no policy to grade, so do not penalize the same missing
+  // control again as a separate policy-strength failure.
+  const dmarcRecordMissing = findings.some(
+    (finding) =>
+      finding.name === "DMARC record" && finding.status === "fail",
+  );
+  if (dmarcRecordMissing) {
+    findings = findings.filter(
+      (finding) => finding.name !== "DMARC policy strength",
+    );
+  }
+
   // A login page existing is not itself a vulnerability.
   // Only a publicly accessible administrative endpoint is a signal,
   // and even then it is a low-severity hardening item, not a breach.
