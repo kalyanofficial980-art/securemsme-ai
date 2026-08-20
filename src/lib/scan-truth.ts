@@ -105,9 +105,9 @@ export function isUncertainFindingMessage(message?: string | null) {
 }
 
 function normalizeBody(value: string, path?: string) {
-  return value
-    .slice(0, 24_000)
-    .replace(path || "", "{path}")
+  let normalized = value.slice(0, 24_000);
+  if (path) normalized = normalized.replace(path, "{path}");
+  return normalized
     .replace(/veyra(?:sec)?[-_]?probe[-_a-z0-9]*/gi, "{probe}")
     .replace(/\s+/g, " ")
     .trim()

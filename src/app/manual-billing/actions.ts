@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import {
+  deletePaymentProofTrusted,
   getPaymentCheckout,
   uploadPaymentProofTrusted,
 } from "@/lib/billing/payment-checkout";
@@ -165,6 +166,17 @@ export async function submitPaymentVerificationAction(formData: FormData) {
     .single();
 
   if (error || !request?.id) {
+    const cleanedUp = await deletePaymentProofTrusted({
+      userId: user.id,
+      path: paymentProofPath,
+    });
+    if (!cleanedUp) {
+      console.error("payment proof cleanup failed after request insert failure", {
+        route: "./src/app/manual-billing/actions.ts",
+        userId: user.id,
+      });
+    }
+
     const duplicate = error?.message?.toLowerCase().includes("duplicate");
     paymentError(
       decision.plan.key,
