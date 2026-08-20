@@ -62,4 +62,29 @@ describe("Security Score v2", () => {
     expect(result.riskLevel).toBe("High");
     expect(result.severityCounts.critical).toBe(1);
   });
+
+  it("keeps public admin or login route visibility supplemental even when verified", () => {
+    const result = calculateScore(
+      report([
+        { name: "HTTPS / SSL", status: "pass", message: "HTTPS verified", points: 10, maxPoints: 10 },
+        { name: "Security headers", status: "pass", message: "4/4 found", points: 20, maxPoints: 20 },
+        { name: "HSTS", status: "pass", message: "present", points: 10, maxPoints: 10 },
+        { name: "Cookie security", status: "pass", message: "cookies protected", points: 10, maxPoints: 10 },
+        {
+          name: "Common admin/login paths",
+          status: "fail",
+          message: "A public login route was observed.",
+          points: 0,
+          maxPoints: 15,
+          truth: "verified",
+        } as ScanReport["findings"][number] & { truth: "verified" },
+      ]),
+    );
+
+    expect(result.score).toBe(100);
+    expect(result.riskLevel).toBe("Low");
+    expect(result.severityCounts.medium).toBe(0);
+    expect(result.supplementalScores.map((item) => item.name)).toContain("Attack surface visibility");
+    expect(result.topFixes.map((item) => item.name)).not.toContain("Common admin/login paths");
+  });
 });
