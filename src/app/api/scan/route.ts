@@ -4,7 +4,6 @@ import { z } from "zod";
 import { buildAdvancedSecurityAudit } from "@/lib/advanced-security-audit";
 import { normalizeAdvancedSecurityAudit } from "@/lib/advanced-audit-normalization";
 import { runInbuiltAdvancedAudit } from "@/lib/inbuilt-advanced-audit";
-import { getNextScanDate } from "@/lib/monitoring";
 import { applyReportAccuracyPolicy } from "@/lib/report-accuracy-policy";
 import { scanWebsite } from "@/lib/scanner";
 import { calculateScore } from "@/lib/score";
@@ -14,6 +13,7 @@ import { createClient } from "@/lib/supabase/server";
 import { runVulnerabilityIntelligence } from "@/lib/vulnerability-intelligence";
 import { getWebsiteNameFromUrl } from "@/lib/websites";
 import { enforceRateLimit } from "@/lib/security/request-guard";
+import { persistTrustedScan } from "@/lib/trusted-server-writes";
 
 export const runtime = "nodejs";
 
@@ -59,12 +59,11 @@ export async function POST(request: Request) {
 
     let websiteUrl = parsed.data.websiteUrl;
     let savedWebsiteId: string | null = parsed.data.websiteId || null;
-    let scanFrequency = "weekly";
 
     if (savedWebsiteId) {
       const { data: savedWebsite } = await supabase
         .from("websites")
-        .select("id, url, scan_frequency")
+        .select("id, url")
         .eq("id", savedWebsiteId)
         .eq("user_id", user.id)
         .single();
@@ -77,7 +76,6 @@ export async function POST(request: Request) {
       }
 
       websiteUrl = savedWebsite.url;
-      scanFrequency = savedWebsite.scan_frequency || "weekly";
     }
 
     if (!websiteUrl) {
@@ -157,14 +155,13 @@ export async function POST(request: Request) {
     if (!savedWebsiteId) {
       const { data: existingWebsite } = await supabase
         .from("websites")
-        .select("id, scan_frequency")
+        .select("id")
         .eq("user_id", user.id)
         .eq("url", report.normalizedUrl)
         .maybeSingle();
 
       if (existingWebsite?.id) {
         savedWebsiteId = existingWebsite.id;
-        scanFrequency = existingWebsite.scan_frequency || "weekly";
       } else {
         const { data: newWebsite } = await supabase
           .from("websites")
@@ -176,11 +173,10 @@ export async function POST(request: Request) {
             monitoring_enabled: true,
             scan_frequency: "weekly",
           })
-          .select("id, scan_frequency")
+          .select("id")
           .single();
 
         savedWebsiteId = newWebsite?.id || null;
-        scanFrequency = newWebsite?.scan_frequency || "weekly";
       }
     }
 
@@ -244,40 +240,21 @@ export async function POST(request: Request) {
       retestComparison,
     };
 
-    const { data: scan, error: insertError } = await supabase
-      .from("scans")
-      .insert({
-        user_id: user.id,
-        website_id: savedWebsiteId,
-        website_url: report.normalizedUrl,
+    let scan;
+    try {
+      scan = await persistTrustedScan({
+        userId: user.id,
+        websiteId: savedWebsiteId,
+        websiteUrl: report.normalizedUrl,
         score: finalScore,
-        risk_level: finalRiskLevel,
+        riskLevel: finalRiskLevel,
         report: fullReport,
-      })
-      .select(
-        "id, website_id, website_url, score, risk_level, report, created_at",
-      )
-      .single();
-
-    if (insertError || !scan) {
+      });
+    } catch {
       return NextResponse.json(
         { error: "Scan completed but could not save report." },
         { status: 500 },
       );
-    }
-
-    if (savedWebsiteId) {
-      await supabase
-        .from("websites")
-        .update({
-          last_scan_at: scan.created_at,
-          next_scan_at: getNextScanDate(scan.created_at, scanFrequency),
-          latest_score: finalScore,
-          latest_risk_level: finalRiskLevel,
-          latest_scan_id: scan.id,
-        })
-        .eq("id", savedWebsiteId)
-        .eq("user_id", user.id);
     }
 
     return NextResponse.json({ scan });

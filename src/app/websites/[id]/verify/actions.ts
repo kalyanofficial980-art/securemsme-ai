@@ -8,6 +8,7 @@ import {
   verifyWebsiteOwnership,
 } from "@/lib/ownership-verification";
 import { createClient } from "@/lib/supabase/server";
+import { updateTrustedWebsiteVerification } from "@/lib/trusted-server-writes";
 
 function getMethod(value: FormDataEntryValue | null): VerificationMethod {
   const method = String(value || "dns_txt");
@@ -43,26 +44,26 @@ async function getOwnedWebsite(websiteId: string) {
     redirect("/websites?message=Website not found");
   }
 
-  return { supabase, user, website };
+  return { user, website };
 }
 
 export async function rotateVerificationToken(formData: FormData) {
   const websiteId = String(formData.get("websiteId") || "");
-  const { supabase, user, website } = await getOwnedWebsite(websiteId);
+  const { user, website } = await getOwnedWebsite(websiteId);
   const token = buildVerificationToken();
 
-  await supabase
-    .from("websites")
-    .update({
+  await updateTrustedWebsiteVerification({
+    userId: user.id,
+    websiteId: website.id,
+    patch: {
       verification_token: token,
       verification_status: "unverified",
       verified_at: null,
       verified_by: null,
       permission_attested_at: null,
       deep_scan_enabled: false,
-    })
-    .eq("id", website.id)
-    .eq("user_id", user.id);
+    },
+  });
 
   revalidatePath(`/websites/${website.id}`);
   revalidatePath(`/websites/${website.id}/verify`);
@@ -79,22 +80,22 @@ export async function verifyOwnershipAction(formData: FormData) {
     );
   }
 
-  const { supabase, user, website } = await getOwnedWebsite(websiteId);
+  const { user, website } = await getOwnedWebsite(websiteId);
   const token = website.verification_token || buildVerificationToken();
 
   if (!website.verification_token) {
-    await supabase
-      .from("websites")
-      .update({
+    await updateTrustedWebsiteVerification({
+      userId: user.id,
+      websiteId: website.id,
+      patch: {
         verification_token: token,
         verification_status: "unverified",
         verified_at: null,
         verified_by: null,
         permission_attested_at: null,
         deep_scan_enabled: false,
-      })
-      .eq("id", website.id)
-      .eq("user_id", user.id);
+      },
+    });
   }
 
   const result = await verifyWebsiteOwnership({
@@ -104,36 +105,36 @@ export async function verifyOwnershipAction(formData: FormData) {
   });
 
   if (!result.verified) {
-    await supabase
-      .from("websites")
-      .update({
+    await updateTrustedWebsiteVerification({
+      userId: user.id,
+      websiteId: website.id,
+      patch: {
         verification_method: method,
         verification_status: "failed",
         verified_at: null,
         verified_by: null,
         permission_attested_at: null,
         deep_scan_enabled: false,
-      })
-      .eq("id", website.id)
-      .eq("user_id", user.id);
+      },
+    });
 
     redirect(
       `/websites/${website.id}/verify?message=${encodeURIComponent(result.evidence)}`,
     );
   }
 
-  await supabase
-    .from("websites")
-    .update({
+  await updateTrustedWebsiteVerification({
+    userId: user.id,
+    websiteId: website.id,
+    patch: {
       verification_method: method,
       verification_status: "verified",
       verified_at: result.checkedAt,
       verified_by: user.id,
       permission_attested_at: new Date().toISOString(),
       deep_scan_enabled: true,
-    })
-    .eq("id", website.id)
-    .eq("user_id", user.id);
+    },
+  });
 
   revalidatePath(`/websites/${website.id}`);
   revalidatePath(`/websites/${website.id}/verify`);

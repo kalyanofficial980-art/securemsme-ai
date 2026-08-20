@@ -6,7 +6,6 @@ import {
   getEffectivePlan,
 } from "@/lib/billing/entitlements";
 import { runInbuiltAdvancedAudit } from "@/lib/inbuilt-advanced-audit";
-import { getNextScanDate } from "@/lib/monitoring";
 import { applyReportAccuracyPolicy } from "@/lib/report-accuracy-policy";
 import { normalizeScanReport } from "@/lib/report-normalization";
 import { buildRetestComparison } from "@/lib/retest-comparison";
@@ -15,6 +14,7 @@ import { calculateScore } from "@/lib/score";
 import { enforceRateLimit } from "@/lib/security/request-guard";
 import { toSafeScanErrorMessage } from "@/lib/security/scan-error";
 import { createClient } from "@/lib/supabase/server";
+import { persistTrustedScan } from "@/lib/trusted-server-writes";
 import { runVulnerabilityIntelligence } from "@/lib/vulnerability-intelligence";
 
 export const runtime = "nodejs";
@@ -50,7 +50,7 @@ export async function POST(
 
     const { data: website } = await supabase
       .from("websites")
-      .select("id, url, scan_frequency")
+      .select("id, url")
       .eq("id", id)
       .eq("user_id", user.id)
       .single();
@@ -196,42 +196,22 @@ export async function POST(
       retestComparison,
     };
 
-    const { data: scan, error: insertError } = await supabase
-      .from("scans")
-      .insert({
-        user_id: user.id,
-        website_id: website.id,
-        website_url: report.normalizedUrl,
+    let scan;
+    try {
+      scan = await persistTrustedScan({
+        userId: user.id,
+        websiteId: website.id,
+        websiteUrl: report.normalizedUrl,
         score: finalScore,
-        risk_level: finalRiskLevel,
+        riskLevel: finalRiskLevel,
         report: fullReport,
-      })
-      .select(
-        "id, website_id, website_url, score, risk_level, report, created_at",
-      )
-      .single();
-
-    if (insertError || !scan) {
+      });
+    } catch {
       return Response.json(
         { error: "Retest completed but could not save the comparison report." },
         { status: 500 },
       );
     }
-
-    await supabase
-      .from("websites")
-      .update({
-        last_scan_at: scan.created_at,
-        next_scan_at: getNextScanDate(
-          scan.created_at,
-          website.scan_frequency || "weekly",
-        ),
-        latest_score: finalScore,
-        latest_risk_level: finalRiskLevel,
-        latest_scan_id: scan.id,
-      })
-      .eq("id", website.id)
-      .eq("user_id", user.id);
 
     return Response.json({ scan, retestComparison });
   } catch (error) {
