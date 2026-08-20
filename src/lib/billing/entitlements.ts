@@ -7,6 +7,20 @@ export const PLAN_SCAN_LIMITS: Record<VeyraSecPlan, number> = {
   agency: 500,
 };
 
+export const PLAN_WEBSITE_LIMITS: Record<VeyraSecPlan, number> = {
+  free: 1,
+  starter: 1,
+  growth: 5,
+  agency: 25,
+};
+
+export const PLAN_MONITORING_TARGET_LIMITS: Record<VeyraSecPlan, number> = {
+  free: 1,
+  starter: 1,
+  growth: 5,
+  agency: 25,
+};
+
 export function getEffectivePlan(profile?: {
   plan?: string | null;
   plan_expires_at?: string | null;
@@ -40,6 +54,14 @@ export function canUseDeepScan(plan: VeyraSecPlan) {
 
 export function getPlanScanLimit(plan: VeyraSecPlan) {
   return PLAN_SCAN_LIMITS[plan];
+}
+
+export function getPlanWebsiteLimit(plan: VeyraSecPlan) {
+  return PLAN_WEBSITE_LIMITS[plan];
+}
+
+export function getPlanMonitoringTargetLimit(plan: VeyraSecPlan) {
+  return PLAN_MONITORING_TARGET_LIMITS[plan];
 }
 
 export function getScanWindowStart(plan: VeyraSecPlan) {
