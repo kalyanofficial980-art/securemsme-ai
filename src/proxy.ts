@@ -13,9 +13,7 @@ const securityHeaders: Record<string, string> = {
 };
 
 function applySecurityHeaders(response: NextResponse) {
-  for (const [key, value] of Object.entries(securityHeaders)) {
-    response.headers.set(key, value);
-  }
+  for (const [key, value] of Object.entries(securityHeaders)) response.headers.set(key, value);
   return response;
 }
 
@@ -25,6 +23,9 @@ function isCustomerWorkspacePath(pathname: string) {
     pathname === "/dashboard" ||
     pathname === "/scan" ||
     pathname === "/billing" ||
+    pathname === "/manual-billing" ||
+    pathname === "/onboarding" ||
+    pathname.startsWith("/onboarding/") ||
     pathname === "/login" ||
     pathname === "/signup" ||
     pathname === "/websites" ||
@@ -46,13 +47,11 @@ export async function proxy(request: NextRequest) {
       const target = request.nextUrl.clone();
       target.pathname = "/admin";
       target.search = "";
-
       const redirectResponse = NextResponse.redirect(target);
       response.cookies.getAll().forEach((cookie) => {
         const { name, value, ...options } = cookie;
         redirectResponse.cookies.set(name, value, options);
       });
-
       return applySecurityHeaders(redirectResponse);
     }
   }
