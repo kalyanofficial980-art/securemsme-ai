@@ -2,7 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { getPaymentCheckout } from "@/lib/billing/payment-checkout";
+import {
+  getPaymentCheckout,
+  uploadPaymentProofTrusted,
+} from "@/lib/billing/payment-checkout";
+import { validatePaymentProofBlob } from "@/lib/billing/payment-proof";
 import { validateManualPaymentRequest } from "@/lib/launch-ready-legal-payment-engine";
 import { createClient } from "@/lib/supabase/server";
 
@@ -60,10 +64,16 @@ export async function submitPaymentVerificationAction(formData: FormData) {
 
   const requestedPlan = clean(formData.get("planKey"), "starter");
   const paymentMethod = clean(formData.get("paymentMethod"), "upi");
+  const paymentReference = clean(formData.get("paymentReference"));
+
+  if (paymentReference.length > 256) {
+    paymentError(requestedPlan, "Transaction reference must be 256 characters or fewer.");
+  }
+
   const decision = validateManualPaymentRequest({
     planKey: requestedPlan as any,
     billingCycle: "monthly",
-    paymentReference: clean(formData.get("paymentReference")),
+    paymentReference,
     payerName: clean(formData.get("payerName")),
     payerEmail: clean(formData.get("payerEmail")),
     payerPhone: clean(formData.get("payerPhone")),
@@ -92,6 +102,16 @@ export async function submitPaymentVerificationAction(formData: FormData) {
     paymentError(decision.plan.key, "Bank transfer is not currently enabled for VeyraSec payments.");
   }
 
+  const proofEntry = formData.get("paymentProof");
+  if (!proofEntry || typeof proofEntry === "string") {
+    paymentError(decision.plan.key, "Upload the payment confirmation screenshot.");
+  }
+
+  const proofValidation = await validatePaymentProofBlob(proofEntry);
+  if (!proofValidation.valid) {
+    paymentError(decision.plan.key, proofValidation.error);
+  }
+
   let billingProfile;
   try {
     billingProfile = await ensureBillingProfile(supabase, user.id);
@@ -99,6 +119,17 @@ export async function submitPaymentVerificationAction(formData: FormData) {
     paymentError(
       decision.plan.key,
       error instanceof Error ? error.message : "Could not prepare billing profile.",
+    );
+  }
+
+  const paymentProofPath = await uploadPaymentProofTrusted({
+    userId: user.id,
+    file: proofEntry,
+  });
+  if (!paymentProofPath) {
+    paymentError(
+      decision.plan.key,
+      "Could not securely upload the payment screenshot. Please try again.",
     );
   }
 
@@ -113,7 +144,8 @@ export async function submitPaymentVerificationAction(formData: FormData) {
       amount_inr: decision.amountInr,
       currency: "INR",
       payment_method: paymentMethod,
-      payment_reference: clean(formData.get("paymentReference")),
+      payment_reference: paymentReference,
+      payment_proof_path: paymentProofPath,
       payer_name: clean(formData.get("payerName")),
       payer_email: clean(formData.get("payerEmail")),
       payer_phone: clean(formData.get("payerPhone")),
@@ -124,6 +156,8 @@ export async function submitPaymentVerificationAction(formData: FormData) {
       request_payload: {
         manualApproval: true,
         selectedPaymentMethod: paymentMethod,
+        paymentProofAttached: true,
+        trustedProofUpload: true,
         paymentSettingsUpdatedAt: checkout.settingsUpdatedAt,
       },
     })
@@ -146,11 +180,13 @@ export async function submitPaymentVerificationAction(formData: FormData) {
     event_type: "payment-submitted",
     event_status: "info",
     title: "Payment submitted for verification",
-    details: `${decision.plan.name} payment submitted for admin verification.`,
+    details: `${decision.plan.name} payment and private proof submitted for admin verification.`,
     metadata: {
       planKey: decision.plan.key,
       amountInr: decision.amountInr,
       paymentMethod,
+      paymentProofAttached: true,
+      trustedProofUpload: true,
     },
   });
 
@@ -158,7 +194,7 @@ export async function submitPaymentVerificationAction(formData: FormData) {
   revalidatePath("/admin/manual-payments");
   redirect(
     `/manual-billing?plan=${decision.plan.key}&message=${encodeURIComponent(
-      "Payment submitted. VeyraSec admin verification is required before the plan becomes active.",
+      "Payment and screenshot submitted. VeyraSec admin verification is required before the plan becomes active.",
     )}`,
   );
 }

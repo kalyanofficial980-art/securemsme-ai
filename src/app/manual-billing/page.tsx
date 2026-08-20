@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
-import { Navbar } from "@/components/Navbar";
 import { ManualBillingPanel } from "@/components/ManualBillingPanel";
+import { Navbar } from "@/components/Navbar";
 import { getEffectivePlan } from "@/lib/billing/entitlements";
 import {
   getPaymentCheckout,
@@ -36,7 +36,7 @@ export default async function ManualBillingPage({
     supabase
       .from("manual_payment_requests_v2")
       .select(
-        "id, requested_plan_key, requested_plan_name, billing_cycle, amount_inr, payment_method, payment_reference, request_status, admin_review_note, plan_activated_at, plan_expires_at, created_at",
+        "id, requested_plan_key, requested_plan_name, billing_cycle, amount_inr, payment_method, payment_reference, payment_proof_path, request_status, admin_review_note, plan_activated_at, plan_expires_at, created_at",
       )
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })

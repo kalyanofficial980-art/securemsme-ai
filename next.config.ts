@@ -37,6 +37,11 @@ const nextConfig: NextConfig = {
   allowedDevOrigins: ["192.168.1.7"],
   poweredByHeader: false,
   serverExternalPackages: ["pdfkit"],
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "6mb",
+    },
+  },
   outputFileTracingIncludes: {
     "/api/report/*": ["./node_modules/pdfkit/js/data/**/*"],
   },

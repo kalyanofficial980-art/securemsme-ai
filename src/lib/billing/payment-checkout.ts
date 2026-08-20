@@ -19,6 +19,7 @@ export type PaymentCheckout = {
 };
 
 const paidPlanKeys = new Set(["starter", "growth", "agency"]);
+const PAYMENT_FUNCTION = "veyra-payment-checkout-v1";
 
 export function normalizePaidPlanKey(value: string): PaymentCheckout["planKey"] {
   return paidPlanKeys.has(value) ? (value as PaymentCheckout["planKey"]) : "starter";
@@ -29,25 +30,32 @@ async function getVercelOidcToken() {
   return requestHeaders.get("x-vercel-oidc-token") || process.env.VERCEL_OIDC_TOKEN || null;
 }
 
-export async function getPaymentCheckout(planKey: string): Promise<PaymentCheckout | null> {
-  const normalizedPlan = normalizePaidPlanKey(planKey);
+async function trustedPaymentRequest(body: BodyInit, contentType?: string) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
   const oidcToken = await getVercelOidcToken();
-
   if (!supabaseUrl || !oidcToken) return null;
 
-  try {
-    const response = await fetch(`${supabaseUrl}/functions/v1/veyra-payment-checkout-v1`, {
-      method: "POST",
-      headers: {
-        authorization: `Bearer ${oidcToken}`,
-        "content-type": "application/json",
-      },
-      cache: "no-store",
-      body: JSON.stringify({ planKey: normalizedPlan }),
-    });
+  return fetch(`${supabaseUrl}/functions/v1/${PAYMENT_FUNCTION}`, {
+    method: "POST",
+    headers: {
+      authorization: `Bearer ${oidcToken}`,
+      ...(contentType ? { "content-type": contentType } : {}),
+    },
+    cache: "no-store",
+    body,
+  });
+}
 
-    if (!response.ok) return null;
+export async function getPaymentCheckout(planKey: string): Promise<PaymentCheckout | null> {
+  const normalizedPlan = normalizePaidPlanKey(planKey);
+
+  try {
+    const response = await trustedPaymentRequest(
+      JSON.stringify({ planKey: normalizedPlan }),
+      "application/json",
+    );
+    if (!response?.ok) return null;
+
     const data = (await response.json()) as Partial<PaymentCheckout>;
     if (
       data.planKey !== normalizedPlan ||
@@ -77,6 +85,32 @@ export async function getPaymentCheckout(planKey: string): Promise<PaymentChecko
       settingsUpdatedAt:
         typeof data.settingsUpdatedAt === "string" ? data.settingsUpdatedAt : null,
     };
+  } catch {
+    return null;
+  }
+}
+
+export async function uploadPaymentProofTrusted(input: {
+  userId: string;
+  file: File;
+}): Promise<string | null> {
+  const form = new FormData();
+  form.set("operation", "upload_payment_proof");
+  form.set("userId", input.userId);
+  form.set("file", input.file, "payment-proof");
+
+  try {
+    const response = await trustedPaymentRequest(form);
+    if (!response?.ok) return null;
+    const data = (await response.json()) as { path?: unknown };
+    if (
+      typeof data.path !== "string" ||
+      !data.path.startsWith(`${input.userId}/`) ||
+      data.path.includes("..")
+    ) {
+      return null;
+    }
+    return data.path;
   } catch {
     return null;
   }

@@ -1,5 +1,6 @@
 import { createRemoteJWKSet, jwtVerify } from "npm:jose@6.2.5";
 import QRCode from "npm:qrcode@1.5.4";
+import { createClient } from "npm:@supabase/supabase-js@2.58.0";
 
 const TEAM_SLUG = "kalyanofficial980-arts-projects";
 const TEAM_ID = "team_vyWArADLVffTz2Izf0DaEwLd";
@@ -12,6 +13,8 @@ const ALLOWED_ISSUERS = new Set([
 ]);
 const ALLOWED_ENVIRONMENTS = new Set(["production", "preview"]);
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
+const PAYMENT_PROOF_BUCKET = "payment-proofs";
+const PAYMENT_PROOF_MAX_BYTES = 5 * 1024 * 1024;
 
 const PLANS = {
   starter: { name: "Starter", amountInr: 999 },
@@ -20,6 +23,7 @@ const PLANS = {
 } as const;
 
 type PlanKey = keyof typeof PLANS;
+type ProofMime = "image/png" | "image/jpeg" | "image/webp";
 
 function getSecretKey(): { key: string; legacy: boolean } {
   const secretMapRaw = Deno.env.get("SUPABASE_SECRET_KEYS");
@@ -45,6 +49,13 @@ function adminHeaders(extra: Record<string, string> = {}) {
     ...(legacy ? { Authorization: `Bearer ${key}` } : {}),
     ...extra,
   };
+}
+
+function adminClient() {
+  const { key } = getSecretKey();
+  return createClient(SUPABASE_URL, key, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
 }
 
 function json(status: number, value: unknown) {
@@ -103,7 +114,7 @@ async function loadSettings() {
   url.searchParams.set("limit", "1");
   const response = await fetch(url, { headers: adminHeaders({ Accept: "application/json" }) });
   if (!response.ok) throw new Error("Payment settings lookup failed.");
-  const rows = await response.json() as Array<Record<string, unknown>>;
+  const rows = (await response.json()) as Array<Record<string, unknown>>;
   return rows[0] || null;
 }
 
@@ -118,13 +129,86 @@ function buildUpiUri(upiId: string, payeeName: string, amountInr: number, planNa
   return `upi://pay?${params.toString()}`;
 }
 
+function isPng(bytes: Uint8Array) {
+  const signature = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
+  return signature.every((value, index) => bytes[index] === value);
+}
+
+function isJpeg(bytes: Uint8Array) {
+  return bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
+}
+
+function isWebp(bytes: Uint8Array) {
+  return (
+    bytes[0] === 0x52 &&
+    bytes[1] === 0x49 &&
+    bytes[2] === 0x46 &&
+    bytes[3] === 0x46 &&
+    bytes[8] === 0x57 &&
+    bytes[9] === 0x45 &&
+    bytes[10] === 0x42 &&
+    bytes[11] === 0x50
+  );
+}
+
+async function validateProof(file: File) {
+  if (!file.size || file.size > PAYMENT_PROOF_MAX_BYTES) {
+    throw new Error("Invalid payment proof size.");
+  }
+  const declared = file.type.toLowerCase() as ProofMime;
+  if (!["image/png", "image/jpeg", "image/webp"].includes(declared)) {
+    throw new Error("Invalid payment proof type.");
+  }
+  const bytes = new Uint8Array(await file.slice(0, 16).arrayBuffer());
+  const detected: ProofMime | null = isPng(bytes)
+    ? "image/png"
+    : isJpeg(bytes)
+      ? "image/jpeg"
+      : isWebp(bytes)
+        ? "image/webp"
+        : null;
+  if (!detected || detected !== declared) throw new Error("Payment proof signature mismatch.");
+  return {
+    mimeType: detected,
+    extension: detected === "image/png" ? "png" : detected === "image/webp" ? "webp" : "jpg",
+  };
+}
+
+async function uploadPaymentProof(req: Request) {
+  const form = await req.formData();
+  if (String(form.get("operation") || "") !== "upload_payment_proof") {
+    return json(400, { error: "Invalid trusted operation." });
+  }
+  const userId = String(form.get("userId") || "").trim();
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(userId)) {
+    return json(400, { error: "Invalid proof owner." });
+  }
+  const file = form.get("file");
+  if (!(file instanceof File)) return json(400, { error: "Payment proof file required." });
+
+  const proof = await validateProof(file);
+  const path = `${userId}/${crypto.randomUUID()}.${proof.extension}`;
+  const { error } = await adminClient().storage.from(PAYMENT_PROOF_BUCKET).upload(path, file, {
+    contentType: proof.mimeType,
+    cacheControl: "0",
+    upsert: false,
+  });
+  if (error) throw new Error("Trusted payment proof upload failed.");
+  return json(200, { path });
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method !== "POST") return json(405, { error: "Method not allowed." });
   if (!SUPABASE_URL) return json(500, { error: "Payment checkout unavailable." });
 
   try {
     await verifyVercelOidc(req);
-    const body = await req.json() as { planKey?: string };
+    const contentType = req.headers.get("content-type") || "";
+    if (contentType.toLowerCase().startsWith("multipart/form-data")) {
+      return await uploadPaymentProof(req);
+    }
+
+    const body = (await req.json()) as { planKey?: string };
     const planKey = body.planKey as PlanKey;
     const plan = PLANS[planKey];
     if (!plan) return json(400, { error: "Invalid paid plan." });
