@@ -7,6 +7,7 @@ import { runInbuiltAdvancedAudit } from "@/lib/inbuilt-advanced-audit";
 import { normalizeScanReport } from "@/lib/report-normalization";
 import { buildRetestComparison } from "@/lib/retest-comparison";
 import { isValidScanAccessToken, SCAN_ACCESS_HEADER } from "@/lib/scan-access";
+import { runWithVerifiedScanAccess } from "@/lib/scan-access-context";
 import { applyReportTruthPolicy } from "@/lib/scan-truth-policy";
 import { scanWebsite } from "@/lib/scanner";
 import { calculateScore } from "@/lib/score";
@@ -52,11 +53,19 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "The VeyraSec production website is not registered to this admin account." }, { status: 409 });
     }
 
-    const rawReport = await scanWebsite(ADMIN_SELF_SCAN_URL);
-    const [rawInbuiltAdvancedAudit, vulnerabilityIntelligence] = await Promise.all([
-      runInbuiltAdvancedAudit(rawReport.normalizedUrl),
-      runVulnerabilityIntelligence(rawReport.normalizedUrl),
-    ]);
+    const { rawReport, rawInbuiltAdvancedAudit, vulnerabilityIntelligence } =
+      await runWithVerifiedScanAccess({
+        targetUrl: ADMIN_SELF_SCAN_URL,
+        token: scanAccessToken,
+        task: async () => {
+          const rawReport = await scanWebsite(ADMIN_SELF_SCAN_URL);
+          const [rawInbuiltAdvancedAudit, vulnerabilityIntelligence] = await Promise.all([
+            runInbuiltAdvancedAudit(rawReport.normalizedUrl),
+            runVulnerabilityIntelligence(rawReport.normalizedUrl),
+          ]);
+          return { rawReport, rawInbuiltAdvancedAudit, vulnerabilityIntelligence };
+        },
+      });
     const normalizedPublicReport = normalizeScanReport(rawReport, vulnerabilityIntelligence);
     const accuracyResult = await applyReportTruthPolicy(normalizedPublicReport, rawInbuiltAdvancedAudit);
     const report = accuracyResult.report;
