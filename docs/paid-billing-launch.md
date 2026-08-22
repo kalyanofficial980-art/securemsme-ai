@@ -1,59 +1,68 @@
-# VeyraSec assisted paid-launch checklist
+# VeyraSec assisted paid public-launch runbook
 
-VeyraSec uses assisted monthly plan activation for the initial paid launch. Automatic Razorpay subscription checkout is intentionally not exposed until the payment account, KYC, settlement setup and production operations are ready.
+VeyraSec currently uses assisted monthly activation. Customers can select Starter, Growth or Agency in the application, pay using the configured UPI QR or bank-transfer instructions, submit the transaction reference plus a payment screenshot, and wait for an admin to independently verify the payment. Paid access must never activate from client state, a UTR alone, or a screenshot alone.
 
-## Launch pricing
+## Launch plans
 
-| Plan | Monthly price | Scan limit |
-| --- | ---: | ---: |
-| Starter | ₹999/month | 20/month |
-| Growth | ₹2,499/month | 100/month |
-| Agency | ₹6,999/month | 500/month |
-| Enterprise Review | Custom | Manual scope |
+| Plan | Price | Scan limit | Websites | Monitoring targets | Retest | Deep Scan |
+| --- | ---: | ---: | ---: | ---: | --- | --- |
+| Starter | ₹999/month | 20/month | 1 | 1 | Yes | No |
+| Growth | ₹2,499/month | 100/month | 5 | 5 | Yes | Yes |
+| Agency | ₹6,999/month | 500/month | 25 | 25 | Yes | Yes |
 
-Free remains the evaluation tier with the existing daily scan limit.
+Free remains the evaluation tier with 3 scans per day, 1 website and 1 monitoring target. Deep Scan is available only to Growth and Agency and still requires fresh ownership verification for the target.
 
-## Customer flow
+## Customer payment flow
 
-1. Customer chooses Starter, Growth or Agency.
-2. Customer contacts the official VeyraSec billing/support channel.
-3. Approved payment instructions are shared outside sensitive application fields.
-4. Customer provides only the transaction reference/UTR needed for verification.
-5. Admin verifies the payment and activates `profiles.plan` with an appropriate `plan_expires_at`.
-6. Server-side scan limits use the effective plan and automatically fall back to Free after expiry.
-7. Renewal is assisted/manual during this launch phase.
+1. Customer signs in with Google and accepts the required legal documents.
+2. Customer chooses Starter, Growth or Agency.
+3. The server returns the configured exact plan amount and the enabled UPI QR and/or bank-transfer instructions.
+4. Customer makes the real payment outside VeyraSec using their payment app or bank.
+5. Customer enters the transaction reference/UTR. References up to 256 characters are accepted.
+6. Customer uploads a required payment confirmation screenshot. Accepted formats are PNG, JPEG and WebP, maximum 5 MB. File type and file signature are validated.
+7. The application uploads the proof through the trusted server path into the private `payment-proofs` bucket. Direct customer storage writes are not the activation mechanism.
+8. A `manual_payment_requests_v2` row is created with status `submitted_for_review`. The existing plan remains unchanged.
+9. Admin opens the private proof through a short-lived signed URL and independently verifies the real receipt/UTR and exact amount through the approved payment channel.
+10. Admin approves or rejects the request. Approval is allowed only when the private proof is present and passes validation again.
+11. Approval activates the paid plan and its expiry. Rejection does not activate paid access.
+12. After paid expiry, effective access falls back to Free. Renewal remains assisted/manual during this launch phase.
+
+If the trusted proof upload succeeds but the payment-request insert fails, the application attempts trusted cleanup of the unreferenced proof object. A proof already referenced by a payment request must not be deleted by that cleanup path.
 
 ## Payment-safety rules
 
-Never request or store OTPs, UPI PINs, card PINs, banking passwords, private keys, session cookies or Supabase/Razorpay secrets in customer-facing forms, screenshots, chat, logs or Git history.
+Never request or store OTPs, UPI PINs, card PINs, banking passwords, private keys, session cookies or infrastructure secrets in payment forms, screenshots, chat, logs or Git history. Customers should crop unrelated account information from screenshots where possible.
 
-A transaction reference is not proof by itself. Admin activation should happen only after payment is independently verified through the approved payment channel.
+A transaction reference is not proof by itself. A screenshot is not proof by itself. Admin activation happens only after independent payment verification. No browser flag, local storage value or client-side plan field may activate paid entitlements.
 
 ## Server-side entitlement rules
 
-The application must enforce plan limits on API routes, not only in the UI:
+Plan limits are enforced on trusted server/database paths, not only in the UI. Scan quota reservation is atomic. Website and monitoring caps are server enforced. Retest requires a paid effective plan. Deep Scan requires Growth or Agency plus fresh ownership verification.
 
-- Free: 3 scans/day
-- Starter: 20 scans/month
-- Growth: 100 scans/month
-- Agency: 500 scans/month
+`plan_expires_at` / the effective paid-period expiry is authoritative when present. Expired paid access must resolve to Free.
 
-`plan_expires_at` is authoritative when present. Expired paid access must resolve to the Free plan.
+## Admin review rules
 
-## Existing database foundation
+Before approval, confirm all of the following:
 
-The paid-billing foundation migration may include tables reserved for future automated billing. Those tables remain server-only and are not a customer-facing payment flow during the assisted launch. Public self-serve subscription endpoints and checkout UI are intentionally disabled.
+- request is still `submitted_for_review`;
+- requested plan, billing cycle, INR amount and payment method match canonical server definitions;
+- `payment_proof_path` is present and belongs to the requesting user path;
+- the private proof can be opened by the admin and passes image-signature validation;
+- the real bank/UPI receipt and UTR/reference have been independently verified;
+- the paid amount exactly matches the requested plan;
+- there is no evidence the same transaction reference is being reused.
 
-## Before enabling automatic billing later
+Approval must record the admin review and activate the plan only through the trusted admin path. Founder/admin accounts are operational identities and are not customer paid profiles.
 
-Do not enable self-serve recurring billing until all of the following are complete:
+## Production launch gate
 
-- payment-provider KYC and live account approval;
-- settlement and refund operations tested;
-- production credentials stored only in server environment variables;
-- webhook signature verification and idempotency tested;
-- payment failure, renewal, cancellation and expiry flows tested end to end;
-- support and refund processes documented;
-- one controlled live-payment test completed successfully.
+Public paid launch is GO only after one real, separate non-admin customer completes the full Growth lifecycle successfully:
 
-Until then, assisted activation is the production billing model.
+`Google sign-in → legal acceptance → Growth selection → real ₹2,499 payment → UTR + screenshot submission → pending review with no activation → admin independent verification → approval → Growth activation → owned website + fresh ownership verification → normal scan → report/PDF → Retest → Deep Scan → quota/persistence checks`.
+
+Also verify expiry fallback and tenant isolation. Do not substitute seeded rows, fake UTRs, manual plan flags or founder/admin activity for this launch gate.
+
+## Automatic billing later
+
+There is no automatic recurring payment gateway in this launch flow. Do not enable self-serve recurring billing until provider KYC/live approval, settlement/refund operations, production credentials, webhook signature verification, idempotency, renewal/cancellation/failure handling and a controlled live-payment test are all complete.
