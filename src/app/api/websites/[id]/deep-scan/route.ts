@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { toSafeScanErrorMessage } from "@/lib/security/scan-error";
 import type { NextRequest } from "next/server";
 import { buildAdvancedSecurityAudit } from "@/lib/advanced-security-audit";
@@ -5,6 +6,11 @@ import { canUseDeepScan, getEffectivePlan } from "@/lib/billing/entitlements";
 import { runDeepScanV1 } from "@/lib/deep-scan-v1";
 import { runInbuiltAdvancedAudit } from "@/lib/inbuilt-advanced-audit";
 import { normalizeScanReport } from "@/lib/report-normalization";
+import {
+  hashScanAccessToken,
+  isValidScanAccessToken,
+  SCAN_ACCESS_HEADER,
+} from "@/lib/scan-access";
 import { applyReportTruthPolicy } from "@/lib/scan-truth-policy";
 import { scanWebsite } from "@/lib/scanner";
 import { calculateScore } from "@/lib/score";
@@ -16,6 +22,10 @@ import { type VerificationMethod, verifyWebsiteOwnership } from "@/lib/ownership
 
 export const runtime = "nodejs";
 type ScanQuotaReservation = { reservation_id?: string };
+
+const requestSchema = z.object({
+  scanAccessToken: z.string().trim().max(120).optional(),
+});
 
 export async function POST(
   request: NextRequest,
@@ -35,13 +45,49 @@ export async function POST(
 
     const { data: website } = await supabase
       .from("websites")
-      .select("id, url, verification_token, verification_method, verification_status, verified_at, permission_attested_at, deep_scan_enabled")
+      .select("id, url, verification_token, verification_method, verification_status, verified_at, permission_attested_at, deep_scan_enabled, scan_access_enabled")
       .eq("id", id)
       .eq("user_id", user.id)
       .single();
     if (!website?.url) return Response.json({ error: "Website not found." }, { status: 404 });
     if (website.verification_status !== "verified" || !website.deep_scan_enabled || !website.permission_attested_at) {
       return Response.json({ error: "Deep scan locked. Verify website ownership and permission first." }, { status: 403 });
+    }
+
+    const parsedRequest = requestSchema.safeParse(await request.json().catch(() => ({})));
+    if (!parsedRequest.success) {
+      return Response.json({ error: "Invalid Deep Scan request." }, { status: 400 });
+    }
+    const suppliedScanAccessToken = parsedRequest.data.scanAccessToken || null;
+    let verifiedScanAccessToken: string | null = null;
+
+    if (website.scan_access_enabled) {
+      if (!suppliedScanAccessToken) {
+        return Response.json(
+          { error: "Verified Scan Access is enabled for this website. Paste the configured Scan Access token before running Deep Scan." },
+          { status: 428 },
+        );
+      }
+      if (!isValidScanAccessToken(suppliedScanAccessToken)) {
+        return Response.json({ error: "Invalid Scan Access token format." }, { status: 400 });
+      }
+      const tokenHash = hashScanAccessToken(suppliedScanAccessToken);
+      const { data: tokenMatches, error: tokenError } = await supabase.rpc("verify_scan_access_token_v1", {
+        p_website_id: website.id,
+        p_token_hash: tokenHash,
+      });
+      if (tokenError || tokenMatches !== true) {
+        return Response.json(
+          { error: "Scan Access token does not match this website. Use the configured token or rotate Scan Access." },
+          { status: 403 },
+        );
+      }
+      verifiedScanAccessToken = suppliedScanAccessToken;
+    } else if (suppliedScanAccessToken) {
+      return Response.json(
+        { error: "Configure Verified Scan Access for this website before using a Scan Access token." },
+        { status: 409 },
+      );
     }
 
     const { data: profile } = await supabase
@@ -142,6 +188,7 @@ export async function POST(
       targetUrl: report.normalizedUrl,
       verifiedScope: true,
       permissionAccepted: true,
+      scanAccessToken: verifiedScanAccessToken,
       baseReport: { ...baseReport, advancedAudit },
     });
     const deepScan = {
@@ -155,6 +202,12 @@ export async function POST(
       engine: deepScanV1.version,
       engineStatus: deepScanV1.status,
       coverageConfidence: deepScanV1.coverage.confidence,
+      scanAccess: {
+        configured: Boolean(website.scan_access_enabled),
+        used: Boolean(verifiedScanAccessToken),
+        headerName: SCAN_ACCESS_HEADER,
+        rawTokenStored: false,
+      },
       unlockedChecks: [
         "Truth-gated attack surface inventory",
         "API documentation and endpoint inventory",

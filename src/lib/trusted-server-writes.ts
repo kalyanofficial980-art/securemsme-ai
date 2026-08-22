@@ -1,6 +1,7 @@
 import { headers } from "next/headers";
 
 const TRUSTED_WRITE_FUNCTION = "veyra-trusted-write-v1";
+const SCAN_ACCESS_STATUS_FUNCTION = "veyra-scan-access-status-v1";
 
 type TrustedScanRecord = {
   id: string;
@@ -36,7 +37,7 @@ async function getVercelOidcToken() {
   return requestHeaders.get("x-vercel-oidc-token") || process.env.VERCEL_OIDC_TOKEN || null;
 }
 
-async function trustedWrite<T>(payload: Record<string, unknown>): Promise<T> {
+async function trustedFunction<T>(functionName: string, payload: Record<string, unknown>): Promise<T> {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const oidcToken = await getVercelOidcToken();
 
@@ -45,7 +46,7 @@ async function trustedWrite<T>(payload: Record<string, unknown>): Promise<T> {
   }
 
   const response = await fetch(
-    `${supabaseUrl}/functions/v1/${TRUSTED_WRITE_FUNCTION}`,
+    `${supabaseUrl}/functions/v1/${functionName}`,
     {
       method: "POST",
       headers: {
@@ -62,6 +63,10 @@ async function trustedWrite<T>(payload: Record<string, unknown>): Promise<T> {
   }
 
   return (await response.json()) as T;
+}
+
+async function trustedWrite<T>(payload: Record<string, unknown>): Promise<T> {
+  return trustedFunction<T>(TRUSTED_WRITE_FUNCTION, payload);
 }
 
 export async function persistTrustedScan(
@@ -94,5 +99,17 @@ export async function updateTrustedWebsiteVerification(input: {
     user_id: input.userId,
     website_id: input.websiteId,
     patch: input.patch,
+  });
+}
+
+export async function recordTrustedScanAccessTest(input: {
+  userId: string;
+  websiteId: string;
+  status: "verified" | "blocked" | "error";
+}) {
+  await trustedFunction<{ ok: true }>(SCAN_ACCESS_STATUS_FUNCTION, {
+    user_id: input.userId,
+    website_id: input.websiteId,
+    status: input.status,
   });
 }
