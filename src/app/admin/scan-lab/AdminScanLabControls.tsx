@@ -8,7 +8,7 @@ type Mode = "normal" | "retest" | "deep";
 const labels: Record<Mode, string> = {
   normal: "Run Normal Scan",
   retest: "Run Retest",
-  deep: "Run Deep Scan",
+  deep: "Run Deep Scan V1",
 };
 
 export function AdminScanLabControls() {
@@ -33,7 +33,7 @@ export function AdminScanLabControls() {
         return;
       }
 
-      router.push(`/report/${payload.scan.id}`);
+      router.push(mode === "deep" ? `/report/${payload.scan.id}/deep` : `/report/${payload.scan.id}`);
       router.refresh();
     } catch {
       setError("Admin scan failed. Check the connection and try again.");

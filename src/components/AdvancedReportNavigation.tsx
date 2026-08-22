@@ -14,8 +14,13 @@ type NavItem = {
 const reportLinks: NavItem[] = [
   {
     label: "Security report",
-    description: "Score, risk, findings and evidence",
+    description: "Canonical score, risk and normalized findings",
     href: (id) => `/report/${id}`,
+  },
+  {
+    label: "Deep evidence",
+    description: "Attack surface, API, browser, CVE and OWASP coverage",
+    href: (id) => `/report/${id}/deep`,
   },
   {
     label: "Fix roadmap",
@@ -52,16 +57,16 @@ export function AdvancedReportNavigation({
             Report workflow
           </p>
           <p className="mt-2 text-sm leading-6 text-slate-600">
-            Review findings, hand fixes to a developer, then retest from the website workspace.
+            Separate canonical score from Deep evidence, hand fixes to a developer, then retest after remediation.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2">
+        <div className="grid md:grid-cols-3">
           {reportLinks.map((item, index) => (
             <Link
               key={item.label}
               href={item.href(scanId)}
-              className={`p-5 hover:bg-slate-50 ${index === 0 ? "border-b border-slate-200 md:border-b-0 md:border-r" : ""}`}
+              className={`p-5 hover:bg-slate-50 ${index < reportLinks.length - 1 ? "border-b border-slate-200 md:border-b-0 md:border-r" : ""}`}
             >
               <p className="font-semibold text-slate-950">{item.label}</p>
               <p className="mt-1 text-xs leading-5 text-slate-500">{item.description}</p>

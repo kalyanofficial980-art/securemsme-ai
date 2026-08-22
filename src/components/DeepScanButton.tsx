@@ -22,19 +22,15 @@ export function DeepScanButton({
       const response = await fetch(`/api/websites/${websiteId}/deep-scan`, {
         method: "POST",
       });
-
       const data = await response.json();
 
       if (!response.ok || !data.scan?.id) {
         setError(data.error || "Deep scan failed.");
-        // A failed fresh ownership proof check can revoke verification and
-        // deep-scan access on the server. Refresh immediately so the badge,
-        // button state, and server-rendered website data cannot remain stale.
         router.refresh();
         return;
       }
 
-      router.push(`/report/${data.scan.id}/vulnerability-intelligence`);
+      router.push(`/report/${data.scan.id}/deep`);
       router.refresh();
     } catch (scanError) {
       setError(
@@ -56,7 +52,7 @@ export function DeepScanButton({
         onClick={runDeepScan}
         className="rounded-full bg-slate-950 px-5 py-3 text-sm font-black text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {isLoading ? "Running deep scan..." : "Run authorized deep scan"}
+        {isLoading ? "Running Deep Scan V1..." : "Run authorized Deep Scan"}
       </button>
 
       {error ? (
