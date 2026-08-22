@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { buildAdvancedSecurityAudit } from "@/lib/advanced-security-audit";
 import { normalizeAdvancedSecurityAudit } from "@/lib/advanced-audit-normalization";
-import { runDeepEvidenceV2 } from "@/lib/deep-evidence-v2";
+import { runDeepScanV1 } from "@/lib/deep-scan-v1";
 import { runInbuiltAdvancedAudit } from "@/lib/inbuilt-advanced-audit";
 import { normalizeScanReport } from "@/lib/report-normalization";
 import { applyReportTruthPolicy } from "@/lib/scan-truth-policy";
@@ -42,10 +42,9 @@ export async function POST(request: Request) {
     }
 
     const rawReport = await scanWebsite(ADMIN_SELF_SCAN_URL);
-    const [rawInbuiltAdvancedAudit, vulnerabilityIntelligence, deepEvidence] = await Promise.all([
+    const [rawInbuiltAdvancedAudit, vulnerabilityIntelligence] = await Promise.all([
       runInbuiltAdvancedAudit(rawReport.normalizedUrl),
       runVulnerabilityIntelligence(rawReport.normalizedUrl),
-      parsed.data.mode === "deep" ? runDeepEvidenceV2(rawReport.normalizedUrl) : Promise.resolve(null),
     ]);
     const normalizedPublicReport = normalizeScanReport(rawReport, vulnerabilityIntelligence);
     const accuracyResult = await applyReportTruthPolicy(normalizedPublicReport, rawInbuiltAdvancedAudit);
@@ -114,33 +113,44 @@ export async function POST(request: Request) {
       vulnerabilityIntelligence,
       retestComparison,
       adminScan,
-      ...(deepEvidence
-        ? {
-            deepEvidence,
-            deepScan: {
-              mode: "admin-owned-production-passive",
-              authorized: true,
-              verificationBypass: "Admin-only fixed-domain internal assessment. Customer ownership rules are unchanged.",
-              scope: "VeyraSec production public surface",
-              evidenceEngine: deepEvidence.version,
-              evidenceStatus: deepEvidence.status,
-              pagesObserved: deepEvidence.surface.pagesObserved,
-              safeBoundary: adminScan.safeBoundary,
-            },
-          }
-        : {}),
     };
     const advancedAudit = normalizeAdvancedSecurityAudit(
       buildAdvancedSecurityAudit(baseReport),
       scoreResult.enhancedFindings,
     );
+    const deepScanV1 = parsed.data.mode === "deep"
+      ? await runDeepScanV1({
+          targetUrl: report.normalizedUrl,
+          verifiedScope: true,
+          permissionAccepted: true,
+          baseReport: { ...baseReport, advancedAudit },
+        })
+      : null;
     const scan = await persistTrustedScan({
       userId: user.id,
       websiteId: website.id,
       websiteUrl: report.normalizedUrl,
       score: scoreResult.score,
       riskLevel: canonicalRiskLevel,
-      report: { ...baseReport, advancedAudit },
+      report: {
+        ...baseReport,
+        advancedAudit,
+        ...(deepScanV1
+          ? {
+              deepScanV1,
+              deepScan: {
+                mode: "admin-owned-production-deep-v1",
+                authorized: true,
+                verificationBypass: "Admin-only fixed-domain internal assessment. Customer ownership rules are unchanged.",
+                scope: "VeyraSec production public surface",
+                engine: deepScanV1.version,
+                engineStatus: deepScanV1.status,
+                coverageConfidence: deepScanV1.coverage.confidence,
+                safeBoundary: deepScanV1.safeBoundary,
+              },
+            }
+          : {}),
+      },
     });
     return NextResponse.json({ scan, mode: parsed.data.mode });
   } catch (error) {

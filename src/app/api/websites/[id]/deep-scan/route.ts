@@ -2,7 +2,7 @@ import { toSafeScanErrorMessage } from "@/lib/security/scan-error";
 import type { NextRequest } from "next/server";
 import { buildAdvancedSecurityAudit } from "@/lib/advanced-security-audit";
 import { canUseDeepScan, getEffectivePlan } from "@/lib/billing/entitlements";
-import { runDeepEvidenceV2 } from "@/lib/deep-evidence-v2";
+import { runDeepScanV1 } from "@/lib/deep-scan-v1";
 import { runInbuiltAdvancedAudit } from "@/lib/inbuilt-advanced-audit";
 import { normalizeScanReport } from "@/lib/report-normalization";
 import { applyReportTruthPolicy } from "@/lib/scan-truth-policy";
@@ -99,48 +99,15 @@ export async function POST(
     };
 
     const rawReport = await scanWebsite(website.url);
-    const [rawInbuiltAdvancedAudit, vulnerabilityIntelligence, deepEvidence] = await Promise.all([
+    const [rawInbuiltAdvancedAudit, vulnerabilityIntelligence] = await Promise.all([
       runInbuiltAdvancedAudit(rawReport.normalizedUrl),
       runVulnerabilityIntelligence(rawReport.normalizedUrl),
-      runDeepEvidenceV2(rawReport.normalizedUrl),
     ]);
     const normalizedReport = normalizeScanReport(rawReport, vulnerabilityIntelligence);
     const accuracyResult = await applyReportTruthPolicy(normalizedReport, rawInbuiltAdvancedAudit);
     const report = accuracyResult.report;
     const inbuiltAdvancedAudit = accuracyResult.inbuiltAdvancedAudit;
     const scoreResult = calculateScore(report);
-
-    const deepScan = {
-      mode: "authorized-deep-passive",
-      authorized: true,
-      verifiedAt: website.verified_at,
-      permissionAttestedAt: website.permission_attested_at,
-      proofRecheckedAt: freshVerification.checkedAt,
-      verificationMethod,
-      scope: "Customer-owned or customer-managed public website",
-      evidenceEngine: deepEvidence.version,
-      evidenceStatus: deepEvidence.status,
-      pagesObserved: deepEvidence.surface.pagesObserved,
-      inconclusivePages: deepEvidence.surface.inconclusivePages,
-      unlockedChecks: [
-        "Same-origin attack surface inventory",
-        "Public route and API-like surface discovery",
-        "Form and script presence observation without submission",
-        "Technology and vulnerability intelligence",
-        "CMS/API/docs/admin surface review",
-        "Evidence-based developer roadmap",
-      ],
-      safeBoundary: [
-        "GET-only deep evidence collection",
-        "Same-origin pages only",
-        "No form submission",
-        "No exploitation",
-        "No brute force",
-        "No login bypass",
-        "No destructive testing",
-        "No private data access",
-      ],
-    };
 
     const baseReport = {
       ...report,
@@ -164,15 +131,42 @@ export async function POST(
       topFixes: scoreResult.topFixes,
       inbuiltAdvancedAudit,
       vulnerabilityIntelligence,
-      deepEvidence,
       diagnosticScores: {
         inbuiltAudit: inbuiltAdvancedAudit.overallScore,
         vulnerabilityIntelligence: vulnerabilityIntelligence.intelligenceScore,
-        note: "Deep evidence and diagnostic module scores are supporting evidence only and do not silently change the canonical Security Score.",
+        note: "Diagnostic module scores are supporting evidence only and do not silently change the canonical Security Score.",
       },
-      deepScan,
     };
-    const fullReport = { ...baseReport, advancedAudit: buildAdvancedSecurityAudit(baseReport) };
+    const advancedAudit = buildAdvancedSecurityAudit(baseReport);
+    const deepScanV1 = await runDeepScanV1({
+      targetUrl: report.normalizedUrl,
+      verifiedScope: true,
+      permissionAccepted: true,
+      baseReport: { ...baseReport, advancedAudit },
+    });
+    const deepScan = {
+      mode: "authorized-deep-v1",
+      authorized: true,
+      verifiedAt: website.verified_at,
+      permissionAttestedAt: website.permission_attested_at,
+      proofRecheckedAt: freshVerification.checkedAt,
+      verificationMethod,
+      scope: "Customer-owned or customer-managed public website",
+      engine: deepScanV1.version,
+      engineStatus: deepScanV1.status,
+      coverageConfidence: deepScanV1.coverage.confidence,
+      unlockedChecks: [
+        "Truth-gated attack surface inventory",
+        "API documentation and endpoint inventory",
+        "Browser security control review",
+        "Authorized safe vulnerability review",
+        "Technology/CVE certainty correlation",
+        "Evidence-backed and review-signal separation",
+        "Truthful OWASP Top 10 coverage",
+      ],
+      safeBoundary: deepScanV1.safeBoundary,
+    };
+    const fullReport = { ...baseReport, advancedAudit, deepScanV1, deepScan };
 
     let scan;
     try {
