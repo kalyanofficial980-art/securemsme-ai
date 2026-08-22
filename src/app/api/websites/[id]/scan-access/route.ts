@@ -9,6 +9,7 @@ import {
 import { enforceRateLimit } from "@/lib/security/request-guard";
 import { safeFetchPublicUrl } from "@/lib/security/ssrf";
 import { createClient } from "@/lib/supabase/server";
+import { recordTrustedScanAccessTest } from "@/lib/trusted-server-writes";
 
 export const runtime = "nodejs";
 
@@ -40,6 +41,19 @@ async function loadOwnedWebsite(supabase: Awaited<ReturnType<typeof createClient
     .single();
 
   return website;
+}
+
+async function persistTestStatus(input: {
+  userId: string;
+  websiteId: string;
+  status: "verified" | "blocked" | "error";
+}) {
+  try {
+    await recordTrustedScanAccessTest(input);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export async function POST(
@@ -116,28 +130,40 @@ export async function POST(
       body,
     });
     const verified = response.status >= 200 && response.status < 300 && truth.truth === "verified";
-    const status = verified ? "verified" : response.status === 403 || response.status === 429 ? "blocked" : "error";
-
-    await supabase.rpc("record_scan_access_test_v1", {
-      p_website_id: website.id,
-      p_status: status,
+    const status: "verified" | "blocked" | "error" = verified
+      ? "verified"
+      : response.status === 403 || response.status === 429
+        ? "blocked"
+        : "error";
+    const statusPersisted = await persistTestStatus({
+      userId: user.id,
+      websiteId: website.id,
+      status,
     });
 
     return Response.json({
       verified,
       status,
       statusCode: response.status,
+      statusPersisted,
       reason: verified
         ? "Representative application response received with the configured Scan Access header."
         : truth.reason,
     });
   } catch {
-    await supabase.rpc("record_scan_access_test_v1", {
-      p_website_id: website.id,
-      p_status: "error",
+    const statusPersisted = await persistTestStatus({
+      userId: user.id,
+      websiteId: website.id,
+      status: "error",
     });
     return Response.json(
-      { verified: false, status: "error", statusCode: null, reason: "The scanner could not reach a representative public response with Scan Access." },
+      {
+        verified: false,
+        status: "error",
+        statusCode: null,
+        statusPersisted,
+        reason: "The scanner could not reach a representative public response with Scan Access.",
+      },
       { status: 200 },
     );
   }
