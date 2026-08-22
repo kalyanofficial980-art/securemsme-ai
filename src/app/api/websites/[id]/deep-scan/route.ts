@@ -11,6 +11,7 @@ import {
   isValidScanAccessToken,
   SCAN_ACCESS_HEADER,
 } from "@/lib/scan-access";
+import { runWithVerifiedScanAccess } from "@/lib/scan-access-context";
 import { applyReportTruthPolicy } from "@/lib/scan-truth-policy";
 import { scanWebsite } from "@/lib/scanner";
 import { calculateScore } from "@/lib/score";
@@ -144,11 +145,19 @@ export async function POST(
       await supabase.rpc("release_scan_quota_v1", { p_reservation_id: reservationId });
     };
 
-    const rawReport = await scanWebsite(website.url);
-    const [rawInbuiltAdvancedAudit, vulnerabilityIntelligence] = await Promise.all([
-      runInbuiltAdvancedAudit(rawReport.normalizedUrl),
-      runVulnerabilityIntelligence(rawReport.normalizedUrl),
-    ]);
+    const { rawReport, rawInbuiltAdvancedAudit, vulnerabilityIntelligence } =
+      await runWithVerifiedScanAccess({
+        targetUrl: website.url,
+        token: verifiedScanAccessToken,
+        task: async () => {
+          const rawReport = await scanWebsite(website.url);
+          const [rawInbuiltAdvancedAudit, vulnerabilityIntelligence] = await Promise.all([
+            runInbuiltAdvancedAudit(rawReport.normalizedUrl),
+            runVulnerabilityIntelligence(rawReport.normalizedUrl),
+          ]);
+          return { rawReport, rawInbuiltAdvancedAudit, vulnerabilityIntelligence };
+        },
+      });
     const normalizedReport = normalizeScanReport(rawReport, vulnerabilityIntelligence);
     const accuracyResult = await applyReportTruthPolicy(normalizedReport, rawInbuiltAdvancedAudit);
     const report = accuracyResult.report;
