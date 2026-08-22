@@ -1,6 +1,7 @@
 import http from "node:http";
 import https from "node:https";
 import net from "node:net";
+import { headersWithVerifiedScanAccess } from "@/lib/scan-access-context";
 
 export type PublicAddress = {
   address: string;
@@ -481,7 +482,7 @@ function createHeaders(
   url: URL,
   init?: RequestInit,
 ): Record<string, string> {
-  const inputHeaders = new Headers(init?.headers);
+  const inputHeaders = headersWithVerifiedScanAccess(url, init?.headers);
   const output: Record<string, string> = {};
 
   inputHeaders.forEach((value, key) => {
