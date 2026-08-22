@@ -1,6 +1,9 @@
+import { createHash } from "node:crypto";
 import http from "node:http";
 import https from "node:https";
 import net from "node:net";
+import { SCAN_ACCESS_HEADER } from "@/lib/scan-access";
+import { headersWithVerifiedScanAccess } from "@/lib/scan-access-context";
 
 export type PublicAddress = {
   address: string;
@@ -28,6 +31,14 @@ type DohProvider = {
   host: string;
   path: string;
   ips: readonly string[];
+};
+
+type RepresentativeObservation = {
+  expiresAt: number;
+  status: number;
+  statusText: string;
+  headers: Array<[string, string]>;
+  body: Buffer;
 };
 
 const BLOCKED_HOSTS = new Set([
@@ -62,6 +73,9 @@ const MAX_RESPONSE_BYTES = 1_000_000;
 const NETWORK_TIMEOUT_MS = 8_000;
 const DOH_TIMEOUT_MS = 4_000;
 const DNS_CACHE_TTL_MS = 30_000;
+const REPRESENTATIVE_OBSERVATION_TTL_MS = 90_000;
+const REPRESENTATIVE_OBSERVATION_MAX_BYTES = 80_000;
+const REPRESENTATIVE_OBSERVATION_MAX_ENTRIES = 64;
 
 const dnsCache = new Map<
   string,
@@ -72,6 +86,7 @@ const dnsCache = new Map<
 >();
 
 const dnsInFlight = new Map<string, Promise<PublicAddress[]>>();
+const representativeObservationCache = new Map<string, RepresentativeObservation>();
 
 function stripIpv6Brackets(hostname: string) {
   if (hostname.startsWith("[") && hostname.endsWith("]")) {
@@ -481,7 +496,7 @@ function createHeaders(
   url: URL,
   init?: RequestInit,
 ): Record<string, string> {
-  const inputHeaders = new Headers(init?.headers);
+  const inputHeaders = headersWithVerifiedScanAccess(url, init?.headers);
   const output: Record<string, string> = {};
 
   inputHeaders.forEach((value, key) => {
@@ -499,6 +514,85 @@ function createHeaders(
   output.host = url.host;
 
   return output;
+}
+
+function observationKey(url: URL, init?: RequestInit) {
+  const headers = headersWithVerifiedScanAccess(url, init?.headers);
+  const token = headers.get(SCAN_ACCESS_HEADER) || "";
+  const tokenScope = token
+    ? createHash("sha256").update(token).digest("hex").slice(0, 24)
+    : "public";
+  return `${url.toString()}|${tokenScope}`;
+}
+
+function isTruthVerificationRequest(init?: RequestInit) {
+  const userAgent = new Headers(init?.headers).get("user-agent") || "";
+  return (
+    userAgent.startsWith("VeyraSec-Truth-Verification/") ||
+    userAgent.startsWith("VeyraSec-DeepScan-TruthGate/")
+  );
+}
+
+function cachedRepresentativeObservation(url: URL, init?: RequestInit) {
+  if (!isTruthVerificationRequest(init)) return null;
+  const key = observationKey(url, init);
+  const cached = representativeObservationCache.get(key);
+  if (!cached) return null;
+  if (cached.expiresAt <= Date.now()) {
+    representativeObservationCache.delete(key);
+    return null;
+  }
+
+  const headers = new Headers(cached.headers);
+  headers.delete("content-length");
+  headers.delete("transfer-encoding");
+  headers.set("x-veyrasec-observation-reused", "initial-scan");
+
+  return new Response(Buffer.from(cached.body), {
+    status: cached.status,
+    statusText: cached.statusText,
+    headers,
+  });
+}
+
+async function rememberRepresentativeObservation(
+  url: URL,
+  init: RequestInit | undefined,
+  response: Response,
+) {
+  const method = (init?.method || "GET").toUpperCase();
+  if (method !== "GET" || response.status < 200 || response.status >= 300) return;
+
+  const contentType = response.headers.get("content-type") || "";
+  if (
+    contentType &&
+    !contentType.includes("text") &&
+    !contentType.includes("html") &&
+    !contentType.includes("json")
+  ) {
+    return;
+  }
+
+  const body = Buffer.from(await response.clone().arrayBuffer()).subarray(
+    0,
+    REPRESENTATIVE_OBSERVATION_MAX_BYTES,
+  );
+  const headers: Array<[string, string]> = [];
+  response.headers.forEach((value, key) => headers.push([key, value]));
+
+  representativeObservationCache.set(observationKey(url, init), {
+    expiresAt: Date.now() + REPRESENTATIVE_OBSERVATION_TTL_MS,
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+    body,
+  });
+
+  while (representativeObservationCache.size > REPRESENTATIVE_OBSERVATION_MAX_ENTRIES) {
+    const oldestKey = representativeObservationCache.keys().next().value as string | undefined;
+    if (!oldestKey) break;
+    representativeObservationCache.delete(oldestKey);
+  }
 }
 
 function requestPinnedAddress(
@@ -710,6 +804,9 @@ export async function safeFetchPublicUrl(
     const { url, addresses } =
       await resolvePublicHttpUrl(current);
 
+    const reused = cachedRepresentativeObservation(url, init);
+    if (reused) return reused;
+
     let response: Response | null = null;
     let lastError: Error | null = null;
 
@@ -748,6 +845,7 @@ export async function safeFetchPublicUrl(
       !isRedirectStatus(response.status) ||
       !location
     ) {
+      await rememberRepresentativeObservation(url, init, response);
       return response;
     }
 

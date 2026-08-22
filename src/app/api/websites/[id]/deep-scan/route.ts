@@ -108,10 +108,14 @@ export async function POST(
     if (!website.verification_token) {
       return Response.json({ error: "Ownership verification token is missing. Re-verify this website." }, { status: 403 });
     }
-    const freshVerification = await verifyWebsiteOwnership({
-      websiteUrl: website.url,
-      token: website.verification_token,
-      method: verificationMethod,
+    const freshVerification = await runWithVerifiedScanAccess({
+      targetUrl: website.url,
+      token: verifiedScanAccessToken,
+      task: () => verifyWebsiteOwnership({
+        websiteUrl: website.url,
+        token: website.verification_token,
+        method: verificationMethod,
+      }),
     });
     if (!freshVerification.verified) {
       await updateTrustedWebsiteVerification({
@@ -145,7 +149,7 @@ export async function POST(
       await supabase.rpc("release_scan_quota_v1", { p_reservation_id: reservationId });
     };
 
-    const { rawReport, rawInbuiltAdvancedAudit, vulnerabilityIntelligence } =
+    const { report, inbuiltAdvancedAudit, vulnerabilityIntelligence } =
       await runWithVerifiedScanAccess({
         targetUrl: website.url,
         token: verifiedScanAccessToken,
@@ -155,13 +159,15 @@ export async function POST(
             runInbuiltAdvancedAudit(rawReport.normalizedUrl),
             runVulnerabilityIntelligence(rawReport.normalizedUrl),
           ]);
-          return { rawReport, rawInbuiltAdvancedAudit, vulnerabilityIntelligence };
+          const normalizedReport = normalizeScanReport(rawReport, vulnerabilityIntelligence);
+          const accuracyResult = await applyReportTruthPolicy(normalizedReport, rawInbuiltAdvancedAudit);
+          return {
+            report: accuracyResult.report,
+            inbuiltAdvancedAudit: accuracyResult.inbuiltAdvancedAudit,
+            vulnerabilityIntelligence,
+          };
         },
       });
-    const normalizedReport = normalizeScanReport(rawReport, vulnerabilityIntelligence);
-    const accuracyResult = await applyReportTruthPolicy(normalizedReport, rawInbuiltAdvancedAudit);
-    const report = accuracyResult.report;
-    const inbuiltAdvancedAudit = accuracyResult.inbuiltAdvancedAudit;
     const scoreResult = calculateScore(report);
 
     const baseReport = {

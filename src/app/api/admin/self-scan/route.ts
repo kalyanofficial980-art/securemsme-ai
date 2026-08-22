@@ -53,7 +53,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "The VeyraSec production website is not registered to this admin account." }, { status: 409 });
     }
 
-    const { rawReport, rawInbuiltAdvancedAudit, vulnerabilityIntelligence } =
+    const { report, inbuiltAdvancedAudit, vulnerabilityIntelligence } =
       await runWithVerifiedScanAccess({
         targetUrl: ADMIN_SELF_SCAN_URL,
         token: scanAccessToken,
@@ -63,13 +63,15 @@ export async function POST(request: Request) {
             runInbuiltAdvancedAudit(rawReport.normalizedUrl),
             runVulnerabilityIntelligence(rawReport.normalizedUrl),
           ]);
-          return { rawReport, rawInbuiltAdvancedAudit, vulnerabilityIntelligence };
+          const normalizedPublicReport = normalizeScanReport(rawReport, vulnerabilityIntelligence);
+          const accuracyResult = await applyReportTruthPolicy(normalizedPublicReport, rawInbuiltAdvancedAudit);
+          return {
+            report: accuracyResult.report,
+            inbuiltAdvancedAudit: accuracyResult.inbuiltAdvancedAudit,
+            vulnerabilityIntelligence,
+          };
         },
       });
-    const normalizedPublicReport = normalizeScanReport(rawReport, vulnerabilityIntelligence);
-    const accuracyResult = await applyReportTruthPolicy(normalizedPublicReport, rawInbuiltAdvancedAudit);
-    const report = accuracyResult.report;
-    const inbuiltAdvancedAudit = accuracyResult.inbuiltAdvancedAudit;
     const scoreResult = calculateScore(report);
     const canonicalRiskLevel: "Low" | "Medium" | "High" =
       scoreResult.severityCounts.critical > 0 || scoreResult.severityCounts.high > 0

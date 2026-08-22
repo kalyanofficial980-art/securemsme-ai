@@ -75,6 +75,18 @@ function headerMap(headers: Headers) {
   return result;
 }
 
+function observedHomepageProbe(report: ScanReport): ProbeResult | null {
+  if (typeof report.raw.finalStatus !== "number") return null;
+  const headers = report.raw.headers || {};
+  return {
+    status: report.raw.finalStatus,
+    contentType: headers["content-type"] || null,
+    body: "",
+    headers,
+    location: headers.location || null,
+  };
+}
+
 async function probe(url: string): Promise<ProbeResult> {
   try {
     const response = await safeFetchPublicUrl(url, {
@@ -170,7 +182,8 @@ export async function applyReportTruthPolicy(
   const accuracy = await applyReportAccuracyPolicy(report, inbuiltAudit);
   const corrected = accuracy.report;
   const target = new URL(corrected.normalizedUrl);
-  const homeProbe = await probe(corrected.normalizedUrl);
+  const initialHomeProbe = observedHomepageProbe(corrected);
+  const homeProbe = initialHomeProbe || await probe(corrected.normalizedUrl);
   const homeTruth = classifyResponseTruth(homeProbe);
   let findings = corrected.findings.map((finding) =>
     defaultTruthForFinding(finding, homeTruth, target.hostname),
@@ -269,6 +282,7 @@ export async function applyReportTruthPolicy(
     notApplicable: findings.filter((finding) => finding.truth === "not-applicable").length,
     representativeHomepage: homeTruth.truth === "verified",
     homepageReason: homeTruth.reason,
+    homepageEvidenceSource: initialHomeProbe ? "initial-observation" : "fresh-probe",
     sensitivePathVerification: verifiedSensitiveRows.map((row) => ({
       path: row.path,
       status: row.status,
