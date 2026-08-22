@@ -5,8 +5,9 @@ import { normalizeAdvancedSecurityAudit } from "@/lib/advanced-audit-normalizati
 import { runDeepScanV1 } from "@/lib/deep-scan-v1";
 import { runInbuiltAdvancedAudit } from "@/lib/inbuilt-advanced-audit";
 import { normalizeScanReport } from "@/lib/report-normalization";
-import { applyReportTruthPolicy } from "@/lib/scan-truth-policy";
 import { buildRetestComparison } from "@/lib/retest-comparison";
+import { isValidScanAccessToken, SCAN_ACCESS_HEADER } from "@/lib/scan-access";
+import { applyReportTruthPolicy } from "@/lib/scan-truth-policy";
 import { scanWebsite } from "@/lib/scanner";
 import { calculateScore } from "@/lib/score";
 import { enforceRateLimit } from "@/lib/security/request-guard";
@@ -17,7 +18,10 @@ import { runVulnerabilityIntelligence } from "@/lib/vulnerability-intelligence";
 
 export const runtime = "nodejs";
 const ADMIN_SELF_SCAN_URL = "https://securemsme-ai-live.vercel.app";
-const requestSchema = z.object({ mode: z.enum(["normal", "retest", "deep"]) });
+const requestSchema = z.object({
+  mode: z.enum(["normal", "retest", "deep"]),
+  scanAccessToken: z.string().trim().max(120).optional(),
+});
 
 export async function POST(request: Request) {
   const rateLimited = enforceRateLimit(request, "admin-self-scan-api", 6, 60_000);
@@ -30,6 +34,13 @@ export async function POST(request: Request) {
     if (profile?.role !== "admin") return NextResponse.json({ error: "Admin access required." }, { status: 403 });
     const parsed = requestSchema.safeParse(await request.json().catch(() => ({})));
     if (!parsed.success) return NextResponse.json({ error: "Choose Normal, Retest, or Deep Scan." }, { status: 400 });
+
+    const scanAccessToken = parsed.data.mode === "deep" && parsed.data.scanAccessToken
+      ? parsed.data.scanAccessToken
+      : null;
+    if (scanAccessToken && !isValidScanAccessToken(scanAccessToken)) {
+      return NextResponse.json({ error: "Invalid Scan Access token format." }, { status: 400 });
+    }
 
     const { data: website } = await supabase
       .from("websites")
@@ -123,6 +134,7 @@ export async function POST(request: Request) {
           targetUrl: report.normalizedUrl,
           verifiedScope: true,
           permissionAccepted: true,
+          scanAccessToken,
           baseReport: { ...baseReport, advancedAudit },
         })
       : null;
@@ -146,6 +158,11 @@ export async function POST(request: Request) {
                 engine: deepScanV1.version,
                 engineStatus: deepScanV1.status,
                 coverageConfidence: deepScanV1.coverage.confidence,
+                scanAccess: {
+                  used: Boolean(scanAccessToken),
+                  headerName: SCAN_ACCESS_HEADER,
+                  rawTokenStored: false,
+                },
                 safeBoundary: deepScanV1.safeBoundary,
               },
             }

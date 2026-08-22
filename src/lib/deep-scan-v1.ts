@@ -3,6 +3,8 @@ import { runApiSecurityScanner } from "@/lib/api-security-scanner";
 import { runAuthorizedVulnerabilityScanner } from "@/lib/authorized-vulnerability-scanner";
 import { runAdvancedBrowserSecurityAnalyzer } from "@/lib/browser-security-analyzer";
 import { buildCveIntelligenceReport } from "@/lib/cve-intelligence";
+import { runWithVerifiedScanAccess } from "@/lib/scan-access-context";
+import { SCAN_ACCESS_HEADER, scanAccessHeaders } from "@/lib/scan-access";
 import { classifyResponseTruth } from "@/lib/scan-truth";
 import { safeFetchPublicUrl } from "@/lib/security/ssrf";
 
@@ -58,6 +60,12 @@ export type DeepScanV1Report = {
   authorized: boolean;
   safeMode: true;
   status: DeepScanV1EngineStatus;
+  scanAccess: {
+    used: boolean;
+    headerName: string;
+    rawTokenStored: false;
+    truthGateUsed: boolean;
+  };
   truthGate: {
     statusCode: number | null;
     truth: "verified" | "inconclusive" | "not-applicable";
@@ -127,6 +135,8 @@ export type DeepScanV1Report = {
 const SAFE_BOUNDARY = [
   "Verified public website scope only",
   "Representative response truth gate runs before advanced modules",
+  "Verified Scan Access header is scoped to the exact target origin",
+  "Raw Scan Access token is never serialized into the report",
   "Same-origin crawling only",
   "GET/HEAD observation only",
   "No form submission",
@@ -147,7 +157,7 @@ function toHeaderMap(headers: Headers) {
   return result;
 }
 
-async function verifyRepresentativeResponse(targetUrl: string) {
+async function verifyRepresentativeResponse(targetUrl: string, scanAccessToken?: string | null) {
   try {
     const response = await safeFetchPublicUrl(targetUrl, {
       method: "GET",
@@ -156,6 +166,7 @@ async function verifyRepresentativeResponse(targetUrl: string) {
       headers: {
         "User-Agent": "VeyraSec-DeepScan-TruthGate/1.0",
         Accept: "text/html,application/xhtml+xml,application/json,text/plain;q=0.9,*/*;q=0.5",
+        ...scanAccessHeaders(scanAccessToken),
       },
     });
     const contentType = response.headers.get("content-type") || "";
@@ -356,11 +367,18 @@ export async function runDeepScanV1(input: {
   targetUrl: string;
   verifiedScope: boolean;
   permissionAccepted: boolean;
+  scanAccessToken?: string | null;
   baseReport?: Record<string, unknown> | null;
 }): Promise<DeepScanV1Report> {
   const generatedAt = new Date().toISOString();
   const targetUrl = new URL(input.targetUrl).toString();
   const authorized = Boolean(input.verifiedScope && input.permissionAccepted);
+  const scanAccess = {
+    used: Boolean(input.scanAccessToken),
+    headerName: SCAN_ACCESS_HEADER,
+    rawTokenStored: false as const,
+    truthGateUsed: Boolean(input.scanAccessToken),
+  };
 
   if (!authorized) {
     const truthGate = {
@@ -387,6 +405,7 @@ export async function runDeepScanV1(input: {
       authorized: false,
       safeMode: true,
       status: "blocked",
+      scanAccess,
       truthGate,
       engineRuns: [],
       attackSurface: { pagesObserved: 0, routes: 0, apiEndpoints: 0, forms: 0, parameters: 0, scripts: 0, jsRoutes: 0, riskSignals: 0 },
@@ -404,7 +423,7 @@ export async function runDeepScanV1(input: {
     };
   }
 
-  const truthGate = await verifyRepresentativeResponse(targetUrl);
+  const truthGate = await verifyRepresentativeResponse(targetUrl, input.scanAccessToken);
   if (!truthGate.representativeResponse) {
     const coverage = buildOwaspCoverage({
       truthVerified: false,
@@ -417,6 +436,9 @@ export async function runDeepScanV1(input: {
       browserFindingCount: 0,
       attackSurfaceRiskSignals: 0,
     });
+    const accessGuidance = input.scanAccessToken
+      ? "A Verified Scan Access token was supplied, but the target still returned a non-representative response. Confirm the WAF rule matches the exact header and hostname."
+      : "If this site uses a WAF or bot challenge, configure Verified Scan Access and retest before relying on Deep coverage.";
     return {
       version: "deep-scan-v1",
       generatedAt,
@@ -424,6 +446,7 @@ export async function runDeepScanV1(input: {
       authorized: true,
       safeMode: true,
       status: "inconclusive",
+      scanAccess,
       truthGate,
       engineRuns: [
         { id: "truth-gate", label: "Representative response truth gate", status: "inconclusive", summary: truthGate.reason },
@@ -442,269 +465,276 @@ export async function runDeepScanV1(input: {
       owaspTop10Coverage: coverage,
       coverage: { assessed: 0, partial: 0, notAssessed: 0, inconclusive: 10, confidence: "inconclusive" },
       safeBoundary: SAFE_BOUNDARY,
-      customerSummary: "Deep Scan V1 could not obtain representative application evidence, so advanced modules were skipped instead of producing false vulnerabilities.",
-      developerSummary: truthGate.reason,
+      customerSummary: `Deep Scan V1 could not obtain representative application evidence, so advanced modules were skipped instead of producing false vulnerabilities. ${accessGuidance}`,
+      developerSummary: `${truthGate.reason} ${accessGuidance}`,
       canonicalScorePolicy: "Inconclusive Deep Scan evidence has zero canonical score penalty.",
     };
   }
 
-  let crawler: Awaited<ReturnType<typeof runAdvancedCrawlerEngine>> | null = null;
-  try {
-    crawler = await runAdvancedCrawlerEngine({ targetUrl, intensity: "light", verifiedScope: true });
-  } catch {
-    crawler = null;
-  }
-
-  const routeHints = (crawler?.pages || [])
-    .filter((page) => Boolean(page.statusCode && page.statusCode >= 200 && page.statusCode < 300))
-    .map((page) => page.url)
-    .filter((url) => url !== targetUrl)
-    .slice(0, 4);
-  const apiHints = (crawler?.items || [])
-    .filter((item) => item.itemType === "api-endpoint")
-    .map((item) => item.url)
-    .slice(0, 20);
-
-  const [apiSettled, browserSettled, authorizedSettled] = await Promise.allSettled([
-    runApiSecurityScanner({ targetUrl, intensity: "light", verifiedScope: true, attackSurfaceHints: apiHints }),
-    runAdvancedBrowserSecurityAnalyzer({ targetUrl, intensity: "light", verifiedScope: true, routeHints }),
-    runAuthorizedVulnerabilityScanner({ targetUrl, mode: "safe-standard", verifiedScope: true, permissionAccepted: true }),
-  ]);
-
-  const api = apiSettled.status === "fulfilled" ? apiSettled.value : null;
-  const browser = browserSettled.status === "fulfilled" ? browserSettled.value : null;
-  const authorizedReview = authorizedSettled.status === "fulfilled" ? authorizedSettled.value : null;
-
-  const cveIntelligence = buildCveIntelligenceReport({
-    websiteUrl: targetUrl,
-    report: {
-      ...(input.baseReport || {}),
-      deepAttackSurface: crawler || undefined,
-      deepApiSecurity: api || undefined,
-      deepBrowserSecurity: browser || undefined,
-      deepAuthorizedReview: authorizedReview || undefined,
-    },
-  });
-
-  const findings: DeepScanV1Finding[] = [];
-  const representativeBrowserUrls = new Set(
-    (browser?.pages || [])
-      .filter((page) => Boolean(page.statusCode && page.statusCode >= 200 && page.statusCode < 300))
-      .map((page) => page.url),
-  );
-
-  for (const finding of browser?.findings || []) {
-    const representativePage = representativeBrowserUrls.has(finding.affectedUrl);
-    const evidenceBacked = representativePage && finding.confidence === "High";
-    findings.push({
-      id: "",
-      source: "Browser Security",
-      title: finding.title,
-      category: finding.category,
-      severity: finding.severity,
-      confidence: representativePage ? finding.confidence : "Low",
-      falsePositiveRisk: evidenceBacked ? "Low" : "High",
-      status: evidenceBacked ? "evidence-backed" : "review-signal",
-      affectedUrl: finding.affectedUrl,
-      evidenceSummary: representativePage
-        ? finding.evidenceSummary
-        : `The browser module did not receive a representative 2xx response for this page. Treat the underlying signal as inconclusive: ${finding.evidenceSummary}`,
-      businessImpact: finding.businessImpact,
-      developerFix: finding.developerFix,
-      safeClaim: representativePage
-        ? finding.safeClaim
-        : "Can claim this route could not be verified reliably from the scanner vantage point.",
-      blockedClaim: representativePage
-        ? finding.blockedClaim
-        : "Do not claim a browser-security failure from a blocked, challenged, redirected, or otherwise non-representative route response.",
-      standards: standards(finding.standards),
-    });
-  }
-
-  for (const finding of authorizedReview?.findings || []) {
-    const evidenceBacked = finding.falsePositiveRisk === "Low" && ["Confirmed", "High"].includes(finding.confidence);
-    findings.push({
-      id: "",
-      source: "Authorized Vulnerability Review",
-      title: finding.title,
-      category: finding.bugCategory,
-      severity: finding.severity,
-      confidence: finding.confidence,
-      falsePositiveRisk: finding.falsePositiveRisk,
-      status: evidenceBacked ? "evidence-backed" : "review-signal",
-      affectedUrl: finding.affectedUrl,
-      evidenceSummary: finding.evidenceSummary,
-      businessImpact: finding.businessImpact,
-      developerFix: finding.developerFix,
-      safeClaim: finding.safeClaim,
-      blockedClaim: finding.blockedClaim,
-      standards: {},
-    });
-  }
-
-  for (const seed of crawler?.vulnerabilitySeeds || []) {
-    findings.push({
-      id: "",
-      source: "Attack Surface",
-      title: seed.title,
-      category: seed.category,
-      severity: seed.severity,
-      confidence: seed.confidence,
-      falsePositiveRisk: "Medium",
-      status: "review-signal",
-      affectedUrl: seed.affectedAssets?.[0],
-      evidenceSummary: seed.safeClaim,
-      businessImpact: seed.businessImpact,
-      developerFix: seed.developerFix,
-      safeClaim: seed.safeClaim,
-      blockedClaim: seed.blockedClaim,
-      standards: standards(seed.standards),
-    });
-  }
-
-  for (const seed of api?.vulnerabilitySeeds || []) {
-    findings.push({
-      id: "",
-      source: "API Security",
-      title: seed.title,
-      category: seed.category,
-      severity: seed.severity,
-      confidence: seed.confidence,
-      falsePositiveRisk: "Medium",
-      status: "review-signal",
-      affectedUrl: seed.affectedAssets?.[0],
-      evidenceSummary: seed.safeClaim,
-      businessImpact: seed.businessImpact,
-      developerFix: seed.developerFix,
-      safeClaim: seed.safeClaim,
-      blockedClaim: seed.blockedClaim,
-      standards: standards(seed.standards),
-    });
-  }
-
-  for (const insight of cveIntelligence.insights) {
-    findings.push({
-      id: "",
-      source: "Technology/CVE Intelligence",
-      title: insight.riskTitle,
-      category: insight.riskCategory,
-      severity: insight.severity,
-      confidence: insight.confidence,
-      falsePositiveRisk: insight.detectedVersion ? "Medium" : "High",
-      status: insight.detectedVersion ? "review-signal" : "informational",
-      evidenceSummary: insight.evidence.join(" · ") || "Technology signal observed.",
-      businessImpact: insight.customerExplanation,
-      developerFix: insight.developerRecommendation,
-      safeClaim: insight.safeClaim,
-      blockedClaim: insight.blockedClaim,
-      standards: {},
-    });
-  }
-
-  const dedupedFindings = dedupeFindings(findings);
-  const crawlerSummary = crawler?.summary;
-  const apiSummary = api?.summary;
-  const browserSummary = browser?.summary;
-  const authorizedCounts = authorizedReview?.counts;
-  const crawlerStatus = crawler ? engineStatus(crawler.crawlerStatus) : "failed";
-  const apiStatus = api ? engineStatus(api.scannerStatus) : "failed";
-  const browserStatus = browser ? engineStatus(browser.analyzerStatus) : "failed";
-  const authorizedStatus = authorizedReview ? engineStatus(authorizedReview.runStatus) : "failed";
-
-  const owaspTop10Coverage = buildOwaspCoverage({
-    truthVerified: true,
-    crawlerCompleted: crawlerStatus === "completed" || crawlerStatus === "completed-with-warnings",
-    apiCompleted: apiStatus === "completed" || apiStatus === "completed-with-warnings",
-    browserCompleted: browserStatus === "completed" || browserStatus === "completed-with-warnings",
-    authorizedCompleted: authorizedStatus === "completed" || authorizedStatus === "completed-with-warnings",
-    cveTechnologyCount: cveIntelligence.totalTechnologies,
-    apiEndpointCount: apiSummary?.endpointCount || 0,
-    browserFindingCount: browserSummary?.findingCount || 0,
-    attackSurfaceRiskSignals: crawlerSummary?.riskSignalCount || 0,
-  });
-
-  const coverageCounts = {
-    assessed: owaspTop10Coverage.filter((item) => item.status === "assessed").length,
-    partial: owaspTop10Coverage.filter((item) => item.status === "partial").length,
-    notAssessed: owaspTop10Coverage.filter((item) => item.status === "not-assessed").length,
-    inconclusive: owaspTop10Coverage.filter((item) => item.status === "inconclusive").length,
-  };
-
-  const statuses = [crawlerStatus, apiStatus, browserStatus, authorizedStatus];
-  const hasFailure = statuses.some((status) => status === "failed" || status === "blocked");
-  const hasWarning = statuses.some((status) => status === "completed-with-warnings" || status === "inconclusive");
-  const status: DeepScanV1EngineStatus = hasFailure || hasWarning ? "completed-with-warnings" : "completed";
-  const coverageConfidence = hasFailure ? "limited" : "good";
-
-  return {
-    version: "deep-scan-v1",
-    generatedAt,
+  return runWithVerifiedScanAccess({
     targetUrl,
-    authorized: true,
-    safeMode: true,
-    status,
-    truthGate,
-    engineRuns: [
-      { id: "truth-gate", label: "Representative response truth gate", status: "completed", summary: truthGate.reason },
-      { id: "attack-surface", label: "Attack Surface", status: crawlerStatus, summary: crawlerSummary?.customerSummary || "Attack Surface engine did not complete." },
-      { id: "api-security", label: "API Security", status: apiStatus, summary: apiSummary?.customerSummary || "API Security engine did not complete." },
-      { id: "browser-security", label: "Browser Security", status: browserStatus, summary: browserSummary?.customerSummary || "Browser Security engine did not complete." },
-      { id: "authorized-review", label: "Authorized Vulnerability Review", status: authorizedStatus, summary: authorizedReview?.safeSummary || "Authorized review did not complete." },
-      { id: "cve-intelligence", label: "Technology/CVE Intelligence", status: "completed", summary: cveIntelligence.customerSummary },
-    ],
-    attackSurface: {
-      pagesObserved: crawler?.pages.length || 0,
-      routes: crawlerSummary?.routeCount || 0,
-      apiEndpoints: crawlerSummary?.apiEndpointCount || 0,
-      forms: crawlerSummary?.formCount || 0,
-      parameters: crawlerSummary?.parameterCount || 0,
-      scripts: crawlerSummary?.scriptCount || 0,
-      jsRoutes: crawlerSummary?.jsRouteCount || 0,
-      riskSignals: crawlerSummary?.riskSignalCount || 0,
+    token: input.scanAccessToken,
+    task: async () => {
+      let crawler: Awaited<ReturnType<typeof runAdvancedCrawlerEngine>> | null = null;
+      try {
+        crawler = await runAdvancedCrawlerEngine({ targetUrl, intensity: "light", verifiedScope: true });
+      } catch {
+        crawler = null;
+      }
+
+      const routeHints = (crawler?.pages || [])
+        .filter((page) => Boolean(page.statusCode && page.statusCode >= 200 && page.statusCode < 300))
+        .map((page) => page.url)
+        .filter((url) => url !== targetUrl)
+        .slice(0, 4);
+      const apiHints = (crawler?.items || [])
+        .filter((item) => item.itemType === "api-endpoint")
+        .map((item) => item.url)
+        .slice(0, 20);
+
+      const [apiSettled, browserSettled, authorizedSettled] = await Promise.allSettled([
+        runApiSecurityScanner({ targetUrl, intensity: "light", verifiedScope: true, attackSurfaceHints: apiHints }),
+        runAdvancedBrowserSecurityAnalyzer({ targetUrl, intensity: "light", verifiedScope: true, routeHints }),
+        runAuthorizedVulnerabilityScanner({ targetUrl, mode: "safe-standard", verifiedScope: true, permissionAccepted: true }),
+      ]);
+
+      const api = apiSettled.status === "fulfilled" ? apiSettled.value : null;
+      const browser = browserSettled.status === "fulfilled" ? browserSettled.value : null;
+      const authorizedReview = authorizedSettled.status === "fulfilled" ? authorizedSettled.value : null;
+
+      const cveIntelligence = buildCveIntelligenceReport({
+        websiteUrl: targetUrl,
+        report: {
+          ...(input.baseReport || {}),
+          deepAttackSurface: crawler || undefined,
+          deepApiSecurity: api || undefined,
+          deepBrowserSecurity: browser || undefined,
+          deepAuthorizedReview: authorizedReview || undefined,
+        },
+      });
+
+      const findings: DeepScanV1Finding[] = [];
+      const representativeBrowserUrls = new Set(
+        (browser?.pages || [])
+          .filter((page) => Boolean(page.statusCode && page.statusCode >= 200 && page.statusCode < 300))
+          .map((page) => page.url),
+      );
+
+      for (const finding of browser?.findings || []) {
+        const representativePage = representativeBrowserUrls.has(finding.affectedUrl);
+        const evidenceBacked = representativePage && finding.confidence === "High";
+        findings.push({
+          id: "",
+          source: "Browser Security",
+          title: finding.title,
+          category: finding.category,
+          severity: finding.severity,
+          confidence: representativePage ? finding.confidence : "Low",
+          falsePositiveRisk: evidenceBacked ? "Low" : "High",
+          status: evidenceBacked ? "evidence-backed" : "review-signal",
+          affectedUrl: finding.affectedUrl,
+          evidenceSummary: representativePage
+            ? finding.evidenceSummary
+            : `The browser module did not receive a representative 2xx response for this page. Treat the underlying signal as inconclusive: ${finding.evidenceSummary}`,
+          businessImpact: finding.businessImpact,
+          developerFix: finding.developerFix,
+          safeClaim: representativePage
+            ? finding.safeClaim
+            : "Can claim this route could not be verified reliably from the scanner vantage point.",
+          blockedClaim: representativePage
+            ? finding.blockedClaim
+            : "Do not claim a browser-security failure from a blocked, challenged, redirected, or otherwise non-representative route response.",
+          standards: standards(finding.standards),
+        });
+      }
+
+      for (const finding of authorizedReview?.findings || []) {
+        const evidenceBacked = finding.falsePositiveRisk === "Low" && ["Confirmed", "High"].includes(finding.confidence);
+        findings.push({
+          id: "",
+          source: "Authorized Vulnerability Review",
+          title: finding.title,
+          category: finding.bugCategory,
+          severity: finding.severity,
+          confidence: finding.confidence,
+          falsePositiveRisk: finding.falsePositiveRisk,
+          status: evidenceBacked ? "evidence-backed" : "review-signal",
+          affectedUrl: finding.affectedUrl,
+          evidenceSummary: finding.evidenceSummary,
+          businessImpact: finding.businessImpact,
+          developerFix: finding.developerFix,
+          safeClaim: finding.safeClaim,
+          blockedClaim: finding.blockedClaim,
+          standards: {},
+        });
+      }
+
+      for (const seed of crawler?.vulnerabilitySeeds || []) {
+        findings.push({
+          id: "",
+          source: "Attack Surface",
+          title: seed.title,
+          category: seed.category,
+          severity: seed.severity,
+          confidence: seed.confidence,
+          falsePositiveRisk: "Medium",
+          status: "review-signal",
+          affectedUrl: seed.affectedAssets?.[0],
+          evidenceSummary: seed.safeClaim,
+          businessImpact: seed.businessImpact,
+          developerFix: seed.developerFix,
+          safeClaim: seed.safeClaim,
+          blockedClaim: seed.blockedClaim,
+          standards: standards(seed.standards),
+        });
+      }
+
+      for (const seed of api?.vulnerabilitySeeds || []) {
+        findings.push({
+          id: "",
+          source: "API Security",
+          title: seed.title,
+          category: seed.category,
+          severity: seed.severity,
+          confidence: seed.confidence,
+          falsePositiveRisk: "Medium",
+          status: "review-signal",
+          affectedUrl: seed.affectedAssets?.[0],
+          evidenceSummary: seed.safeClaim,
+          businessImpact: seed.businessImpact,
+          developerFix: seed.developerFix,
+          safeClaim: seed.safeClaim,
+          blockedClaim: seed.blockedClaim,
+          standards: standards(seed.standards),
+        });
+      }
+
+      for (const insight of cveIntelligence.insights) {
+        findings.push({
+          id: "",
+          source: "Technology/CVE Intelligence",
+          title: insight.riskTitle,
+          category: insight.riskCategory,
+          severity: insight.severity,
+          confidence: insight.confidence,
+          falsePositiveRisk: insight.detectedVersion ? "Medium" : "High",
+          status: insight.detectedVersion ? "review-signal" : "informational",
+          evidenceSummary: insight.evidence.join(" · ") || "Technology signal observed.",
+          businessImpact: insight.customerExplanation,
+          developerFix: insight.developerRecommendation,
+          safeClaim: insight.safeClaim,
+          blockedClaim: insight.blockedClaim,
+          standards: {},
+        });
+      }
+
+      const dedupedFindings = dedupeFindings(findings);
+      const crawlerSummary = crawler?.summary;
+      const apiSummary = api?.summary;
+      const browserSummary = browser?.summary;
+      const authorizedCounts = authorizedReview?.counts;
+      const crawlerStatus = crawler ? engineStatus(crawler.crawlerStatus) : "failed";
+      const apiStatus = api ? engineStatus(api.scannerStatus) : "failed";
+      const browserStatus = browser ? engineStatus(browser.analyzerStatus) : "failed";
+      const authorizedStatus = authorizedReview ? engineStatus(authorizedReview.runStatus) : "failed";
+
+      const owaspTop10Coverage = buildOwaspCoverage({
+        truthVerified: true,
+        crawlerCompleted: crawlerStatus === "completed" || crawlerStatus === "completed-with-warnings",
+        apiCompleted: apiStatus === "completed" || apiStatus === "completed-with-warnings",
+        browserCompleted: browserStatus === "completed" || browserStatus === "completed-with-warnings",
+        authorizedCompleted: authorizedStatus === "completed" || authorizedStatus === "completed-with-warnings",
+        cveTechnologyCount: cveIntelligence.totalTechnologies,
+        apiEndpointCount: apiSummary?.endpointCount || 0,
+        browserFindingCount: browserSummary?.findingCount || 0,
+        attackSurfaceRiskSignals: crawlerSummary?.riskSignalCount || 0,
+      });
+
+      const coverageCounts = {
+        assessed: owaspTop10Coverage.filter((item) => item.status === "assessed").length,
+        partial: owaspTop10Coverage.filter((item) => item.status === "partial").length,
+        notAssessed: owaspTop10Coverage.filter((item) => item.status === "not-assessed").length,
+        inconclusive: owaspTop10Coverage.filter((item) => item.status === "inconclusive").length,
+      };
+
+      const statuses = [crawlerStatus, apiStatus, browserStatus, authorizedStatus];
+      const hasFailure = statuses.some((status) => status === "failed" || status === "blocked");
+      const hasWarning = statuses.some((status) => status === "completed-with-warnings" || status === "inconclusive");
+      const status: DeepScanV1EngineStatus = hasFailure || hasWarning ? "completed-with-warnings" : "completed";
+      const coverageConfidence = hasFailure ? "limited" : "good";
+
+      return {
+        version: "deep-scan-v1" as const,
+        generatedAt,
+        targetUrl,
+        authorized: true,
+        safeMode: true as const,
+        status,
+        scanAccess,
+        truthGate,
+        engineRuns: [
+          { id: "truth-gate", label: "Representative response truth gate", status: "completed" as const, summary: input.scanAccessToken ? `${truthGate.reason} Verified Scan Access was used for the target origin.` : truthGate.reason },
+          { id: "attack-surface", label: "Attack Surface", status: crawlerStatus, summary: crawlerSummary?.customerSummary || "Attack Surface engine did not complete." },
+          { id: "api-security", label: "API Security", status: apiStatus, summary: apiSummary?.customerSummary || "API Security engine did not complete." },
+          { id: "browser-security", label: "Browser Security", status: browserStatus, summary: browserSummary?.customerSummary || "Browser Security engine did not complete." },
+          { id: "authorized-review", label: "Authorized Vulnerability Review", status: authorizedStatus, summary: authorizedReview?.safeSummary || "Authorized review did not complete." },
+          { id: "cve-intelligence", label: "Technology/CVE Intelligence", status: "completed" as const, summary: cveIntelligence.customerSummary },
+        ],
+        attackSurface: {
+          pagesObserved: crawler?.pages.length || 0,
+          routes: crawlerSummary?.routeCount || 0,
+          apiEndpoints: crawlerSummary?.apiEndpointCount || 0,
+          forms: crawlerSummary?.formCount || 0,
+          parameters: crawlerSummary?.parameterCount || 0,
+          scripts: crawlerSummary?.scriptCount || 0,
+          jsRoutes: crawlerSummary?.jsRouteCount || 0,
+          riskSignals: crawlerSummary?.riskSignalCount || 0,
+        },
+        apiSecurity: {
+          documents: apiSummary?.documentCount || 0,
+          endpoints: apiSummary?.endpointCount || 0,
+          getEndpoints: apiSummary?.getEndpointCount || 0,
+          mutationMethodsInventoried: apiSummary?.mutationMethodCount || 0,
+          authUnknown: apiSummary?.authUnknownCount || 0,
+          sensitivePaths: apiSummary?.sensitivePathCount || 0,
+          riskSignals: apiSummary?.apiRiskSignalCount || 0,
+          mutationMethodsExecuted: 0 as const,
+        },
+        browserSecurity: {
+          pagesObserved: browserSummary?.pageCount || 0,
+          score: typeof browserSummary?.browserSecurityScore === "number" ? browserSummary.browserSecurityScore : null,
+          findings: browserSummary?.findingCount || 0,
+          highRiskSignals: browserSummary?.highRiskCount || 0,
+          cspFindings: browserSummary?.cspFindingCount || 0,
+          corsFindings: browserSummary?.corsFindingCount || 0,
+          cookieFindings: browserSummary?.cookieFindingCount || 0,
+          mixedContentFindings: browserSummary?.mixedContentCount || 0,
+        },
+        authorizedReview: {
+          findings: authorizedCounts?.total || 0,
+          critical: authorizedCounts?.critical || 0,
+          high: authorizedCounts?.high || 0,
+          medium: authorizedCounts?.medium || 0,
+          low: authorizedCounts?.low || 0,
+          runStatus: authorizedStatus,
+        },
+        cveIntelligence,
+        findings: dedupedFindings,
+        owaspTop10Coverage,
+        coverage: {
+          ...coverageCounts,
+          confidence: coverageConfidence,
+        },
+        safeBoundary: SAFE_BOUNDARY,
+        customerSummary:
+          status === "completed"
+            ? `Deep Scan V1 completed multiple safe evidence engines after verifying a representative public response.${input.scanAccessToken ? " Verified Scan Access was active for the exact target origin." : ""} Findings are separated into evidence-backed observations, review signals and informational technology context.`
+            : "Deep Scan V1 completed with limited module coverage. Failed or uncertain modules did not create pass/fail claims outside their evidence.",
+        developerSummary:
+          "Prioritize evidence-backed observations first, then review API/attack-surface signals. OWASP coverage is explicit about partial and unassessed areas rather than presenting unsupported PASS claims.",
+        canonicalScorePolicy:
+          "Deep Scan V1 evidence is supporting diagnostic coverage and does not silently modify the canonical Security Score. Only the canonical truth-calibrated scanner controls that score.",
+      } satisfies DeepScanV1Report;
     },
-    apiSecurity: {
-      documents: apiSummary?.documentCount || 0,
-      endpoints: apiSummary?.endpointCount || 0,
-      getEndpoints: apiSummary?.getEndpointCount || 0,
-      mutationMethodsInventoried: apiSummary?.mutationMethodCount || 0,
-      authUnknown: apiSummary?.authUnknownCount || 0,
-      sensitivePaths: apiSummary?.sensitivePathCount || 0,
-      riskSignals: apiSummary?.apiRiskSignalCount || 0,
-      mutationMethodsExecuted: 0,
-    },
-    browserSecurity: {
-      pagesObserved: browserSummary?.pageCount || 0,
-      score: typeof browserSummary?.browserSecurityScore === "number" ? browserSummary.browserSecurityScore : null,
-      findings: browserSummary?.findingCount || 0,
-      highRiskSignals: browserSummary?.highRiskCount || 0,
-      cspFindings: browserSummary?.cspFindingCount || 0,
-      corsFindings: browserSummary?.corsFindingCount || 0,
-      cookieFindings: browserSummary?.cookieFindingCount || 0,
-      mixedContentFindings: browserSummary?.mixedContentCount || 0,
-    },
-    authorizedReview: {
-      findings: authorizedCounts?.total || 0,
-      critical: authorizedCounts?.critical || 0,
-      high: authorizedCounts?.high || 0,
-      medium: authorizedCounts?.medium || 0,
-      low: authorizedCounts?.low || 0,
-      runStatus: authorizedStatus,
-    },
-    cveIntelligence,
-    findings: dedupedFindings,
-    owaspTop10Coverage,
-    coverage: {
-      ...coverageCounts,
-      confidence: coverageConfidence,
-    },
-    safeBoundary: SAFE_BOUNDARY,
-    customerSummary:
-      status === "completed"
-        ? "Deep Scan V1 completed multiple safe evidence engines after verifying a representative public response. Findings are separated into evidence-backed observations, review signals and informational technology context."
-        : "Deep Scan V1 completed with limited module coverage. Failed or uncertain modules did not create pass/fail claims outside their evidence.",
-    developerSummary:
-      "Prioritize evidence-backed observations first, then review API/attack-surface signals. OWASP coverage is explicit about partial and unassessed areas rather than presenting unsupported PASS claims.",
-    canonicalScorePolicy:
-      "Deep Scan V1 evidence is supporting diagnostic coverage and does not silently modify the canonical Security Score. Only the canonical truth-calibrated scanner controls that score.",
-  };
+  });
 }

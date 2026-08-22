@@ -16,8 +16,25 @@ describe("Deep Scan V1 truth and coverage", () => {
     expect(report.status).toBe("blocked");
     expect(report.authorized).toBe(false);
     expect(report.findings).toHaveLength(0);
+    expect(report.scanAccess.used).toBe(false);
+    expect(report.scanAccess.rawTokenStored).toBe(false);
     expect(report.owaspTop10Coverage).toHaveLength(10);
     expect(report.owaspTop10Coverage.every((item) => item.status === "inconclusive")).toBe(true);
+  });
+
+  it("never serializes a supplied Scan Access raw token into report evidence", async () => {
+    const token = `vyscan_${"A".repeat(43)}`;
+    const report = await runDeepScanV1({
+      targetUrl: "https://example.com",
+      verifiedScope: false,
+      permissionAccepted: true,
+      scanAccessToken: token,
+      baseReport: {},
+    });
+
+    expect(report.scanAccess.used).toBe(true);
+    expect(report.scanAccess.rawTokenStored).toBe(false);
+    expect(JSON.stringify(report)).not.toContain(token);
   });
 
   it("never presents injection or SSRF as pass from safe public coverage", () => {
