@@ -174,14 +174,23 @@ function enhanceFindings(findings: ScanFinding[]): EnhancedFinding[] {
     const category = getCategory(finding);
     const truth = getTruth(finding);
     const scoreScope = SUPPLEMENTAL_CATEGORIES.has(category) ? "supplemental" : "security";
+    const normalizedFinding: ScanFinding =
+      truth === "inconclusive"
+        ? {
+            ...finding,
+            status: "warning",
+            message: `${finding.name} could not be verified from a representative application response. No score penalty was applied.`,
+          }
+        : finding;
+
     return {
-      ...finding,
+      ...normalizedFinding,
       category,
       truth,
       scoreScope,
-      severity: getSeverity(finding, truth),
-      businessImpact: getBusinessImpact(finding, truth),
-      fixRecommendation: getFixRecommendation(finding, truth),
+      severity: getSeverity(normalizedFinding, truth),
+      businessImpact: getBusinessImpact(normalizedFinding, truth),
+      fixRecommendation: getFixRecommendation(normalizedFinding, truth),
     };
   });
 }
