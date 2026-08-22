@@ -28,6 +28,27 @@ function requestUrl(input: RequestInfo | URL) {
   }
 }
 
+export function headersWithVerifiedScanAccess(
+  input: string | URL,
+  headers?: HeadersInit,
+) {
+  const output = new Headers(headers);
+  const context = storage.getStore();
+
+  let url: URL | null = null;
+  try {
+    url = input instanceof URL ? input : new URL(input);
+  } catch {
+    url = null;
+  }
+
+  if (context && url && url.origin === context.origin) {
+    output.set(SCAN_ACCESS_HEADER, context.token);
+  }
+
+  return output;
+}
+
 function installFetchPatch() {
   if (globalState.__veyraScanAccessFetchPatched) return;
 
@@ -35,16 +56,15 @@ function installFetchPatch() {
   globalState.__veyraOriginalFetch = originalFetch;
 
   globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
-    const context = storage.getStore();
     const url = requestUrl(input);
 
-    if (!context || !url || url.origin !== context.origin) {
+    if (!url) {
       return originalFetch(input, init);
     }
 
-    const headers = new Headers(input instanceof Request ? input.headers : undefined);
-    new Headers(init?.headers).forEach((value, key) => headers.set(key, value));
-    headers.set(SCAN_ACCESS_HEADER, context.token);
+    const baseHeaders = new Headers(input instanceof Request ? input.headers : undefined);
+    new Headers(init?.headers).forEach((value, key) => baseHeaders.set(key, value));
+    const headers = headersWithVerifiedScanAccess(url, baseHeaders);
 
     return originalFetch(input, { ...init, headers });
   };
