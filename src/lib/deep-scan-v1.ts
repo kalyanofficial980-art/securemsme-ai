@@ -487,23 +487,36 @@ export async function runDeepScanV1(input: {
   });
 
   const findings: DeepScanV1Finding[] = [];
+  const representativeBrowserUrls = new Set(
+    (browser?.pages || [])
+      .filter((page) => Boolean(page.statusCode && page.statusCode >= 200 && page.statusCode < 300))
+      .map((page) => page.url),
+  );
 
   for (const finding of browser?.findings || []) {
+    const representativePage = representativeBrowserUrls.has(finding.affectedUrl);
+    const evidenceBacked = representativePage && finding.confidence === "High";
     findings.push({
       id: "",
       source: "Browser Security",
       title: finding.title,
       category: finding.category,
       severity: finding.severity,
-      confidence: finding.confidence,
-      falsePositiveRisk: finding.confidence === "High" ? "Low" : "Medium",
-      status: finding.confidence === "High" ? "evidence-backed" : "review-signal",
+      confidence: representativePage ? finding.confidence : "Low",
+      falsePositiveRisk: evidenceBacked ? "Low" : "High",
+      status: evidenceBacked ? "evidence-backed" : "review-signal",
       affectedUrl: finding.affectedUrl,
-      evidenceSummary: finding.evidenceSummary,
+      evidenceSummary: representativePage
+        ? finding.evidenceSummary
+        : `The browser module did not receive a representative 2xx response for this page. Treat the underlying signal as inconclusive: ${finding.evidenceSummary}`,
       businessImpact: finding.businessImpact,
       developerFix: finding.developerFix,
-      safeClaim: finding.safeClaim,
-      blockedClaim: finding.blockedClaim,
+      safeClaim: representativePage
+        ? finding.safeClaim
+        : "Can claim this route could not be verified reliably from the scanner vantage point.",
+      blockedClaim: representativePage
+        ? finding.blockedClaim
+        : "Do not claim a browser-security failure from a blocked, challenged, redirected, or otherwise non-representative route response.",
       standards: standards(finding.standards),
     });
   }
